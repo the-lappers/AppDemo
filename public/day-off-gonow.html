@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off · Go now</title>
+<meta name="theme-color" content="#FFD93B">
+<script>
+(function(){var p="system";try{p=localStorage.getItem("dayoff-theme")||"system";}catch(e){}
+if(!/^(light|dark|system)$/.test(p))p="system";
+var d=p==="dark"||(p==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themePref=p;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+/* GO NOW: the day itself. Built for bright sun, one hand and no patience: one giant next step, three buttons. */
+:root{--bg:#FFD93B;--surface:#F5C920;--card:#FFFFFF;--line:#111111;--track:#BFA21A;--ink:#111111;--ink-2:#4A4320;--accent:#111111;--accent-d:#2A2A2A;--on-accent:#FFD93B;--pill:#111111;--on-pill:#FFD93B;--gold:#111111;--on-gold:#FFD93B;--gold-soft:#FFF3B0;--warn:#B3261E;--done:#6B6540}
+:root[data-theme="dark"]{--bg:#0B0B0B;--surface:#161616;--card:#1B1B1B;--line:#FFD93B;--track:#4A4320;--ink:#FFF7D1;--ink-2:#CFC48A;--accent:#FFD93B;--accent-d:#FFE680;--on-accent:#111111;--pill:#FFD93B;--on-pill:#111111;--gold:#FFD93B;--on-gold:#111111;--gold-soft:#2A2410;--warn:#FF8C80;--done:#9A9366}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.header{background:var(--bg);border-bottom:3px solid var(--line)}
+.header .seg,.header .theme-cycle{background:rgba(0,0,0,.1)}
+:root[data-theme="dark"] .header .seg,:root[data-theme="dark"] .header .theme-cycle{background:#1B1B1B}
+.vbtn{border-color:var(--line);background:var(--card)}
+.brand-mark rect.f{fill:var(--ink)}.brand-mark g{fill:var(--bg)}.brand-mark circle{fill:var(--on-accent)}
+:root:not([data-theme="dark"]) .brand-mark circle{fill:#C93520}
+.app{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.app{grid-template-columns:minmax(0,1fr) minmax(0,46%)}}
+.main{min-height:0;overflow:auto;padding:var(--s4) var(--gutter) var(--s6)}
+.col{max-width:520px;margin:0 auto;display:grid;gap:var(--s4)}
+.mapbox2{position:relative;display:none;border-left:3px solid var(--line)}
+#map{position:absolute;inset:0}
+@media (min-width:900px){.mapbox2{display:block}}
+.mapin{display:block;position:relative;height:220px;border:3px solid var(--line);border-radius:20px;overflow:hidden}
+@media (min-width:900px){.mapin{display:none}}
+.mapin[hidden]{display:none}
+/* progress */
+.prog{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);font-weight:600}
+.pips{display:flex;gap:6px}.pips i{width:26px;height:10px;border-radius:5px;border:2px solid var(--line);background:transparent}.pips i.d{background:var(--ink)}.pips i.c{background:var(--card)}
+.clock{font:500 18px var(--f-head);font-variant-numeric:tabular-nums}
+/* hero */
+.lab{font:500 14px var(--f-body);letter-spacing:.01em;font-weight:600}
+.big{font:500 clamp(84px,24vw,132px)/.95 var(--f-head);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.big small{font:500 28px var(--f-head);letter-spacing:0;margin-left:6px}
+.card{background:var(--card);border:3px solid var(--line);border-radius:24px;padding:var(--s5);display:grid;gap:var(--s3);box-shadow:6px 6px 0 var(--line)}
+.card h1{font-size:clamp(28px,7vw,36px);line-height:1.15}
+.facts{display:flex;flex-wrap:wrap;gap:8px}
+.fact{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:999px;border:2px solid var(--line);font-weight:600;font-size:13px}
+.fact.warn{border-color:var(--warn);color:var(--warn)}
+.go{display:grid;gap:var(--s2)}
+.bigbtn{min-height:68px;border-radius:20px;border:3px solid var(--line);background:var(--accent);color:var(--on-accent);font:500 22px/1 var(--f-head);display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;box-shadow:4px 4px 0 var(--line);transition:transform 120ms var(--ease),box-shadow 120ms}
+.bigbtn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--line)}
+.bigbtn .ico{width:26px;height:26px}
+.bigbtn.alt{background:var(--card);color:var(--ink)}
+.trio{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
+.sm{min-height:56px;border-radius:16px;border:3px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+.sm:active{transform:translate(2px,2px)}
+.sm[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.need{display:grid;gap:var(--s2)}
+.need .row{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2)}
+.need .sm{min-height:52px;font-size:14px}
+.sec{font-weight:600;font-size:14px}
+.list{display:grid;gap:6px}
+.li{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:2px solid var(--line);border-radius:14px;background:var(--card)}
+.li time{font:500 15px var(--f-head);font-variant-numeric:tabular-nums}
+.li.done{opacity:.55}.li.done b{text-decoration:line-through}
+.li.cur{background:var(--gold-soft);border-width:3px}
+details.d summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;font-weight:600;border:3px solid var(--line);border-radius:16px;padding:0 var(--s4);background:var(--card);list-style:none}
+details.d summary::-webkit-details-marker{display:none}
+details.d[open] summary{margin-bottom:var(--s2)}
+/* start */
+.start h1{font-size:clamp(34px,9vw,48px);line-height:1.05}
+.start p{margin:var(--s3) 0 var(--s4)}
+.pick{display:grid;gap:var(--s3)}
+.pk{min-height:72px;text-align:left;border:3px solid var(--line);border-radius:20px;background:var(--card);padding:var(--s3) var(--s4);display:grid;grid-template-columns:36px 1fr;gap:var(--s3);align-items:center;box-shadow:4px 4px 0 var(--line)}
+.pk:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--line)}
+.pk b{font:500 19px/1.2 var(--f-head);display:block}.pk small{color:var(--ink-2)}
+.pk .ico{width:30px;height:30px}
+.recap h1{font-size:36px;line-height:1.1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);text-align:center}
+.stats div{border:3px solid var(--line);border-radius:16px;padding:10px 4px;background:var(--card)}.stats b{display:block;font:500 28px var(--f-head)}
+.demo-note{color:var(--ink-2)}
+.lnk{font-weight:600;text-underline-offset:3px}
+</style>
+</head>
+<body>
+<header class="header" id="hdr"></header>
+<div class="app">
+  <main class="main" id="main"><div class="col" id="col"></div></main>
+  <aside class="mapbox2"><div id="map" role="region"></div></aside>
+</div>
+<script src="env.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/sprite.js"></script>
+<script src="shared/ui.js"></script>
+<script src="shared/map.js"></script>
+<script>
+addStrings({
+ h1:"What is today's mood?",sub:"Pick one. You get a short day you can follow, one step at a time.",
+ m_slow:"Slow and old",m_slowD:"Cafés, shrines, quiet corners",m_eat:"Eat everything",m_eatD:"Street food and noodles",m_art:"Art and calm",m_artD:"Galleries, temples, a river view",
+ sample:"Try a day already in progress",demo:"Demo clock and position: you start at Hua Lamphong MRT.",
+ next:"Next stop",leave:"Leave in",min:"min",now:"NOW",walkN:"{n} min walk",stayN:"stay {n}",openUntil:"open until {t}",opensAt:"opens {t}, wait {n} min",
+ go:"Go, open the route",here:"I am here",done:"Done, next stop",skip:"Skip this one",late:"Running late +15",lateOn:"Late by {n} min",
+ need:"Need something else?",hungry:"Hungry",hot:"Too hot",tired:"Tired",
+ swapT:"Swapped in {name}",swapNone:"Nothing open and close enough for that right now.",
+ whole:"Whole day",stayUntil:"Enjoy it. Plan to leave at {t}.",showMap:"Show map",hideMap:"Hide map",
+ recap:"Day done",recapD:"You finished {n} stops. Nice day off.",stops:"Stops",walked:"Walked",endsAt:"Finished",copy:"Copy recap",copied:"Recap copied",again:"Plan another day",
+ skipped:"Skipped {name}",undone:"Back on the plan",noMore:"No more stops that fit today.",
+ stepN:"Stop {a} of {b}",navNote:"Opens your maps app with the walking route",dropped:"{n} stop(s) no longer fit and were dropped",nowIs:"Now {t}"
+},{
+ h1:"วันนี้อารมณ์ไหน?",sub:"เลือกหนึ่งอย่าง แล้วได้แผนสั้น ๆ ที่เดินตามได้ทีละจุด",
+ m_slow:"ช้า ๆ ย่านเก่า",m_slowD:"คาเฟ่ ศาลเจ้า มุมเงียบ",m_eat:"กินให้หมด",m_eatD:"สตรีทฟู้ดและก๋วยเตี๋ยว",m_art:"อาร์ตและสงบ",m_artD:"แกลเลอรี วัด วิวริมน้ำ",
+ sample:"ลองวันที่เดินทางมาครึ่งทางแล้ว",demo:"นาฬิกาและตำแหน่งเป็นข้อมูลสาธิต คุณเริ่มที่ MRT หัวลำโพง",
+ next:"จุดถัดไป",leave:"ออกเดินทางใน",min:"นาที",now:"ตอนนี้",walkN:"เดิน {n} นาที",stayN:"อยู่ {n}",openUntil:"เปิดถึง {t}",opensAt:"เปิด {t} รอ {n} นาที",
+ go:"ไปเลย เปิดเส้นทาง",here:"ถึงแล้ว",done:"เสร็จแล้ว ไปจุดถัดไป",skip:"ข้ามที่นี่",late:"ช้ากว่าแผน +15",lateOn:"ช้า {n} นาที",
+ need:"อยากเปลี่ยน?",hungry:"หิว",hot:"ร้อนจัด",tired:"เหนื่อย",
+ swapT:"เปลี่ยนเป็น {name}",swapNone:"ตอนนี้ไม่มีที่เปิดและอยู่ใกล้พอ",
+ whole:"ทั้งวัน",stayUntil:"เพลิดเพลินเลย ออกเดินทางประมาณ {t}",showMap:"แสดงแผนที่",hideMap:"ซ่อนแผนที่",
+ recap:"จบวันแล้ว",recapD:"คุณไปครบ {n} จุด วันหยุดดี ๆ",stops:"จุดแวะ",walked:"เดิน",endsAt:"เสร็จ",copy:"คัดลอกสรุป",copied:"คัดลอกสรุปแล้ว",again:"วางแผนวันใหม่",
+ skipped:"ข้าม {name} แล้ว",undone:"กลับเข้าแผน",noMore:"วันนี้ไม่มีจุดที่ลงตัวอีกแล้ว",
+ stepN:"จุดที่ {a} จาก {b}",navNote:"เปิดแอปแผนที่ของคุณพร้อมเส้นทางเดิน",dropped:"{n} จุดไม่ลงตัวแล้วและถูกตัดออก",nowIs:"ตอนนี้ {t}"
+});
+const MOODS=[{id:"m_slow",i:"coffee",w:{calm:1,oldtown:1,art:.4,river:.3}},{id:"m_eat",i:"food",w:{street:1,lively:.6,oldtown:.3}},{id:"m_art",i:"palette",w:{art:1,calm:.6,river:.5,oldtown:.4}}];
+const S={stage:"start",clock:0,at:false,map:false,total:0,walked:0,fin:0};
+state.manual=true;
+const col=$("#col");
+const here=()=>{ const v=state.visits[state.visits.length-1]; return v?P[v.id]:ME; };
+function curPlan(){ state.tray=[...state.tray]; return plan(); }
+function curItem(pl){ return pl.items.find(i=>!i.done); }
+function build(mood){
+  const ranked=PLACES.filter(p=>p.status==="ok"&&p.close>S.clock+60).map(p=>({p,s:scoreWeights(p,mood.w)})).sort((a,b)=>b.s-a.s);
+  let tray=[], cur=ME;
+  ranked.slice(0,5).forEach(x=>tray.push(x.p.id));
+  /* order by nearest neighbour from the start so the manual order is a sensible walk */
+  const out=[]; let rest=[...tray];
+  while(rest.length){ rest.sort((a,b)=>meters(cur,P[a])-meters(cur,P[b])); const n=rest.shift(); out.push(n); cur=P[n]; }
+  state.tray=out; state.visits=[]; state.skipped=[]; state.delay=0; state.startMin=S.clock; state.endMin=Math.min(1380,S.clock+7*60);
+  S.stage="go"; S.at=false; S.total=out.length; S.walked=0;
+  const pl=plan(); state.tray=pl.items.map(i=>i.id); S.total=state.tray.length; render();
+}
+function sampleDay(){
+  S.clock=state.now.min; state.startMin=S.clock-95; state.endMin=Math.min(1380,S.clock+6*60);
+  state.tray=["hongsieng","gulongbao","influence","naam","walkst"]; state.skipped=[]; state.delay=0;
+  const first=simulate(["hongsieng"],state.startMin,ME,state.endMin,true).items[0];
+  state.visits=[{id:"hongsieng",start:first.start,end:first.end}]; S.walked=first.walk;
+  S.stage="go"; S.at=false; const pl=plan(); state.tray=pl.items.map(i=>i.id); S.total=state.tray.length; render();
+}
+function leaveIn(it){ return it.start-it.wait-it.walk-S.clock; }
+function advance(id,kind){
+  const pl=plan(), it=pl.items.find(i=>i.id===id);
+  if(kind==="done"){ state.visits.push({id,start:it.start,end:Math.max(it.end,S.clock)}); S.clock=Math.max(it.end,S.clock); S.walked+=it.walk; S.at=false; state.delay=0; }
+  render();
+}
+function skipCur(){
+  const pl=plan(), it=curItem(pl); if(!it) return; const prev={tray:[...state.tray],sk:[...state.skipped]};
+  state.tray=state.tray.filter(x=>x!==it.id); state.skipped.push(it.id); S.at=false;
+  render(); toast(t("skipped",{name:nm(P[it.id])}),()=>{ state.tray=prev.tray; state.skipped=prev.sk; render(); toast(t("undone")); });
+}
+function swapFor(kind){
+  const pl=plan(), cur=curItem(pl); const from=here();
+  const okType={hungry:["food","market"],hot:["cafe","art"],tired:["cafe","shrine","temple"]}[kind];
+  const cand=PLACES.filter(p=>!state.tray.includes(p.id)&&!state.skipped.includes(p.id)&&okType.includes(p.type)&&p.status==="ok"&&isOpenAt(p,S.clock+walkMin(from,p))).sort((a,b)=>meters(from,a)-meters(from,b))[0];
+  if(!cand){ toast(t("swapNone")); return; }
+  const prev=[...state.tray], idx=cur?state.tray.indexOf(cur.id):state.tray.length; state.tray.splice(Math.max(0,idx),0,cand.id); S.total=state.tray.length+0; S.at=false;
+  render(); toast(t("swapT",{name:nm(cand)}),()=>{ state.tray=prev; render(); });
+}
+const isOpenAt=(p,m)=>p.status==="ok"&&m>=p.open&&m+durOf(p)<=p.close;
+function late(){ state.delay+=15; render(); }
+function recap(){ S.stage="recap"; S.fin=S.clock; render(); }
+function pips(pl){ return `<span class="pips" aria-hidden="true">${pl.items.map(i=>`<i class="${i.done?"d":i===curItem(pl)?"c":""}"></i>`).join("")}</span>`; }
+function render(){
+  document.documentElement.lang=state.lang;
+  if(S.stage==="start"){
+    col.innerHTML=`<div class="start"><h1>${t("h1")}</h1><p>${t("sub")}</p><div class="pick">${MOODS.map(m=>`<button class="pk" data-mood="${m.id}">${icon(m.i)}<span><b>${t(m.id)}</b><small>${t(m.id+"D")}</small></span></button>`).join("")}</div>
+      <p style="margin-top:var(--s4)"><button class="lnk" data-sample style="all:unset;cursor:pointer;font-weight:600;text-decoration:underline;text-underline-offset:3px">${t("sample")}</button></p><p class="demo-note">${t("demo")} ${t("demoNote")}</p></div>`;
+    DayMap.pins(PLACES.map(p=>({id:p.id,kind:"faint"})),{fit:false}); DayMap.me(true); return;
+  }
+  const pl=plan(), it=curItem(pl);
+  if(S.stage==="go"&&!it){ return recap(); }
+  if(S.stage==="recap"){
+    const n=state.visits.length;
+    col.innerHTML=`<div class="recap card"><h1>${t("recap")}</h1><p>${t("recapD",{n})}</p>
+      <div class="stats"><div><b>${n}</b>${t("stops")}</div><div><b>${S.walked}′</b>${t("walked")}</div><div><b>${fmt(S.fin)}</b>${t("endsAt")}</div></div>
+      <div class="list">${state.visits.map(v=>`<div class="li done"><time>${fmt(v.start)}</time><b>${esc(nm(P[v.id]))}</b></div>`).join("")}</div>
+      <div class="trio"><button class="sm" data-copy>${icon("copy")} ${t("copy")}</button><button class="sm" data-again>${t("again")}</button></div></div>`;
+    DayMap.pins(state.visits.map((v,i)=>({id:v.id,kind:"done",n:i+1})),{fit:true}); DayMap.route(state.visits.map(v=>({id:v.id}))); return;
+  }
+  const p=P[it.id], li=leaveIn(it), idx=pl.items.indexOf(it)+1;
+  const dep=Math.max(0,li);
+  const nav=`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=walking`;
+  const facts=`<span class="fact">${icon("walk")} ${t("walkN",{n:it.walk})}</span><span class="fact">${icon("clock")} ${t("stayN",{n:durText(durOf(p))})}</span>`+
+    (it.wait>0?`<span class="fact warn">${t("opensAt",{t:fmt(p.open),n:it.wait})}</span>`:p.status==="ok"?`<span class="fact">${t("openUntil",{t:fmt(p.close)})}</span>`:"");
+  col.innerHTML=`<div class="prog"><span>${t("stepN",{a:idx,b:pl.items.length})}</span>${pips(pl)}<span class="clock" aria-label="${t("nowIs",{t:fmt(S.clock)})}">${fmt(S.clock)}</span></div>
+   ${S.at?`<div><div class="lab">${t("here")}</div><div class="big" style="font-size:clamp(60px,18vw,96px)">${fmt(it.end+state.delay*0)}</div></div>`:`<div><div class="lab">${t("leave")}</div><div class="big">${dep===0?t("now"):dep}${dep===0?"":`<small>${t("min")}</small>`}</div></div>`}
+   <section class="card" aria-label="${t("next")}"><span class="lab">${S.at?esc(t("stayUntil",{t:fmt(it.end)})):t("next")}</span><h1>${esc(nm(p))}</h1><div class="facts">${facts}${state.delay?`<span class="fact warn">${t("lateOn",{n:state.delay})}</span>`:""}</div>
+    <div class="go">${S.at?`<button class="bigbtn" data-done="${p.id}">${icon("check")} ${t("done")}</button>`:`<a class="bigbtn" href="${nav}" target="_blank" rel="noopener" data-go>${icon("route")} ${t("go")}</a><button class="sm" data-here>${icon("pin")} ${t("here")}</button>`}</div>
+    <div class="trio"><button class="sm" data-late>${icon("clock")} ${t("late")}</button><button class="sm" data-skip>${icon("skip")} ${t("skip")}</button></div></section>
+   <div class="need"><span class="sec">${t("need")}</span><div class="row">${["hungry","hot","tired"].map(k=>`<button class="sm" data-need="${k}">${t(k)}</button>`).join("")}</div></div>
+   <button class="sm" data-map style="width:100%" aria-expanded="${S.map}">${icon("map")} ${t(S.map?"hideMap":"showMap")}</button>
+   <div class="mapin" id="mapin" ${S.map?"":"hidden"}></div>
+   <details class="d" open><summary>${icon("route")} ${t("whole")}</summary><div class="list">${pl.items.map(i=>`<div class="li${i.done?" done":i===it?" cur":""}"><time>${fmt(i.start)}</time><b>${esc(nm(P[i.id]))}</b>${i.done?icon("check"):`<span class="m" style="font-size:12px">${t("walkN",{n:i.walk})}</span>`}</div>`).join("")}</div></details>
+   ${pl.dropped.length?`<p class="demo-note">${t("dropped",{n:pl.dropped.length})}</p>`:""}<p class="demo-note">${t("demo")} ${t("demoNote")}</p>`;
+  DayMap.pins(pl.items.map((x,i)=>({id:x.id,kind:x.done?"done":"num",n:i+1,best:x.id===it.id})),{fit:false}); DayMap.me(!state.visits.length);
+  DayMap.route([{id:(state.visits.length?state.visits[state.visits.length-1].id:it.id)},{id:it.id}].filter((x,i,a)=>a.length>1&&a[0].id!==a[1].id));
+  DayMap.fit([state.visits.length?state.visits[state.visits.length-1].id:it.id,it.id]);
+  const mi=$("#mapin"); if(mi&&S.map){ mi.appendChild($("#map")); DayMap.invalidate(); } else if(!mi||!S.map){ const mb=document.querySelector(".mapbox2"); if(mb&&!mb.contains($("#map"))) mb.prepend($("#map")); }
+}
+document.addEventListener("click",e=>{
+  let b;
+  if(b=e.target.closest("[data-mood]")){ S.clock=state.now.min; build(MOODS.find(m=>m.id===b.dataset.mood)); return; }
+  if(e.target.closest("[data-sample]")){ sampleDay(); return; }
+  if(e.target.closest("[data-go]")){ S.at=true; setTimeout(render,50); return; }
+  if(e.target.closest("[data-here]")){ S.at=true; render(); return; }
+  if(b=e.target.closest("[data-done]")){ advance(b.dataset.done,"done"); return; }
+  if(e.target.closest("[data-late]")){ late(); return; }
+  if(e.target.closest("[data-skip]")){ skipCur(); return; }
+  if(b=e.target.closest("[data-need]")){ swapFor(b.dataset.need); return; }
+  if(e.target.closest("[data-map]")){ S.map=!S.map; render(); return; }
+  if(e.target.closest("[data-again]")){ S.stage="start"; state.visits=[]; state.tray=[]; render(); return; }
+  if(e.target.closest("[data-copy]")){ const txt=state.visits.map(v=>fmt(v.start)+" "+nm(P[v.id])).join("\n"); try{ navigator.clipboard?.writeText(txt); }catch(x){} toast(t("copied")); return; }
+});
+applyTheme(state.theme,false);
+initChrome("gonow",()=>{ render(); DayMap.refresh(); });
+DayMap.init("#map",{zoom:"topright"});
+S.clock=state.now.min; render();
+</script>
+</body>
+</html>

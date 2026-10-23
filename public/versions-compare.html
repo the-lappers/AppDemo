@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off · Before and after</title>
+<meta name="theme-color" content="#ffffff">
+<script>
+(function(){var p="system";try{p=localStorage.getItem("dayoff-theme")||"system";}catch(e){}
+if(!/^(light|dark|system)$/.test(p))p="system";
+var d=p==="dark"||(p==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themePref=p;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+body{min-height:100dvh;background:var(--surface)}
+.wrap{max-width:1040px;margin:0 auto;padding:var(--s5) var(--gutter) var(--s6);display:grid;gap:var(--s5)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:var(--s3)}
+h1{font-size:clamp(24px,5vw,34px);line-height:1.15}
+.lead{color:var(--ink-2);max-width:62ch}
+.cols{display:grid;gap:var(--s5);grid-template-columns:minmax(0,1fr)}
+@media (min-width:820px){.cols{grid-template-columns:1fr 1fr;align-items:start}}
+.col{display:grid;gap:var(--s4);padding:var(--s5);border-radius:20px;background:var(--card);border:1px solid var(--line)}
+.col.new{border:2px solid var(--ink)}
+.col h2{font-size:20px}
+.tag{justify-self:start;font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--surface)}
+.col.new .tag{background:var(--gold-soft)}
+.shots{display:flex;gap:var(--s3)}
+.shots a{flex:1;min-width:0;display:block;aspect-ratio:9/19.5;border:6px solid var(--ink);border-radius:26px;overflow:hidden;background:var(--surface)}
+.shots img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+h3{font-size:14px;margin-bottom:var(--s2)}
+ul{display:grid;gap:6px;font-size:14px;padding-left:18px;list-style:disc}
+.acts{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.btn{text-decoration:none}
+.foot{font-size:13px;color:var(--ink-2)}
+.foot a{color:var(--ink)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="bar"><h1 id="h1"></h1><div class="seg" role="group" aria-label="Language"><button type="button" data-lang="th" aria-pressed="true">ไทย</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div></div>
+  <p class="lead" id="lead"></p>
+  <div class="cols" id="cols"></div>
+  <p class="foot" id="foot"></p>
+</main>
+<script src="shared/core.js"></script>
+<script src="shared/sprite.js"></script>
+<script src="shared/ui.js"></script>
+<script>
+const R=(en,th)=>({en,th});
+const L=o=>o[state.lang];
+const T={
+ h1:R("Before and after the flow redesign","ก่อนและหลังออกแบบโฟลว์ใหม่"),
+ lead:R("Left: the version before the redesign (classic main page, four tabs, round buttons, a separate chat). Right: the redesigned flow (one Home, chat as the only planner, Places as a modal, a bottom day bar, and a separate Trips page). Open both and try the same three tasks: plan a day, add a place, run late.","ซ้าย: เวอร์ชันก่อนออกแบบใหม่ (หน้าหลักคลาสสิก สี่แท็บ ปุ่มกลม และแชทแยก) ขวา: โฟลว์ที่ออกแบบใหม่ (หน้าแรกเดียว แชทเป็นตัววางแผนเดียว สถานที่เป็นโมดอล แถบวันด้านล่าง และหน้าทริปแยก) เปิดทั้งสองแล้วลองงานเดียวกันสามอย่าง: วางแผนวัน เพิ่มสถานที่ มาช้า"),
+ before:R("Before","ก่อน"), after:R("After","หลัง"),
+ pros:R("Good","ข้อดี"), cons:R("Weak","ข้อเสีย"), changed:R("What changed","สิ่งที่เปลี่ยน"),
+ openBefore:R("Open the old main page","เปิดหน้าหลักเดิม"), openHome:R("Open Home","เปิดหน้าแรก"), openTrips:R("Open My trips","เปิดทริปของฉัน"),
+ foot:R("The old comparison of all eight versions is still here:","หน้าเปรียบเทียบเดิมของทั้งแปดเวอร์ชันยังอยู่ที่:"), footLink:R("all versions","ทุกเวอร์ชัน")
+};
+const COL=[
+ {id:"before",cls:"old",name:R("Classic main page","หน้าหลักคลาสสิก"),imgs:[["classic","day-off-demo.html"]],
+  changed:null,
+  pros:R(["Every feature is on one page","Vibe search is quick to start","Familiar tab pattern"],["ทุกฟีเจอร์อยู่ในหน้าเดียว","เริ่มค้นหาวายได้เร็ว","รูปแบบแท็บที่คุ้นเคย"]),
+  cons:R(["Vibe, My day and Now overlap","Chat is a separate page","Round buttons collide with the sheet","No place to manage past trips"],["วาย วันของฉัน และตอนนี้ซ้ำกัน","แชทเป็นหน้าแยก","ปุ่มกลมชนกับแผงด้านล่าง","ไม่มีที่จัดการทริปเก่า"]),
+  links:[["openBefore","day-off-demo.html"]]},
+ {id:"after",cls:"new",name:R("Home and Trips","หน้าแรกและทริป"),imgs:[["home","day-off-home.html"],["trips","day-off-trips.html"]],
+  changed:R(["Now and My day merged into one Home","Chat is the only way to plan, opened from Home","Places is a modal, no top tabs","Day bar fixed to the bottom, always visible","Trips page: current, past, share and join"],["รวมตอนนี้กับวันของฉันเป็นหน้าแรกเดียว","แชทเป็นวิธีวางแผนเดียว เปิดจากหน้าแรก","สถานที่เป็นโมดอล ไม่มีแท็บด้านบน","แถบวันติดด้านล่าง เห็นตลอด","หน้าทริป: ปัจจุบัน ที่ผ่านมา แชร์ และเข้าร่วม"]),
+  pros:R(["One clear home, far fewer screens","Works with no plan: mic, chat or browse","Trips are kept and shareable"],["หน้าแรกชัดเจนหน้าเดียว จอน้อยลงมาก","ใช้ได้แม้ไม่มีแผน: ไมค์ แชท หรือเลือกดู","เก็บและแชร์ทริปได้"]),
+  cons:R(["The chat layer is a page inside a page","Trips live only in this browser","Needs real users to confirm two entry points are enough"],["เลเยอร์แชทเป็นหน้าซ้อนหน้า","ทริปเก็บในเบราว์เซอร์นี้เท่านั้น","ต้องมีผู้ใช้จริงยืนยันว่าสองทางเข้าพอ"]),
+  links:[["openHome","day-off-home.html"],["openTrips","day-off-trips.html"]]}
+];
+function q(){ const u=new URLSearchParams({lang:state.lang}); if(params.get("at")) u.set("at",params.get("at")); return "?"+u; }
+function render(){
+  document.documentElement.lang=state.lang;
+  document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===state.lang)));
+  $("#h1").textContent=L(T.h1); $("#lead").textContent=L(T.lead);
+  $("#cols").innerHTML=COL.map(c=>`<section class="col ${c.cls}" id="${c.id}" aria-labelledby="h-${c.id}" data-testid="col-${c.id}">
+    <span class="tag">${L(T[c.id])}</span><h2 id="h-${c.id}">${L(c.name)}</h2>
+    <div class="shots">${c.imgs.map(([i,f])=>`<a href="${f}${q()}" aria-label="${esc(f)}"><img src="shared/previews/${i}.png" alt="${esc(L(c.name))}: ${i}"></a>`).join("")}</div>
+    ${c.changed?`<div><h3>${L(T.changed)}</h3><ul>${L(c.changed).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
+    <div><h3>${L(T.pros)}</h3><ul>${L(c.pros).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div><h3>${L(T.cons)}</h3><ul>${L(c.cons).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="acts">${c.links.map(([k,f],i)=>`<a class="btn ${i?"ghost":"primary"}" href="${f}${q()}" data-testid="open-${f.replace(".html","")}">${L(T[k])}</a>`).join("")}</div></section>`).join("");
+  $("#foot").innerHTML=`${L(T.foot)} <a href="versions.html${q()}">${L(T.footLink)}</a>`;
+}
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-lang]"); if(b){ state.lang=b.dataset.lang; render(); } });
+applyTheme(state.theme,false);
+render();
+</script>
+</body>
+</html>

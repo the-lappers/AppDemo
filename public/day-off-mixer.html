@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off · Mood mixer</title>
+<meta name="theme-color" content="#ffffff">
+<script>
+(function(){var p="system";try{p=localStorage.getItem("dayoff-theme")||"system";}catch(e){}
+if(!/^(light|dark|system)$/.test(p))p="system";
+var d=p==="dark"||(p==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themePref=p;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+/* MOOD MIXER: the vibe is an instrument. A six-axis radar you shape with your thumb; the list and map answer live. */
+:root{--bg:#FBFBFD;--surface:#F0F1F5;--card:#FFFFFF;--line:#E1E3EA;--track:#CDD1DC;--ink:#0D0F14;--ink-2:#566073;--poly:rgba(201,53,32,.16)}
+:root[data-theme="dark"]{--bg:#0C0D11;--surface:#15171D;--card:#1A1C23;--line:#2A2D38;--track:#3A3E4C;--poly:rgba(255,138,117,.2)}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.app{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+.panel{min-height:0;overflow:auto;padding:var(--s4) var(--gutter) var(--s5)}
+.panel[hidden]{display:none}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);padding:var(--s2) var(--gutter) calc(var(--s2) + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+.tabs button{min-height:48px;border:0;border-radius:14px;background:transparent;font-weight:600;display:grid;place-items:center;gap:0;font-size:13px}
+.tabs button[aria-selected="true"]{background:var(--pill);color:var(--on-pill)}
+.tabs .n{font-variant-numeric:tabular-nums}
+#mapPanel{padding:0;position:relative}
+#map{position:absolute;inset:0}
+@media (min-width:900px){
+  .app{grid-template-columns:400px minmax(0,1fr) minmax(0,40%);grid-template-rows:minmax(0,1fr)}
+  .tabs{display:none}
+  .panel[hidden]{display:block}
+  #mixPanel{border-right:1px solid var(--line)}
+  #mapPanel{border-left:1px solid var(--line)}
+}
+/* radar */
+.radarbox{position:relative;max-width:340px;margin:0 auto}
+svg.radar{width:100%;height:auto;display:block;touch-action:none;overflow:visible}
+.rg{fill:none;stroke:var(--line);stroke-width:1}
+.ra{stroke:var(--line);stroke-width:1}
+.rpoly{fill:var(--poly);stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round}
+.rghost{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:5 5;stroke-linejoin:round;opacity:.7}
+.rlab{font:500 12px var(--f-body);fill:var(--ink);text-anchor:middle}
+.rlab.dim{fill:var(--ink-2);font-weight:400}
+.rh{fill:var(--gold);stroke:var(--ink);stroke-width:2;cursor:grab}
+.rh:focus{outline:none} .rh:focus-visible{stroke-width:4;stroke:var(--accent)}
+.rh:active{cursor:grabbing}
+.rhh{fill:transparent}
+h1{font-size:clamp(24px,5vw,30px);line-height:1.2}
+.lead{color:var(--ink-2);margin:6px 0 var(--s3)}
+.row{display:flex;flex-wrap:wrap;gap:var(--s2);margin:var(--s3) 0}
+.lbl{font-weight:600;font-size:13px;margin-top:var(--s4);display:flex;justify-content:space-between;gap:var(--s2)}
+.lbl small{font-weight:400;color:var(--ink-2)}
+/* results */
+.res{display:grid;gap:var(--s2);margin-top:var(--s3)}
+.rr{display:grid;grid-template-columns:48px 1fr auto;gap:var(--s3);align-items:center;padding:var(--s3);border:1px solid var(--line);border-radius:16px;background:var(--card);transition:border-color 160ms}
+.rr:hover,.rr:focus-within{border-color:var(--ink)}
+.rr h3{font-size:15px;line-height:1.3}.rr .m{font-size:12px;color:var(--ink-2)}
+.bar{height:6px;border-radius:3px;background:var(--surface);margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:3px;transition:width 240ms var(--ease)}
+.pct{font:500 15px/1 var(--f-head);font-variant-numeric:tabular-nums;text-align:right}
+.add{width:var(--tap);height:var(--tap);border-radius:50%;border:1px solid var(--track);background:var(--card);display:grid;place-items:center;margin-top:6px;margin-left:auto}
+.add[aria-pressed="true"]{background:var(--pill);color:var(--on-pill);border-color:var(--pill)}
+.rr .cl{text-align:right}
+.cta{position:sticky;bottom:0;padding-top:var(--s3);background:linear-gradient(transparent,var(--bg) 40%)}
+/* day */
+.tl{display:grid;gap:0;margin-top:var(--s3)}
+.st{display:grid;grid-template-columns:56px 1fr auto;gap:var(--s3);padding:var(--s3);border:1px solid var(--line);border-radius:16px;background:var(--card);align-items:center}
+.st time{font:500 16px/1.2 var(--f-head);font-variant-numeric:tabular-nums}.st time small{display:block;font:400 12px var(--f-body);color:var(--ink-2)}
+.gap{padding:4px 0 4px 28px;font-size:12px;color:var(--ink-2);display:flex;gap:6px;align-items:center}
+.sum{display:flex;gap:var(--s5);margin:var(--s3) 0;font-size:13px;color:var(--ink-2)}.sum b{display:block;color:var(--ink);font:500 20px/1.2 var(--f-head)}
+.warn{padding:var(--s3);border:1px dashed var(--warn);border-radius:14px;color:var(--warn);font-size:13px;margin-top:var(--s3)}
+.empty{padding:var(--s5) var(--s3);text-align:center;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<header class="header" id="hdr"></header>
+<div class="app">
+  <section class="panel" id="mixPanel" aria-label="Mix"></section>
+  <section class="panel" id="dayPanel" aria-label="Day"></section>
+  <section class="panel" id="mapPanel" aria-label="Map"><div id="map" role="region"></div></section>
+  <div class="tabs" id="tabs" role="tablist"></div>
+</div>
+<script src="env.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/sprite.js"></script>
+<script src="shared/ui.js"></script>
+<script src="shared/map.js"></script>
+<script>
+addStrings({
+ h1:"Mix your vibe",lead:"Drag the gold handles. The places below and the map answer as you move.",
+ tabMix:"Mix",tabMap:"Map",tabDay:"Day",
+ presets:"Start from a mix",p_slow:"Slow old town",p_night:"Night eats",p_art:"Art walk",p_river:"Riverside",p_reset:"Reset",
+ budget:"Price up to",any:"Any",openNow:"Open now",anyP:"Any price",
+ matches:"Best matches",count:"{n} places",none:"Nothing fits this mix. Lower a handle or loosen price.",
+ axis:"{a}: {v} of 5",add:"Add {name}",added:"{name} added",removed:"{name} removed",
+ plan:"Plan my day from this mix ({n})",auto:"Pick the best for me",yourDay:"Your day",stops:"Stops",finish:"Ends about",walking:"Walking",
+ emptyDay:"No stops yet. Add places from the mix, or let the app pick.",tweak:"Back to the mix",remove:"Remove {name}",
+ dropT:"Could not fit:",r_closedday:"closed today",r_late:"opens after you would arrive",r_early:"closes before you would finish",r_window:"runs past your day end",r_unknown:"opening hours unknown",
+ wait:"wait {n} min",ghost:"Dashed line: {name}",picked:"Picked {n} best matches",bestK:"Best",matchN:"{n}% match",startAt:"Start {t}"
+},{
+ h1:"ปั้นวายของคุณ",lead:"ลากปุ่มสีทอง รายการสถานที่และแผนที่จะเปลี่ยนตามทันที",
+ tabMix:"มิกซ์",tabMap:"แผนที่",tabDay:"วัน",
+ presets:"เริ่มจากสูตรสำเร็จ",p_slow:"ย่านเก่าช้า ๆ",p_night:"ของกินยามค่ำ",p_art:"เดินดูอาร์ต",p_river:"ริมน้ำ",p_reset:"รีเซ็ต",
+ budget:"ราคาไม่เกิน",any:"ทุกระดับ",openNow:"เปิดอยู่ตอนนี้",anyP:"ทุกราคา",
+ matches:"ตรงใจที่สุด",count:"{n} ที่",none:"ไม่มีที่ตรงกับสูตรนี้ ลดปุ่มลงหรือเพิ่มช่วงราคา",
+ axis:"{a}: {v} จาก 5",add:"เพิ่ม {name}",added:"เพิ่ม {name} แล้ว",removed:"ลบ {name} แล้ว",
+ plan:"วางแผนวันจากสูตรนี้ ({n})",auto:"เลือกที่ดีที่สุดให้",yourDay:"แผนของคุณ",stops:"จุดแวะ",finish:"จบประมาณ",walking:"การเดิน",
+ emptyDay:"ยังไม่มีจุดแวะ เพิ่มจากสูตร หรือให้แอปเลือกให้",tweak:"กลับไปปรับสูตร",remove:"ลบ {name}",
+ dropT:"ใส่ในแผนไม่ได้:",r_closedday:"วันนี้ปิด",r_late:"เปิดหลังจากที่คุณไปถึง",r_early:"ปิดก่อนที่คุณจะเที่ยวเสร็จ",r_window:"เกินเวลาจบวัน",r_unknown:"ไม่ทราบเวลาเปิด",
+ wait:"รอ {n} นาที",ghost:"เส้นประ: {name}",picked:"เลือกที่ตรงใจ {n} ที่แล้ว",bestK:"ตรงสุด",matchN:"ตรงใจ {n}%",startAt:"เริ่ม {t}"
+});
+const PRESETS={p_slow:{calm:5,oldtown:5,art:2,river:2},p_night:{street:5,lively:4,oldtown:3},p_art:{art:5,calm:3,river:2,oldtown:2},p_river:{river:5,calm:3,oldtown:3}};
+const S={w:Object.fromEntries(allTags.map(k=>[k,2.5])),price:3,open:false,tab:"mix",hover:null,tray:[]};
+const isDesk=()=>matchMedia("(min-width:900px)").matches;
+const matchOf=p=>scoreWeights(p,Object.fromEntries(Object.entries(S.w).map(([k,v])=>[k,v/5])));
+function results(){
+  return PLACES.filter(p=>p.price<=S.price&&(!S.open||isOpen(p))).map(p=>({id:p.id,m:matchOf(p)})).sort((a,b)=>b.m-a.m);
+}
+/* ---- radar ---- */
+const R=100, CX=0, CY=0, AX=allTags.map((k,i)=>({k,a:(-90+i*60)*Math.PI/180}));
+const pt=(a,v)=>[Math.cos(a)*v/5*R,Math.sin(a)*v/5*R];
+const poly=vals=>AX.map((x,i)=>pt(x.a,vals[x.k]).map(n=>n.toFixed(1)).join(",")).join(" ");
+function radarHTML(){
+  const ghost=S.hover?poly(P[S.hover].tags):"";
+  return `<svg class="radar" viewBox="-160 -145 320 290" role="group" aria-label="${esc(t("h1"))}">
+   ${[1,2,3,4,5].map(r=>`<polygon class="rg" points="${poly(Object.fromEntries(allTags.map(k=>[k,r])))}"/>`).join("")}
+   ${AX.map(x=>{ const [ex,ey]=pt(x.a,5); return `<line class="ra" x1="0" y1="0" x2="${ex}" y2="${ey}"/>`; }).join("")}
+   <polygon class="rpoly" points="${poly(S.w)}"/>
+   ${ghost?`<polygon class="rghost" points="${ghost}"/>`:""}
+   ${AX.map(x=>{ const [lx,ly]=pt(x.a,6.5); return `<text class="rlab" x="${lx}" y="${ly+4}">${esc(TAGNAME[state.lang][x.k])}</text>`; }).join("")}
+   ${AX.map(x=>{ const [hx,hy]=pt(x.a,S.w[x.k]); return `<g><circle class="rhh" cx="${hx}" cy="${hy}" r="22" data-k="${x.k}"/><circle class="rh" cx="${hx}" cy="${hy}" r="9" data-k="${x.k}" tabindex="0" role="slider" aria-label="${esc(TAGNAME[state.lang][x.k])}" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${S.w[x.k]}" aria-valuetext="${esc(t("axis",{a:TAGNAME[state.lang][x.k],v:S.w[x.k]}))}"/></g>`; }).join("")}
+  </svg>`;
+}
+function resRow(r,i){
+  const p=P[r.id], pc=Math.round(r.m*100), on=S.tray.includes(p.id);
+  return `<li class="rr" data-id="${p.id}">${thumb(p,48,12)}<div><h3>${esc(nm(p))}${i===0?` <span class="best">${t("bestK")}</span>`:""}</h3><div class="m">${esc(AREA[state.lang][p.area])} · ${priceBand(p.price)} · ${esc(statusText(p))}</div><div class="bar" aria-hidden="true"><i style="width:${pc}%"></i></div></div>
+   <div class="cl"><div class="pct">${pc}%</div><button class="add" data-add="${p.id}" aria-pressed="${on}" aria-label="${esc(on?t("remove",{name:nm(p)}):t("add",{name:nm(p)}))}">${icon(on?"check":"plus")}</button></div></li>`;
+}
+function renderMix(){
+  const list=results();
+  $("#mixPanel").innerHTML=`<h1>${t("h1")}</h1><p class="lead">${t("lead")}</p>
+   <div class="radarbox" id="radarbox">${radarHTML()}</div>
+   <div class="lbl">${t("presets")}</div>
+   <div class="row">${Object.keys(PRESETS).map(k=>`<button class="chip" data-preset="${k}">${t(k)}</button>`).join("")}<button class="chip" data-preset="p_reset">${t("p_reset")}</button></div>
+   <div class="lbl">${t("budget")}<small>${S.price===3?t("anyP"):priceBand(S.price)}</small></div>
+   <div class="row" role="group" aria-label="${esc(t("budget"))}">${[[1,"฿"],[2,"฿฿"],[3,t("any")]].map(([v,l])=>`<button class="chip" data-price="${v}" aria-pressed="${S.price===v}">${l}</button>`).join("")}<button class="chip" data-open aria-pressed="${S.open}">${t("openNow")}</button></div>
+   <div class="lbl">${t("matches")}<small id="cnt">${t("count",{n:list.length})}</small></div>
+   ${list.length?`<ul class="res">${list.slice(0,8).map(resRow).join("")}</ul>`:`<p class="empty">${t("none")}</p>`}
+   <div class="cta"><button class="btn primary" style="width:100%" data-plan>${icon("route")} ${t("plan",{n:S.tray.length})}</button></div>
+   <p class="demo-note" style="margin-top:12px">${t("demoNote")}</p>`;
+  bindRadar();
+}
+function updateLive(){
+  /* during a drag only redraw the radar, the list and the map pins: keeps the handle under the finger */
+  const list=results();
+  $("#radarbox").innerHTML=radarHTML(); bindRadar(true);
+  const ul=$("#mixPanel .res"); if(ul) ul.innerHTML=list.slice(0,8).map(resRow).join("");
+  const c=$("#cnt"); if(c) c.textContent=t("count",{n:list.length});
+  pinsNow(list);
+}
+let drag=null;
+function bindRadar(keep){
+  const svg=$("svg.radar"); if(!svg) return;
+  svg.addEventListener("pointerdown",e=>{ const k=e.target.dataset.k; if(!k) return; drag=k; svg.setPointerCapture(e.pointerId); move(e); e.preventDefault(); });
+  svg.addEventListener("pointermove",e=>{ if(drag) move(e); });
+  svg.addEventListener("pointerup",()=>{ drag=null; renderMix(); renderDay(); });
+  svg.addEventListener("pointercancel",()=>{ drag=null; });
+  svg.addEventListener("keydown",e=>{ const k=e.target.dataset?.k; if(!k) return; let d=0;
+    if(e.key==="ArrowRight"||e.key==="ArrowUp") d=.5; else if(e.key==="ArrowLeft"||e.key==="ArrowDown") d=-.5; else if(e.key==="Home") d=-5; else if(e.key==="End") d=5; else return;
+    e.preventDefault(); S.w[k]=Math.max(0,Math.min(5,Math.round((S.w[k]+d)*2)/2)); renderMix(); $(`.rh[data-k="${k}"]`)?.focus(); pinsNow(); });
+  function move(e){
+    const r=svg.getBoundingClientRect(), sc=320/r.width, x=(e.clientX-r.left)*sc-160, y=(e.clientY-r.top)*sc-145;
+    const ax=AX.find(a=>a.k===drag), v=(x*Math.cos(ax.a)+y*Math.sin(ax.a))/R*5;
+    S.w[drag]=Math.max(0,Math.min(5,Math.round(v*2)/2)); updateLive();
+    const h=$(`.rh[data-k="${drag}"]`); h&&h.focus({preventScroll:true});
+  }
+}
+function pinsNow(list){
+  list=list||results(); const ids=new Set(list.map(r=>r.id)), top=list[0]&&list[0].id;
+  DayMap.pins([...PLACES.filter(p=>!ids.has(p.id)).map(p=>({id:p.id,kind:"faint"})),...list.map(r=>({id:r.id,kind:S.tray.includes(r.id)?"tray":"res",best:r.id===top}))],{fit:false});
+}
+function renderDay(){
+  const pl=plan(S.tray), it=pl.items;
+  $("#dayPanel").innerHTML=`<h1>${t("yourDay")}</h1>
+   <div class="sum"><div><b>${it.length}</b>${t("stops")}</div><div><b>${it.length?fmt(pl.finish):"–"}</b>${t("finish")}</div><div><b>${pl.walk}′</b>${t("walking")}</div></div>
+   ${it.length?`<ol class="tl">${it.map((x,i)=>{ const p=P[x.id]; return `${i?`<li class="gap" aria-hidden="true">${icon("walk")} ${t("walk",{n:x.walk})}${x.wait?" · "+t("wait",{n:x.wait}):""}</li>`:""}<li class="st"><time>${fmt(x.start)}<small>${fmt(x.end)}</small></time><div><b>${esc(nm(p))}</b><div class="m" style="font-size:12px;color:var(--ink-2)">${t("matchN",{n:Math.round(matchOf(p)*100)})} · ${esc(AREA[state.lang][p.area])}</div></div><button class="add" data-add="${p.id}" aria-label="${esc(t("remove",{name:nm(p)}))}">${icon("x")}</button></li>`; }).join("")}</ol>`:`<p class="empty">${t("emptyDay")}</p>`}
+   ${pl.dropped.length?`<div class="warn"><b>${t("dropT")}</b> ${pl.dropped.map(d=>`${esc(nm(P[d.id]))} (${t("r_"+d.reason)})`).join(", ")}</div>`:""}
+   <div class="row"><button class="btn dark" data-auto>${icon("spark")} ${t("auto")}</button><button class="btn ghost" data-back>${icon("back")} ${t("tweak")}</button></div>`;
+}
+function renderTabs(){
+  $("#tabs").innerHTML=[["mix","tabMix","spark"],["map","tabMap","map"],["day","tabDay","route"]].map(([k,l,i])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${icon(i)}<span>${t(l)}${k==="day"?` <span class="n">${S.tray.length}</span>`:""}</span></button>`).join("");
+  const d=isDesk();
+  $("#mixPanel").hidden=!d&&S.tab!=="mix"; $("#mapPanel").hidden=!d&&S.tab!=="map"; $("#dayPanel").hidden=d?S.tab!=="day":S.tab!=="day";
+  if(d){ $("#mixPanel").hidden=false; $("#mapPanel").hidden=false; }
+  /* desktop: middle column shows the day only after "plan", otherwise the mix list sits in the left column and the middle shows the day preview */
+}
+function renderAll(){ renderMix(); renderDay(); renderTabs(); pinsNow(); if(S.tab==="day"||S.tray.length) syncTrayPins(); }
+function syncTrayPins(){}
+function toggleAdd(id){
+  const was=S.tray.includes(id); if(was) S.tray=S.tray.filter(x=>x!==id); else { if(S.tray.length>=6){ toast(state.lang==="th"?"หนึ่งวันมีได้สูงสุด 6 จุด":"A day holds up to 6 stops"); return; } S.tray.push(id); }
+  state.tray=[...S.tray]; renderMix(); renderDay(); renderTabs(); pinsNow();
+  toast(t(was?"removed":"added",{name:nm(P[id])}));
+}
+function autoPick(){
+  const ok=results().filter(r=>{ const p=P[r.id]; return p.status==="ok"&&p.close>state.startMin; }).slice(0,4).map(r=>r.id);
+  S.tray=ok; state.tray=[...ok]; renderAll(); toast(t("picked",{n:ok.length}));
+}
+document.addEventListener("click",e=>{
+  const a=e.target.closest("[data-add]"); if(a){ toggleAdd(a.dataset.add); return; }
+  const pr=e.target.closest("[data-preset]"); if(pr){ const k=pr.dataset.preset; S.w=Object.fromEntries(allTags.map(x=>[x,k==="p_reset"?2.5:(PRESETS[k][x]??0.5)])); renderMix(); pinsNow(); return; }
+  const pc=e.target.closest("[data-price]"); if(pc){ S.price=+pc.dataset.price; renderMix(); pinsNow(); return; }
+  if(e.target.closest("[data-open]")){ S.open=!S.open; renderMix(); pinsNow(); return; }
+  if(e.target.closest("[data-plan]")){ if(!S.tray.length) autoPick(); S.tab="day"; renderTabs(); renderDay(); $("#dayPanel").scrollTop=0;
+    if(!isDesk()){} DayMap.pins(plan(S.tray).items.map((x,i)=>({id:x.id,kind:"num",n:i+1}))); DayMap.route(plan(S.tray).items); return; }
+  if(e.target.closest("[data-auto]")){ autoPick(); S.tab="day"; renderTabs(); DayMap.pins(plan(S.tray).items.map((x,i)=>({id:x.id,kind:"num",n:i+1}))); DayMap.route(plan(S.tray).items); return; }
+  if(e.target.closest("[data-back]")){ S.tab="mix"; renderTabs(); pinsNow(); return; }
+  const tb=e.target.closest("[data-tab]"); if(tb){ S.tab=tb.dataset.tab; renderTabs(); if(S.tab==="map"){ DayMap.invalidate(); pinsNow(); } if(S.tab==="day"){ DayMap.pins(plan(S.tray).items.map((x,i)=>({id:x.id,kind:"num",n:i+1}))); DayMap.route(plan(S.tray).items);} return; }
+});
+document.addEventListener("pointerover",e=>{ const r=e.target.closest(".rr"); const id=r&&r.dataset.id; if(id!==S.hover&&!drag){ S.hover=id||null; const b=$("#radarbox"); if(b) b.innerHTML=radarHTML(); bindRadar(true); } });
+document.addEventListener("focusin",e=>{ const r=e.target.closest(".rr"); if(r){ S.hover=r.dataset.id; const b=$("#radarbox"); if(b) b.innerHTML=radarHTML(); bindRadar(true); } });
+matchMedia("(min-width:900px)").addEventListener("change",()=>{ renderTabs(); DayMap.invalidate(); });
+applyTheme(state.theme,false);
+initChrome("mixer",()=>{ renderAll(); DayMap.refresh(); });
+DayMap.init("#map",{onPin:id=>toggleAdd(id)});
+renderAll();
+</script>
+</body>
+</html>

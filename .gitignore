@@ -1,0 +1,14 @@
+# secrets: never commit these
+.env
+.env.*
+!.env.example
+
+node_modules/
+test-results/
+playwright-report/
+
+# editor / tool files
+.impeccable/
+.vscode/
+.DS_Store
+Thumbs.db

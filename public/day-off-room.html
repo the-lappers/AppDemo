@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off · Friends room</title>
+<meta name="theme-color" content="#ffffff">
+<script>
+(function(){var p="system";try{p=localStorage.getItem("dayoff-theme")||"system";}catch(e){}
+if(!/^(light|dark|system)$/.test(p))p="system";
+var d=p==="dark"||(p==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themePref=p;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+/* FRIENDS ROOM: a sticker board for the group chat. Hard-edged cards, avatars on every card, votes are the interface. */
+:root{--bg:#F3EEFF;--surface:#E7DFFB;--card:#FFFFFF;--line:#1B1535;--track:#BFB2EA;--ink:#1B1535;--ink-2:#5A5280;--accent:#5B3FE0;--accent-d:#4A31BE;--on-accent:#fff;--gold:#FFD23F;--gold-soft:#FFF1B8;--pill:#1B1535;--on-pill:#fff;--pink:#FF5C8A;--sky:#4CA6FF;--sun:#FF9A3C;--hard:4px 4px 0 var(--ink)}
+:root[data-theme="dark"]{--bg:#120E26;--surface:#1B1638;--card:#211B45;--line:#8F82D6;--track:#4A4180;--ink:#F1EEFF;--ink-2:#B5AEDD;--accent:#A592FF;--accent-d:#BEB0FF;--on-accent:#150E3A;--gold:#FFD23F;--gold-soft:#3F3414;--pill:#F1EEFF;--on-pill:#150E3A;--hard:4px 4px 0 #000}
+.header{background:var(--bg);border-bottom:2px solid var(--line)}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.app{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+.pane{min-height:0;overflow:auto;padding:var(--s4) var(--gutter) var(--s6)}
+.pane[hidden]{display:none}
+#mapPane{padding:0;position:relative}#map{position:absolute;inset:0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);padding:var(--s2) var(--gutter) calc(var(--s2) + env(safe-area-inset-bottom));border-top:2px solid var(--line);background:var(--bg)}
+.tabs button{min-height:46px;border:2px solid transparent;border-radius:12px;background:transparent;font-weight:600;display:flex;gap:6px;align-items:center;justify-content:center}
+.tabs button[aria-selected="true"]{background:var(--gold);color:#1B1535;border-color:var(--line);box-shadow:2px 2px 0 var(--line)}
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1fr) minmax(0,44%);grid-template-rows:minmax(0,1fr);grid-template-areas:"board side"}
+  #boardPane{grid-area:board}
+  .side{grid-area:side;display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0;border-left:2px solid var(--line)}
+  .tabs{display:none}.pane[hidden]{display:block}
+  #planPane{max-height:55dvh;border-bottom:2px solid var(--line)}
+}
+@media (max-width:899px){.side{display:contents}}
+.room{background:var(--card);border:2px solid var(--line);border-radius:20px;box-shadow:var(--hard);padding:var(--s5);display:grid;gap:var(--s4)}
+.room h1{font-size:22px;line-height:1.2}
+.av{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);font:500 14px/1 var(--f-head);color:#1B1535;background:var(--c);flex:none}
+.av.sm{width:24px;height:24px;font-size:11px;border-width:1.5px}
+.stack{display:inline-flex}.stack .av{margin-left:-8px}.stack .av:first-child{margin-left:0}
+.c-you{--c:#FFD23F}.c-mint{--c:#FF8FB1}.c-beam{--c:#7CC2FF}.c-ploy{--c:#C9A8FF}
+.mem{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);align-items:center}
+.mem li{display:flex;gap:8px;align-items:center;font-size:13px}
+.mem small{display:block;color:var(--ink-2);font-size:11px;line-height:1.2}
+.row{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center}
+.btn,.chip{border:2px solid var(--line)}
+.btn.primary{box-shadow:3px 3px 0 var(--line)}
+.btn.primary:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.overlap{font-size:13px}.overlap b{background:var(--gold);color:#1B1535;padding:0 6px;border-radius:6px;margin-right:4px;display:inline-block}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--s5) var(--s4);margin-top:var(--s5)}
+.pc{background:var(--card);border:2px solid var(--line);border-radius:18px;box-shadow:var(--hard);padding:var(--s4);display:grid;gap:var(--s3);align-content:start;position:relative}
+.pc:nth-child(3n+1){transform:rotate(-.6deg)}.pc:nth-child(3n+2){transform:rotate(.5deg)}
+@media (prefers-reduced-motion:reduce){.pc{transform:none!important}}
+.pc.top{background:var(--gold-soft)}
+.pc .hd{display:grid;grid-template-columns:48px 1fr;gap:var(--s4);align-items:center}
+.pc h3{font-size:16px;line-height:1.25}.pc .m{font-size:12px;color:var(--ink-2)}
+.tally{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:600}
+.meter{height:10px;border:2px solid var(--line);border-radius:6px;overflow:hidden;display:flex;background:var(--bg)}
+.meter i{display:block;height:100%}.meter .u{background:var(--accent)}.meter .d{background:var(--pink)}
+.vote{display:flex;gap:var(--s2);margin-top:var(--s1)}
+.vb{flex:1;min-height:var(--tap);border:2px solid var(--line);border-radius:12px;background:var(--card);font-weight:600;display:flex;gap:6px;align-items:center;justify-content:center}
+.vb[aria-pressed="true"].up{background:var(--accent);color:var(--on-accent)}
+.vb[aria-pressed="true"].dn{background:var(--pink);color:#1B1535}
+.vb:active{transform:translate(1px,1px)}
+.badge{position:absolute;top:-10px;right:12px;background:var(--gold);color:#1B1535;border:2px solid var(--line);border-radius:999px;padding:0 10px;font-size:12px;font-weight:600}
+.feed{display:grid;gap:6px;font-size:12px;color:var(--ink-2);margin-top:var(--s2)}
+h2.sec{font-size:18px;margin:var(--s5) 0 0}
+.plan h2{font-size:20px}
+.pit{display:grid;grid-template-columns:54px 1fr;gap:var(--s3);padding:var(--s3) 0;border-bottom:1.5px dashed var(--track)}
+.pit time{font:500 15px var(--f-head);font-variant-numeric:tabular-nums}.pit time small{display:block;font:400 11px var(--f-body);color:var(--ink-2)}
+.sat{display:grid;gap:8px;margin:var(--s3) 0}
+.sat li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;font-size:12px}
+.sat .meter{height:8px}
+.cost{padding:var(--s3);border:2px dashed var(--line);border-radius:14px;font-size:13px;margin-top:var(--s3)}
+.cost b{font:500 20px var(--f-head)}
+.warn{padding:var(--s3);border:2px dashed var(--warn);border-radius:12px;color:var(--warn);font-size:13px;margin-top:var(--s3)}
+.empty{padding:var(--s4);text-align:center;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<header class="header" id="hdr"></header>
+<div class="app">
+  <section class="pane" id="boardPane" aria-label="Board"></section>
+  <div class="side">
+    <section class="pane" id="planPane" aria-label="Plan"></section>
+    <section class="pane" id="mapPane" aria-label="Map"><div id="map" role="region"></div></section>
+  </div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+</div>
+<script src="env.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/sprite.js"></script>
+<script src="shared/ui.js"></script>
+<script src="shared/map.js"></script>
+<script>
+addStrings({
+ room:"Sat day out · Yaowarat",members:"4 friends in this room",invite:"Copy invite link",copied:"Invite link copied",you:"You",
+ tabBoard:"Board",tabPlan:"Plan",tabMap:"Map",likes:"{n} of {m} like",best:"Group pick",
+ f_all:"All",f_most:"Most liked",f_mine:"My votes",f_split:"Split votes",up:"Like",dn:"Skip",
+ overlap:"Everyone agrees on",noOverlap:"No shared mood yet. Vote to find one.",
+ plan:"Plan from votes",planD:"Takes the places the group likes most that are open and fit the day.",planNone:"Vote on a few places first. At least one place needs more likes than skips.",
+ yourDay:"The group's day",stops:"Stops",finish:"Ends about",walking:"Walking",happy:"Who gets what they voted for",of:"{a} of {b} stops",
+ cost:"Estimated cost per person",costNote:"Price bands are estimates. Everyone pays their own.",
+ dropT:"Could not fit:",r_closedday:"closed today",r_late:"opens after you would arrive",r_early:"closes before you would finish",r_window:"runs past the day end",r_unknown:"opening hours unknown",
+ feedYou:"You {v} {name}",feedUp:"liked",feedDn:"skipped",aloneUp:"Liked by {n}",none:"No votes yet",regroup:"Re-plan after changes",
+ noPlan:"No plan yet. Vote on the board, then tap Plan from votes.",why:"Liked by {n} of {m}",
+ sampleT:"Sample friends: their votes are demo data"
+},{
+ room:"เที่ยวเสาร์นี้ · เยาวราช",members:"เพื่อน 4 คนในห้องนี้",invite:"คัดลอกลิงก์ชวนเพื่อน",copied:"คัดลอกลิงก์แล้ว",you:"คุณ",
+ tabBoard:"บอร์ด",tabPlan:"แผน",tabMap:"แผนที่",likes:"ชอบ {n} จาก {m}",best:"ที่กลุ่มเลือก",
+ f_all:"ทั้งหมด",f_most:"คนชอบเยอะ",f_mine:"โหวตของฉัน",f_split:"เสียงแตก",up:"ชอบ",dn:"ข้าม",
+ overlap:"ทุกคนตรงกันที่",noOverlap:"ยังไม่มีมู้ดร่วมกัน โหวตเพื่อหา",
+ plan:"วางแผนจากโหวต",planD:"เลือกที่กลุ่มชอบมากที่สุด ที่เปิดอยู่และลงตัวกับวัน",planNone:"โหวตสักสองสามที่ก่อน ต้องมีอย่างน้อยหนึ่งที่ที่คนชอบมากกว่าคนข้าม",
+ yourDay:"วันของกลุ่ม",stops:"จุดแวะ",finish:"จบประมาณ",walking:"การเดิน",happy:"ใครได้ตามที่โหวตบ้าง",of:"{a} จาก {b} จุด",
+ cost:"ค่าใช้จ่ายประมาณต่อคน",costNote:"ระดับราคาเป็นค่าประมาณ ต่างคนต่างจ่าย",
+ dropT:"ใส่ในแผนไม่ได้:",r_closedday:"วันนี้ปิด",r_late:"เปิดหลังจากที่คุณไปถึง",r_early:"ปิดก่อนที่คุณจะเที่ยวเสร็จ",r_window:"เกินเวลาจบวัน",r_unknown:"ไม่ทราบเวลาเปิด",
+ feedYou:"คุณ{v} {name}",feedUp:"ชอบ",feedDn:"ข้าม",aloneUp:"ชอบโดย {n}",none:"ยังไม่มีโหวต",regroup:"วางแผนใหม่หลังแก้",
+ noPlan:"ยังไม่มีแผน โหวตบนบอร์ดแล้วกดวางแผนจากโหวต",why:"ชอบ {n} จาก {m}",
+ sampleT:"เพื่อนตัวอย่าง: โหวตของเพื่อนเป็นข้อมูลสาธิต"
+});
+const MEMBERS=[{id:"you",en:"You",th:"คุณ"},...FRIENDS];
+VOTES.you={};
+const S={f:"all",tab:"board",plan:null,feed:[]};
+state.startMin=600; state.endMin=1080;
+const mname=m=>m.id==="you"?t("you"):m[state.lang];
+const init=m=>(m.id==="you"?(state.lang==="th"?"ค":"Y"):(m.en[0]));
+const avatar=(m,cls="")=>`<span class="av ${cls} c-${m.id}" title="${esc(mname(m))}" aria-label="${esc(mname(m))}">${esc(init(m))}</span>`;
+const vote=(m,id)=>(VOTES[m.id]||{})[id]||0;
+function tally(id){ const up=MEMBERS.filter(m=>vote(m,id)>0), dn=MEMBERS.filter(m=>vote(m,id)<0); return {up,dn,net:up.length-dn.length}; }
+const EST={0:0,1:80,2:180,3:450};
+function moodOf(m){ const w=Object.fromEntries(allTags.map(k=>[k,0])); PLACES.forEach(p=>{ if(vote(m,p.id)>0) allTags.forEach(k=>w[k]+=p.tags[k]); }); return Object.entries(w).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k])=>k); }
+function overlap(){ const sets=FRIENDS.map(m=>moodOf(m)); return allTags.filter(k=>sets.filter(s=>s.includes(k)).length>=Math.ceil(sets.length*0.66)).map(k=>TAGNAME[state.lang][k]); }
+function board(){
+  let list=PLACES.map(p=>({p,t:tally(p.id)}));
+  if(S.f==="most") list=list.filter(x=>x.t.net>0); else if(S.f==="mine") list=list.filter(x=>vote(MEMBERS[0],x.p.id)!==0); else if(S.f==="split") list=list.filter(x=>x.t.up.length&&x.t.dn.length);
+  return list.sort((a,b)=>b.t.net-a.t.net||b.t.up.length-a.t.up.length);
+}
+function cardHTML(x,i){
+  const {p,t:tl}=x, mine=vote(MEMBERS[0],p.id), n=MEMBERS.length;
+  return `<li class="pc${i===0&&tl.net>=3?" top":""}">${i===0&&tl.net>=3?`<span class="badge">${t("best")}</span>`:""}
+   <div class="hd">${thumb(p,48,12)}<div><h3>${esc(nm(p))}</h3><div class="m">${esc(AREA[state.lang][p.area])} · ${esc(TYPENAME[state.lang][p.type])} · ${priceBand(p.price)} · ${esc(statusText(p))}</div></div></div>
+   <div class="tally"><span class="stack">${tl.up.map(m=>avatar(m,"sm")).join("")||`<span class="m">${t("none")}</span>`}</span><span>${t("likes",{n:tl.up.length,m:n})}</span></div>
+   <div class="meter" aria-hidden="true"><i class="u" style="width:${tl.up.length/n*100}%"></i><i class="d" style="width:${tl.dn.length/n*100}%"></i></div>
+   <div class="vote"><button class="vb up" data-v="${p.id}:1" aria-pressed="${mine>0}">${icon("check")} ${t("up")}</button><button class="vb dn" data-v="${p.id}:-1" aria-pressed="${mine<0}">${icon("skip")} ${t("dn")}</button></div></li>`;
+}
+function renderBoard(){
+  const ov=overlap();
+  $("#boardPane").innerHTML=`<div class="room"><h1>${t("room")}</h1>
+    <ul class="mem">${MEMBERS.map(m=>`<li>${avatar(m)}<span>${esc(mname(m))}<small>${moodOf(m).map(k=>TAGNAME[state.lang][k]).join(" · ")||"–"}</small></span></li>`).join("")}</ul>
+    <p class="overlap">${ov.length?`<span>${t("overlap")}</span> ${ov.map(o=>`<b>${esc(o)}</b>`).join("")}`:t("noOverlap")}</p>
+    <div class="row"><button class="btn primary" data-plan>${icon("route")} ${t("plan")}</button><button class="btn ghost small" data-invite>${icon("share")} ${t("invite")}</button></div></div>
+   <div class="row" style="margin-top:var(--s4)" role="group">${["all","most","mine","split"].map(k=>`<button class="chip" data-f="${k}" aria-pressed="${S.f===k}">${t("f_"+k)}</button>`).join("")}</div>
+   <ul class="board">${board().map(cardHTML).join("")}</ul>
+   ${S.feed.length?`<ul class="feed" aria-label="Activity">${S.feed.slice(0,4).map(f=>`<li>${esc(f)}</li>`).join("")}</ul>`:""}
+   <p class="demo-note" style="margin-top:var(--s4)">${t("sampleT")}. ${t("demoNote")}</p>`;
+}
+function doPlan(){
+  const ids=PLACES.map(p=>({p,t:tally(p.id)})).filter(x=>x.t.net>=1&&x.p.status==="ok"&&x.p.close>state.startMin).sort((a,b)=>b.t.net-a.t.net||b.t.up.length-a.t.up.length).slice(0,5).map(x=>x.p.id);
+  S.plan=ids; state.tray=[...ids];
+}
+function renderPlan(){
+  const el=$("#planPane");
+  if(!S.plan){ el.innerHTML=`<div class="plan"><h2>${t("yourDay")}</h2><p class="empty">${t("noPlan")}</p><button class="btn primary" data-plan>${icon("route")} ${t("plan")}</button></div>`; return; }
+  const pl=plan(S.plan), it=pl.items, n=MEMBERS.length;
+  const cost=it.reduce((a,x)=>a+EST[P[x.id].price],0);
+  el.innerHTML=`<div class="plan"><h2>${t("yourDay")}</h2><p class="m" style="font-size:12px;color:var(--ink-2)">${t("planD")}</p>
+   ${it.length?"":`<p class="empty">${t("planNone")}</p>`}
+   <ol>${it.map((x,i)=>{ const p=P[x.id], tl=tally(p.id); return `<li class="pit"><time>${fmt(x.start)}<small>${fmt(x.end)}</small></time><div><b>${esc(nm(p))}</b><div class="m" style="font-size:12px;color:var(--ink-2)">${t("walk",{n:x.walk})} · ${t("why",{n:tl.up.length,m:n})}</div><span class="stack" style="margin-top:4px">${tl.up.map(m=>avatar(m,"sm")).join("")}</span></div></li>`; }).join("")}</ol>
+   ${it.length?`<div class="row" style="margin-top:8px;font-size:13px;gap:var(--s5)"><span><b style="font:500 18px var(--f-head)">${fmt(pl.finish)}</b> ${t("finish")}</span><span><b style="font:500 18px var(--f-head)">${pl.walk}′</b> ${t("walking")}</span></div>
+   <h3 style="margin-top:var(--s4);font-size:14px">${t("happy")}</h3><ul class="sat">${MEMBERS.map(m=>{ const a=it.filter(x=>vote(m,x.id)>0).length; return `<li>${avatar(m,"sm")}<div class="meter"><i class="u" style="width:${it.length?a/it.length*100:0}%"></i></div><span>${t("of",{a,b:it.length})}</span></li>`; }).join("")}</ul>
+   <div class="cost"><b>฿${cost}</b> ${t("cost")}<br><span style="color:var(--ink-2);font-size:12px">${t("costNote")}</span></div>`:""}
+   ${pl.dropped.length?`<div class="warn"><b>${t("dropT")}</b> ${pl.dropped.map(d=>`${esc(nm(P[d.id]))} (${t("r_"+d.reason)})`).join(", ")}</div>`:""}
+   <div class="row" style="margin-top:var(--s3)"><button class="btn ghost small" data-plan>${icon("undo")} ${t("regroup")}</button></div></div>`;
+}
+function renderTabs(){
+  $("#tabs").innerHTML=[["board","tabBoard","chat"],["plan","tabPlan","route"],["map","tabMap","map"]].map(([k,l,i])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${icon(i)} ${t(l)}</button>`).join("");
+  const d=matchMedia("(min-width:900px)").matches;
+  $("#boardPane").hidden=!d&&S.tab!=="board"; $("#planPane").hidden=!d&&S.tab!=="plan"; $("#mapPane").hidden=!d&&S.tab!=="map";
+}
+function renderMap(){
+  if(S.plan&&S.plan.length){ const pl=plan(S.plan); DayMap.pins(pl.items.map((x,i)=>({id:x.id,kind:"num",n:i+1}))); DayMap.route(pl.items); }
+  else { const top=board()[0]; DayMap.pins(PLACES.map(p=>({id:p.id,kind:tally(p.id).net>0?"res":"faint",best:top&&top.p.id===p.id&&tally(p.id).net>0})),{fit:false}); }
+}
+function renderAll(){ document.documentElement.lang=state.lang; renderBoard(); renderPlan(); renderTabs(); renderMap(); }
+document.addEventListener("click",e=>{
+  let b;
+  if(b=e.target.closest("[data-v]")){ const [id,v]=b.dataset.v.split(":"); const cur=VOTES.you[id]||0, nv=cur===+v?0:+v; VOTES.you[id]=nv; if(nv) S.feed.unshift(t("feedYou",{v:t(nv>0?"feedUp":"feedDn"),name:nm(P[id])})); const y=$(".pane#boardPane").scrollTop; renderBoard(); $("#boardPane").scrollTop=y; if(S.plan) renderPlan(); renderMap(); $(`[data-v="${b.dataset.v}"]`)?.focus({preventScroll:true}); return; }
+  if(b=e.target.closest("[data-f]")){ S.f=b.dataset.f; renderBoard(); return; }
+  if(e.target.closest("[data-plan]")){ doPlan(); if(!S.plan.length) toast(t("planNone")); S.tab="plan"; renderPlan(); renderTabs(); renderMap(); return; }
+  if(e.target.closest("[data-invite]")){ const link=location.origin+location.pathname+"?room=SAT-YWR"; try{ navigator.clipboard?.writeText(link); }catch(x){} toast(t("copied")); return; }
+  if(b=e.target.closest("[data-tab]")){ S.tab=b.dataset.tab; renderTabs(); if(S.tab==="map"){ DayMap.invalidate(); renderMap(); } return; }
+});
+matchMedia("(min-width:900px)").addEventListener("change",()=>{ renderTabs(); DayMap.invalidate(); });
+applyTheme(state.theme,false);
+initChrome("room",()=>{ renderAll(); DayMap.refresh(); });
+DayMap.init("#map",{onPin:id=>{ VOTES.you[id]=VOTES.you[id]>0?0:1; renderBoard(); renderMap(); }});
+renderAll();
+</script>
+</body>
+</html>

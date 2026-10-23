@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off · Compare versions</title>
+<meta name="theme-color" content="#ffffff">
+<script>
+(function(){var p="system";try{p=localStorage.getItem("dayoff-theme")||"system";}catch(e){}
+if(!/^(light|dark|system)$/.test(p))p="system";
+var d=p==="dark"||(p==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themePref=p;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+:root{--bg:#FFFFFF;--surface:#F4F5F7}
+body{min-height:100dvh}
+.wrap{max-width:1120px;margin:0 auto;padding:var(--s6) var(--gutter) 96px;display:grid;gap:var(--s6)}
+.hero h1{font-size:clamp(30px,6vw,48px);line-height:1.1;max-width:18ch}
+.hero p{max-width:62ch;color:var(--ink-2);margin-top:var(--s3);font-size:16px}
+h2.sec{font-size:clamp(22px,4vw,30px);line-height:1.2}
+.grid{display:grid;gap:var(--s4);grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.mini{display:grid;gap:var(--s2);text-decoration:none;color:inherit}
+.mini .ph{aspect-ratio:9/16;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
+.mini img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.mini b{font-weight:600}.mini span{font-size:12px;color:var(--ink-2);line-height:1.35}
+.mini:hover .ph{border-color:var(--ink)}
+.tbl{overflow:auto;border:1px solid var(--line);border-radius:16px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:13px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:center}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--bg);font-weight:600;min-width:170px}
+thead th{font-weight:600;background:var(--surface);position:sticky;top:0}
+tbody tr:last-child td{border-bottom:0}
+.dots{display:inline-flex;gap:3px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--track)}.dots i.on{background:var(--ink)}
+.dots[data-v="5"] i.on,.dots[data-v="4"] i.on{background:var(--accent)}
+.vcard{display:grid;gap:var(--s5);grid-template-columns:minmax(0,1fr);padding:var(--s5);border:1px solid var(--line);border-radius:24px;background:var(--card)}
+@media (min-width:860px){.vcard{grid-template-columns:260px minmax(0,1fr);align-items:start}}
+.phone{width:min(260px,70%);aspect-ratio:9/19.5;border:8px solid var(--ink);border-radius:34px;overflow:hidden;background:var(--surface);margin:0 auto;position:sticky;top:76px}
+.phone img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.vh{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s3)}
+.vh .n{width:36px;height:36px;border-radius:10px;background:var(--pill);color:var(--on-pill);display:grid;place-items:center;font:500 16px var(--f-head)}
+.vh h2{font-size:26px}
+.stat{font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--surface)}
+.cols{display:grid;gap:var(--s5);grid-template-columns:minmax(0,1fr)}
+@media (min-width:700px){.cols{grid-template-columns:1fr 1fr}}
+.box h3{font-size:14px;margin-bottom:var(--s2)}
+.box ul,.box ol{display:grid;gap:6px;font-size:14px}
+.box ul li{padding-left:18px;position:relative}.box ul li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.box.pro li::before{background:var(--ink)}.box.con li::before{background:transparent;border:2px solid var(--warn)}
+.box ol{counter-reset:s;}.box ol li{counter-increment:s;padding-left:30px;position:relative}.box ol li::before{content:counter(s);position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:12px;font-weight:600}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:var(--s2) 0}
+.flow span{padding:6px 12px;border-radius:999px;background:var(--surface);font-size:13px;font-weight:600}
+.flow i{color:var(--ink-2);font-style:normal}
+.steal{padding:var(--s3) var(--s4);border-radius:14px;background:var(--gold-soft);font-size:14px}
+.acts{display:flex;gap:var(--s2);flex-wrap:wrap}
+.btn{text-decoration:none}
+.syn li{padding:var(--s3) var(--s4);border:1px solid var(--line);border-radius:14px;display:grid;gap:2px;background:var(--card)}
+.syn{display:grid;gap:var(--s2);counter-reset:q}
+.syn li{counter-increment:q}.syn b::before{content:counter(q) ". "}
+.syn small{color:var(--ink-2);font-size:13px}
+.note{padding:var(--s4);border:1px dashed var(--track);border-radius:14px;font-size:14px;color:var(--ink-2)}
+.src a{text-underline-offset:3px}.src li{margin:4px 0}
+.lede{color:var(--ink-2);max-width:70ch}
+</style>
+</head>
+<body>
+<header class="header" id="hdr"></header>
+<main class="wrap" id="main"></main>
+<script src="shared/core.js"></script>
+<script src="shared/sprite.js"></script>
+<script src="shared/ui.js"></script>
+<script>
+const R=(en,th)=>({en,th});
+const CRIT=[
+ R("Speed to a first plan","ความเร็วถึงแผนแรก"),R("No typing needed","ไม่ต้องพิมพ์"),R("Shows the vibe scoring","เห็นการให้คะแนนวาย"),R("Shows opening-hours logic","เห็นตรรกะเวลาเปิด-ปิด"),R("Works for a group","ใช้กับกลุ่มได้"),R("One hand, outdoors","มือเดียว กลางแดด"),R("Low effort to build for real","สร้างจริงได้ง่าย"),R("Easy to show solo in a demo","สาธิตคนเดียวได้ง่าย")
+];
+const SCORES={classic:[3,2,4,5,3,3,5,5],chat:[4,3,3,4,2,4,3,4],swipe:[5,5,2,4,2,5,4,5],mixer:[4,5,5,3,2,3,3,5],line:[2,4,1,5,2,2,3,5],room:[3,4,3,4,5,4,1,2],gonow:[4,5,1,5,1,5,4,3],home:[4,4,3,5,3,5,4,4]};
+const V=[
+{id:"classic",file:"day-off-demo.html",n:"A",stat:R("Built · main","สร้างแล้ว · เวอร์ชันหลัก"),
+ name:R("Classic: tabs and a map","คลาสสิก: แท็บและแผนที่"),
+ idea:R("The reference model (Wanderlog-style). Describe a vibe in words, get ranked places with evidence, build and edit a day on a timeline beside a real map.","แบบอ้างอิงที่ใกล้ Wanderlog พิมพ์วาย รับสถานที่ที่จัดอันดับพร้อมหลักฐาน แล้วสร้างและแก้ไขวันบนไทม์ไลน์ข้างแผนที่จริง"),
+ who:R("People who know roughly what they want and like to see everything.","คนที่พอรู้ว่าอยากได้อะไรและอยากเห็นทุกอย่าง"),
+ flow:[R("Describe the vibe","พิมพ์วาย"),R("Read results and evidence","ดูผลและหลักฐาน"),R("Add stops","เพิ่มจุดแวะ"),R("Build the day","สร้างวัน"),R("Edit, re-plan, share","แก้ ปรับแผน แชร์")],
+ feats:R(["Vibe search with examples and fallback ranking","Filters: price, distance, open now","Place detail with photo and scores","Timeline with walk times, reorder, stay time","Mid-trip done, skip, pin, running late","Shared trip with friend votes"],["ค้นหาวายพร้อมตัวอย่างและอันดับสำรอง","ตัวกรอง ราคา ระยะทาง เปิดอยู่","รายละเอียดสถานที่ รูป คะแนน","ไทม์ไลน์ เวลาเดิน เรียงใหม่ เวลาอยู่","ระหว่างทริป เสร็จ ข้าม ปักหมุด มาสาย","ทริปร่วมกับเพื่อนพร้อมโหวต"]),
+ pros:R(["Most complete: every capstone feature is here","Clear mental model, tabs match the three steps","Works for first-timers and planners alike","Strongest evidence and honesty labels"],["ครบที่สุด มีทุกฟีเจอร์ของโครงงาน","โมเดลความคิดชัด แท็บตรงกับสามขั้นตอน","ใช้ได้ทั้งมือใหม่และคนชอบวางแผน","หลักฐานและป้ายความโปร่งใสดีที่สุด"]),
+ cons:R(["Typing a vibe is the hardest step for lazy users","Many screens and controls before the first plan","Mid-trip use needs several taps"],["การพิมพ์วายเป็นขั้นที่ยากที่สุดสำหรับคนขี้เกียจ","หลายหน้าจอและปุ่มก่อนได้แผนแรก","ใช้ระหว่างเดินทางต้องแตะหลายครั้ง"]),
+ steal:R("Keep as the base. Borrow the radar, the Go now mode and the time ruler.","ใช้เป็นฐาน แล้วยืมเรดาร์ โหมดไปเลย และแถบเวลามาเพิ่ม")},
+{id:"chat",file:"day-off-chat.html",n:"B",stat:R("Built","สร้างแล้ว"),
+ name:R("Chat: ask in words or voice","แชท: ถามด้วยข้อความหรือเสียง"),
+ idea:R("A conversation like LINE or Claude. The app answers with cards and keeps a pinned day bar. Added after the instructor said most users are lazy.","คุยแบบ LINE หรือ Claude แอปตอบเป็นการ์ดและมีแถบวันปักไว้ เพิ่มหลังอาจารย์บอกว่าผู้ใช้ส่วนใหญ่ขี้เกียจ"),
+ who:R("People who would rather ask than configure.","คนที่อยากถามมากกว่าตั้งค่า"),
+ flow:[R("Tap a starter or type or speak","แตะตัวเริ่มหรือพิมพ์หรือพูด"),R("Get cards","ได้การ์ด"),R("Refine with chips","ปรับด้วยชิป"),R("Add to the day bar","เพิ่มลงแถบวัน"),R("Open the day panel","เปิดแผงวัน")],
+ feats:R(["Starter chips and quick replies","Voice input","Filters as a message with live sliders","Where should I go next?","Running late with undo","Phone map strip, desktop 55/45"],["ชิปเริ่มต้นและคำตอบด่วน","สั่งด้วยเสียง","ตัวกรองเป็นข้อความพร้อมสไลเดอร์สด","ต่อไปควรไปไหน?","มาสายพร้อมเลิกทำ","แผนที่แถบบนมือถือ จอใหญ่ 55/45"]),
+ pros:R(["Lowest effort to start, nothing to learn","Chips make follow-ups one tap","Voice helps one-handed use","Feels familiar from messaging apps"],["เริ่มง่ายที่สุด ไม่ต้องเรียนรู้","ชิปทำให้ถามต่อได้ในแตะเดียว","เสียงช่วยใช้มือเดียว","คุ้นเคยจากแอปแชท"]),
+ cons:R(["Not real AI: keyword matching, so unknown words fail","Chat history hides the plan as it scrolls","Hard to compare places side by side"],["ไม่ใช่ AI จริง ใช้การจับคำ คำแปลกจะไม่เข้าใจ","ประวัติแชทเลื่อนทำให้แผนหาย","เทียบสถานที่เคียงกันยาก"]),
+ steal:R("Take the composer and chips as an optional input layer inside the main app.","เอาช่องพิมพ์และชิปไปเป็นตัวเลือกป้อนข้อมูลในแอปหลัก")},
+{id:"swipe",file:"day-off-swipe.html",n:"1",stat:R("New demo","เดโมใหม่"),
+ name:R("Swipe deck","สไลด์เลือก"),
+ idea:R("One big card at a time. Swipe right to keep, left to skip. The deck learns your taste and the day builds from what you kept. Pattern seen in Navitra.","การ์ดใหญ่ทีละใบ ปัดขวาเก็บ ปัดซ้ายข้าม สำรับเรียนรู้รสนิยมและแผนสร้างจากที่เก็บ แพตเทิร์นที่เห็นใน Navitra"),
+ who:R("The laziest users. Zero typing.","คนขี้เกียจที่สุด ไม่ต้องพิมพ์เลย"),
+ flow:[R("Pick day length","เลือกความยาววัน"),R("Swipe 6 to 10 cards","ปัด 6 ถึง 10 ใบ"),R("Build my day","สร้างแผน"),R("Review the ticket list and map","ดูรายการและแผนที่"),R("Keep swiping or copy","ปัดต่อหรือคัดลอก")],
+ feats:R(["Gesture plus buttons plus arrow keys","Undo last swipe","Taste weights update after every swipe","Next card prefers nearby places","Closed places are pushed down","Plan with walk gaps, remove with undo"],["ปัด ปุ่ม และลูกศรคีย์บอร์ด","ย้อนการปัดล่าสุด","น้ำหนักรสนิยมเปลี่ยนทุกครั้งที่ปัด","ใบถัดไปเน้นที่ใกล้กัน","ที่ปิดถูกดันลง","แผนพร้อมช่วงเดิน ลบได้และเลิกทำได้"]),
+ pros:R(["Fastest path to a plan","Playful, good for a live demo","Every swipe teaches the ranking","One-handed, big thumb targets"],["เร็วที่สุดจนได้แผน","สนุก เหมาะกับการสาธิตสด","ทุกการปัดสอนระบบจัดอันดับ","มือเดียว ปุ่มใหญ่"]),
+ cons:R(["Hides the why: evidence needs a card flip","Only 15 places, so the deck ends fast","Accidental swipes need undo","Poor for comparing options"],["ซ่อนเหตุผล หลักฐานต้องพลิกการ์ด","มี 15 ที่ สำรับหมดเร็ว","ปัดพลาดต้องมีเลิกทำ","เทียบตัวเลือกไม่ดี"]),
+ steal:R("A Pick for me button on the main page that opens a 6-card deck.","ปุ่ม เลือกให้ฉัน ในหน้าหลักที่เปิดสำรับ 6 ใบ")},
+{id:"mixer",file:"day-off-mixer.html",n:"2",stat:R("New demo","เดโมใหม่"),
+ name:R("Mood mixer","มิกเซอร์วาย"),
+ idea:R("The vibe is an instrument. A six-axis radar you shape with a drag. Places and map answer live, and hovering a place draws its shape on top of yours.","วายคือเครื่องดนตรี เรดาร์หกแกนที่ลากปั้นได้ สถานที่และแผนที่ตอบทันที และเมื่อชี้สถานที่จะวาดรูปของมันซ้อนบนของคุณ"),
+ who:R("People who find it hard to put a vibe into words.","คนที่บรรยายวายเป็นคำพูดไม่ถูก"),
+ flow:[R("Pick a preset or drag handles","เลือกสูตรหรือลากปุ่ม"),R("Watch list and pins change","ดูรายการและหมุดเปลี่ยน"),R("Add places","เพิ่มสถานที่"),R("Plan from the mix","วางแผนจากสูตร"),R("Edit the mix to re-plan","ปรับสูตรเพื่อวางแผนใหม่")],
+ feats:R(["Draggable radar with keyboard sliders","Ghost outline of a hovered place","Presets and reset","Price and open-now filters","Live match percentage per place","Pick the best for me"],["เรดาร์ลากได้ พร้อมคีย์บอร์ด","เส้นเงาของสถานที่ที่ชี้","สูตรสำเร็จและรีเซ็ต","กรองราคาและเปิดอยู่","เปอร์เซ็นต์ตรงใจสดต่อที่","เลือกที่ดีที่สุดให้"]),
+ pros:R(["Shows the core idea: atmosphere is searchable","No typing, no language barrier","Explains why a place ranks where it does","Great for a capstone presentation"],["แสดงแก่นโครงงาน บรรยากาศค้นหาได้","ไม่ต้องพิมพ์ ไม่ติดภาษา","อธิบายว่าทำไมที่นั่นอยู่อันดับนั้น","เหมาะกับการนำเสนอโครงงาน"]),
+ cons:R(["Radar needs a short learning moment","Fiddly on small screens","Scores are demo estimates, so the shape can mislead"],["เรดาร์ต้องเรียนรู้สักครู่","ลากยากบนจอเล็ก","คะแนนเป็นค่าสาธิต รูปทรงอาจทำให้เข้าใจผิด"]),
+ steal:R("Add the radar as a second way to set the vibe on the main Vibe tab.","เพิ่มเรดาร์เป็นวิธีที่สองในการตั้งวายในแท็บ Vibe ของหน้าหลัก")},
+{id:"line",file:"day-off-line.html",n:"3",stat:R("New demo","เดโมใหม่"),
+ name:R("Day line","เส้นทางวัน"),
+ idea:R("The day as a transit line, in the spirit of Bangkok signage. Stations are stops, segments are walks, free time and waiting are drawn. Add between stops, and the line warns before a place closes.","วันเป็นสายรถไฟฟ้า สไตล์ป้ายในกรุงเทพ สถานีคือจุดแวะ ช่วงระหว่างคือการเดิน เวลาว่างและเวลารอถูกวาดให้เห็น เพิ่มระหว่างจุดได้ และสายเตือนก่อนร้านปิด"),
+ who:R("Planners who care about timing.","คนชอบวางแผนที่ใส่ใจเรื่องเวลา"),
+ flow:[R("Set start and end","ตั้งเวลาเริ่มและจบ"),R("Add the first stop","เพิ่มจุดแรก"),R("Add between stops with Fits here","เพิ่มระหว่างจุดด้วย ลงตัวไหม"),R("Fix warnings","แก้คำเตือน"),R("Running late shifts the line","มาสายแล้วสายเลื่อน")],
+ feats:R(["Day ruler with hot-hours band","Add-a-stop picker that says if it fits","Closing and day-end conflicts with reasons","Free-time gaps with suggestions","Stay stepper and move up or down","Running late 15, 30, 60"],["แถบเวลาของวันพร้อมช่วงร้อน","ตัวเลือกเพิ่มจุดที่บอกว่าลงตัวไหม","เตือนร้านปิดและเกินเวลาพร้อมเหตุผล","ช่วงว่างพร้อมคำแนะนำ","ปรับเวลาอยู่ เลื่อนขึ้นลง","มาสาย 15 30 60"]),
+ pros:R(["Best use of the opening-hours and walking logic","Makes conflicts visible before they happen","Strong Bangkok identity","Clear for people who plan in time"],["ใช้ตรรกะเวลาเปิดและการเดินได้ดีที่สุด","เห็นความขัดแย้งก่อนเกิด","เอกลักษณ์กรุงเทพชัด","ชัดสำหรับคนที่วางแผนตามเวลา"]),
+ cons:R(["More work for the user, against the lazy-user brief","Slow for a first plan","No discovery: you must know what to add"],["ผู้ใช้ต้องทำเยอะ ขัดกับโจทย์คนขี้เกียจ","ช้าสำหรับแผนแรก","ไม่ช่วยค้นหา ต้องรู้ว่าจะเพิ่มอะไร"]),
+ steal:R("Use the ruler and Fits here picker inside My day of the main app.","ใช้แถบเวลาและตัวเลือกลงตัวไหมใน My day ของหน้าหลัก")},
+{id:"room",file:"day-off-room.html",n:"4",stat:R("New demo","เดโมใหม่"),
+ name:R("Friends room","ห้องเพื่อน"),
+ idea:R("Gen Z plans in a group chat, so the trip is a shared board. Everyone likes or skips; the app finds the overlap and plans from the votes, showing who got what they wanted.","Gen Z วางแผนในกลุ่มแชท ทริปจึงเป็นบอร์ดร่วม ทุกคนกดชอบหรือข้าม แอปหาจุดร่วมและวางแผนจากโหวต พร้อมแสดงว่าใครได้ตามที่ต้องการ"),
+ who:R("Groups of friends, 3 to 6 people.","กลุ่มเพื่อน 3 ถึง 6 คน"),
+ flow:[R("Host opens the room, copies the link","เจ้าของห้องเปิดห้อง คัดลอกลิงก์"),R("Friends vote","เพื่อนโหวต"),R("See the shared mood","ดูมู้ดร่วม"),R("Plan from votes","วางแผนจากโหวต"),R("Check fairness and cost","ดูความยุติธรรมและค่าใช้จ่าย")],
+ feats:R(["Avatars and vote meters on every card","Filters: most liked, mine, split votes","Shared-mood detection","Plan from votes with reasons","Fairness bars per friend","Per-person cost estimate"],["อวตารและมิเตอร์โหวตทุกการ์ด","ตัวกรอง คนชอบเยอะ ของฉัน เสียงแตก","ตรวจมู้ดที่ตรงกัน","วางแผนจากโหวตพร้อมเหตุผล","แถบความยุติธรรมต่อคน","ประมาณค่าใช้จ่ายต่อคน"]),
+ pros:R(["Fits how the target group already plans","Reduces the where-shall-we-go loop","Honest about trade-offs, not just a result","Strong story for the report"],["ตรงกับวิธีที่กลุ่มเป้าหมายวางแผนอยู่แล้ว","ลดวงจรไปไหนดี","ซื่อตรงเรื่องการประนีประนอม","เรื่องราวเด่นสำหรับรายงาน"]),
+ cons:R(["A real room needs a backend and accounts","Friends here are sample data, so a solo demo is weak","More privacy questions"],["ห้องจริงต้องมีเซิร์ฟเวอร์และบัญชี","เพื่อนในเดโมเป็นข้อมูลตัวอย่าง สาธิตคนเดียวได้ไม่ดี","ประเด็นความเป็นส่วนตัวมากขึ้น"]),
+ steal:R("Strengthen the existing share-trip flow with the shared-mood line and fairness bars.","เสริมการแชร์ทริปเดิมด้วยบรรทัดมู้ดร่วมและแถบความยุติธรรม")},
+{id:"gonow",file:"day-off-gonow.html",n:"5",stat:R("New demo","เดโมใหม่"),
+ name:R("Go now","ไปเลย"),
+ idea:R("On the day itself people want to know what is next. One giant number, one card, three buttons. Hungry, too hot and tired swap the next stop for something that fits.","ในวันจริงคนอยากรู้แค่ว่าอะไรต่อไป ตัวเลขใหญ่หนึ่งตัว การ์ดหนึ่งใบ ปุ่มสามปุ่ม หิว ร้อนจัด เหนื่อย จะสลับจุดถัดไปเป็นที่ที่เหมาะ"),
+ who:R("People already out walking, in bright sun.","คนที่เดินอยู่ข้างนอกกลางแดด"),
+ flow:[R("Pick today's mood","เลือกอารมณ์วันนี้"),R("See Leave in N min","เห็น ออกเดินทางใน N นาที"),R("Go opens the walking route","ไปเลยเปิดเส้นทางเดิน"),R("Done moves to the next stop","เสร็จแล้วไปจุดต่อไป"),R("Recap at the end","สรุปตอนจบ")],
+ feats:R(["Giant leave-in countdown","Go opens a maps app","Done, Skip, Running late","Hungry, Too hot, Tired swaps","Whole-day list on demand","Recap and copy"],["นับถอยหลังออกเดินทางตัวใหญ่","ไปเลยเปิดแอปแผนที่","เสร็จ ข้าม มาสาย","หิว ร้อนจัด เหนื่อย สลับจุด","รายการทั้งวันเมื่อต้องการ","สรุปและคัดลอก"]),
+ pros:R(["Simplest screen of all, readable in sun","Shows re-planning at its most useful moment","Few decisions, low stress","Low effort to build"],["หน้าจอเรียบง่ายที่สุด อ่านได้กลางแดด","แสดงการปรับแผนในช่วงที่มีประโยชน์ที่สุด","ตัดสินใจน้อย เครียดน้อย","สร้างจริงได้ง่าย"]),
+ cons:R(["Not a discovery tool","Real use needs live location, which a static demo fakes","Little detail about why a place"],["ไม่ใช่เครื่องมือค้นหา","ใช้จริงต้องมีตำแหน่งสด เดโมจึงจำลอง","รายละเอียดว่าทำไมที่นั่นน้อย"]),
+ steal:R("Add a Today mode to the main app that appears once a trip has started.","เพิ่มโหมด วันนี้ ในแอปหลักที่ปรากฏเมื่อเริ่มทริปแล้ว")},
+{id:"home",file:"day-off-home.html",n:"6",stat:R("New demo","เดโมใหม่"),
+ name:R("Home: one screen, chat plans","หน้าแรก: หน้าเดียว แชทวางแผน"),
+ idea:R("Removes the overlap between the classic and chat versions. Home is where you are now and what to do next, with the day timeline beneath. Only the chat creates a plan, and Places is for picking by hand.","ตัดส่วนที่ซ้ำกันของเวอร์ชันคลาสสิกกับแชท หน้าแรกคือที่ที่คุณอยู่และสิ่งที่ต้องทำต่อ พร้อมไทม์ไลน์ของวันอยู่ด้านล่าง มีแต่แชทที่สร้างแผน ส่วนสถานที่ไว้เลือกเอง"),
+ who:R("People who open the app on the street with or without a plan.","คนที่เปิดแอปกลางทางไม่ว่าจะมีแผนหรือไม่"),
+ flow:[R("Open Home, see where you are","เปิดหน้าแรก เห็นตำแหน่ง"),R("Plan my day opens the chat","วางแผนวันนี้ เปิดแชท"),R("Optionally pick places by hand","เลือกสถานที่เองได้"),R("Use this plan, back on Home","ใช้แผนนี้ กลับหน้าแรก"),R("Navigate, arrive, edit","นำทาง ถึงแล้ว แก้ไข")],
+ feats:R(["Two tabs: Home and Places","Chat as the only planner, in a layer","Now card with an in-page walking demo","Ask for an idea: hungry, hot, tired, a food style","Day timeline with reorder and running late","Done, back to Home from Places"],["สองแท็บ: หน้าแรกและสถานที่","แชทเป็นตัวเดียวที่วางแผน เปิดเป็นเลเยอร์","การ์ดตอนนี้พร้อมสาธิตเดินนำทาง","ขอไอเดีย: หิว ร้อน เหนื่อย หรือสไตล์อาหาร","ไทม์ไลน์วันพร้อมจัดลำดับและมาช้า","เสร็จ กลับหน้าแรก จากหน้าสถานที่"]),
+ pros:R(["Far fewer screens, one clear home","Works with no plan at all","Planning and doing live on the same page","Reuses the chat the instructor liked"],["จอน้อยลงมาก มีหน้าแรกที่ชัดเจน","ใช้ได้แม้ไม่มีแผน","วางแผนและลงมือทำอยู่หน้าเดียวกัน","ใช้แชทที่อาจารย์ชอบซ้ำ"]),
+ cons:R(["The chat layer is a page inside a page, so language and theme do not sync back","Hand picking is one step removed from Home","Needs real use to know if two tabs are enough"],["เลเยอร์แชทคือหน้าซ้อนหน้า ภาษาและธีมไม่ซิงก์กลับ","การเลือกเองอยู่ห่างจากหน้าแรกหนึ่งขั้น","ต้องทดลองใช้จริงว่าสองแท็บพอหรือไม่"]),
+ steal:R("This is the proposed direction for the main app: merge Now and My day, keep chat as the planner.","นี่คือทิศทางที่เสนอสำหรับแอปหลัก: รวมตอนนี้กับวันของฉัน แล้วใช้แชทเป็นตัววางแผน")}
+];
+const T={
+ en:{h1:"Eight ways to plan one day",lead:"Each version is a complete experience with its own flow and look, built on the same places, hours and planner. Open them, try the same three tasks, and decide what to bring into the main app.",
+  jump:"The versions",tbl:"How they compare",tblN:"Dots are my own judgement from building them, not user data. Test with real people before trusting them.",
+  idea:"The idea",who:"Best for",flow:"User flow",feats:"Features",pros:"Pros",cons:"Cons",steal:"Take to the main version",open:"Open this version",
+  syn:"What I would bring into the main version",synN:"The classic app stays the base. These are the parts of the others that fix its weak spots.",
+  test:"How to compare them with real people",testD:"Five people per version is enough to see the big problems.",
+  research:"Research notes",resN:"The searches found product examples and student projects, not usability studies. Treat these as patterns to test, not proof.",src:"Sources"},
+ th:{h1:"แปดวิธีวางแผนหนึ่งวัน",lead:"แต่ละเวอร์ชันเป็นประสบการณ์ครบชุดที่มีขั้นตอนและหน้าตาของตัวเอง บนข้อมูลสถานที่ เวลา และตัววางแผนเดียวกัน ลองเปิดแต่ละอัน ทำงานสามอย่างเดียวกัน แล้วตัดสินใจว่าจะเอาอะไรเข้าแอปหลัก",
+  jump:"ทุกเวอร์ชัน",tbl:"เปรียบเทียบ",tblN:"จุดคือการประเมินของฉันจากการสร้าง ไม่ใช่ข้อมูลจากผู้ใช้ ควรทดสอบกับคนจริงก่อนเชื่อ",
+  idea:"แนวคิด",who:"เหมาะกับ",flow:"ขั้นตอนของผู้ใช้",feats:"ฟีเจอร์",pros:"ข้อดี",cons:"ข้อเสีย",steal:"เอาไปใส่ในเวอร์ชันหลัก",open:"เปิดเวอร์ชันนี้",
+  syn:"สิ่งที่ฉันจะเอาเข้าเวอร์ชันหลัก",synN:"แอปคลาสสิกยังเป็นฐาน ส่วนนี้คือสิ่งจากเวอร์ชันอื่นที่แก้จุดอ่อนของมัน",
+  test:"วิธีเทียบกับคนจริง",testD:"ห้าคนต่อเวอร์ชันก็เห็นปัญหาใหญ่แล้ว",
+  research:"บันทึกการค้นคว้า",resN:"ผลค้นหาเป็นตัวอย่างผลิตภัณฑ์และโครงงานนักศึกษา ไม่ใช่งานวิจัยการใช้งาน ใช้เป็นแพตเทิร์นที่ต้องทดสอบ ไม่ใช่หลักฐานยืนยัน",src:"แหล่งที่มา"}
+};
+const SYN=[
+ R(["Mood radar on the Vibe tab","Typing a vibe is the hardest step. A radar and presets give a no-typing way in (Mixer)."],["เรดาร์มู้ดในแท็บ Vibe","การพิมพ์วายยากที่สุด เรดาร์และสูตรสำเร็จให้ทางเข้าโดยไม่ต้องพิมพ์ (Mixer)"]),
+ R(["A Today mode after the trip starts","Replace the busy My day with Leave in N min, Done, Skip, Late and the hungry / hot / tired swaps (Go now)."],["โหมดวันนี้เมื่อเริ่มทริป","แทนหน้า My day ที่แน่นด้วย ออกเดินทางใน N นาที เสร็จ ข้าม สาย และสลับหิว ร้อน เหนื่อย (Go now)"]),
+ R(["Time ruler and Fits here picker in My day","See hot hours, free time and conflicts at a glance, and add a stop only where it fits (Day line)."],["แถบเวลาและตัวเลือกลงตัวไหมใน My day","เห็นช่วงร้อน เวลาว่าง และความขัดแย้งในมองเดียว เพิ่มจุดได้เฉพาะที่ลงตัว (Day line)"]),
+ R(["Pick for me, a six-card deck","An optional lazy route that learns from swipes and ends in the same plan (Swipe deck)."],["เลือกให้ฉัน สำรับหกใบ","ทางลัดสำหรับคนขี้เกียจที่เรียนรู้จากการปัดและจบที่แผนเดียวกัน (Swipe deck)"]),
+ R(["Shared mood line and fairness bars in Share trip","Show what the group agrees on and who got what they voted for (Friends room)."],["บรรทัดมู้ดร่วมและแถบความยุติธรรมใน Share trip","แสดงสิ่งที่กลุ่มเห็นตรงกันและใครได้ตามที่โหวต (Friends room)"]),
+ R(["Chat and voice as an input layer, not a separate app","Keep the composer and chips as a shortcut inside the main screens (Chat)."],["แชทและเสียงเป็นชั้นป้อนข้อมูล ไม่ใช่แอปแยก","เก็บช่องพิมพ์และชิปเป็นทางลัดในหน้าหลัก (Chat)"])
+];
+const TESTS=[
+ R(["Task 1: find a quiet cafe that is open now","Task 2: build a day with four stops","Task 3: you are 40 minutes late, fix the plan"],["งาน 1: หาคาเฟ่เงียบที่เปิดอยู่ตอนนี้","งาน 2: สร้างวัน 4 จุด","งาน 3: คุณสาย 40 นาที แก้แผน"]),
+ R(["Measure: time to finish, taps, wrong turns","Ask: how easy was it, 1 to 5","Ask: which version would you use on the day, and why"],["วัด: เวลาที่ใช้ จำนวนแตะ ที่ผิดทาง","ถาม: ง่ายแค่ไหน 1 ถึง 5","ถาม: จะใช้เวอร์ชันไหนในวันจริง เพราะอะไร"])
+];
+const SRC=[
+ ["Layla AI trip planner, screens showcase","https://screensdesign.com/showcase/layla-ai-trip-planner"],
+ ["Plotline: travel map and planner, screens showcase","https://screensdesign.com/showcase/plotline-travel-map-planner"],
+ ["Navitra: swipe places, then a day route","https://hunted.space/product/navitra"],
+ ["AdvenTrip, UX design award: group trip planning for Gen Z","https://ux-design-awards.com/winners/2025-1-adventrip"],
+ ["Best AI tools for travel planning (Unite.AI)","https://www.unite.ai/best-ai-tools-for-travel-planning/"],
+ ["Seamless group trip planning, graduate thesis (Emily Carr)","https://ecuad.arcabc.ca/graduate-theses/seamless-group-trip-planning-connecting-personal-inspirations-unified-decisions"]
+];
+const RES=R(["Chat-first planners such as Layla ask questions and use quick replies, which supports the Chat version.","Map plus day cards is the common pairing (Plotline, Wanderlog), which is the Classic and Day line layout.","A swipe-then-route flow exists in Navitra, but its own post asks whether it really makes planning easier. That is why Swipe deck should be tested, not assumed.","Group planning problems named by student projects: information overload, scattered ideas and aligning preferences, which is what Friends room addresses.","Thai-specific evidence (LINE use, Thai Gen Z travel behaviour) was not found. Interview 5 to 8 students before choosing."],["แอปแนวแชทเป็นหลัก เช่น Layla ใช้การถามกลับและคำตอบด่วน สนับสนุนเวอร์ชัน Chat","แผนที่คู่กับการ์ดรายวันเป็นคู่ที่พบบ่อย (Plotline, Wanderlog) ตรงกับ Classic และ Day line","มีโฟลว์ปัดแล้วได้เส้นทางใน Navitra แต่โพสต์ของเขาเองยังตั้งคำถามว่าช่วยให้วางแผนง่ายขึ้นจริงไหม จึงควรทดสอบ Swipe deck ไม่ใช่สรุปเอาเอง","ปัญหาการวางแผนกลุ่มจากโครงงานนักศึกษา: ข้อมูลล้น ไอเดียกระจัดกระจาย และปรับความชอบให้ตรงกัน ซึ่ง Friends room แก้โจทย์นี้","ไม่พบหลักฐานเฉพาะไทย (การใช้ LINE พฤติกรรมเที่ยวของ Gen Z ไทย) ควรสัมภาษณ์นักศึกษา 5 ถึง 8 คนก่อนตัดสินใจ"]);
+const L=o=>o[state.lang];
+function render(){
+  const q=nextQuery(), tt=T[state.lang];
+  const dots=n=>`<span class="dots" data-v="${n}" role="img" aria-label="${n} / 5">${[1,2,3,4,5].map(i=>`<i class="${i<=n?"on":""}"></i>`).join("")}</span>`;
+  $("#main").innerHTML=`<section class="hero"><h1>${tt.h1}</h1><p>${tt.lead}</p></section>
+  <section aria-labelledby="jh"><h2 class="sec" id="jh" style="margin-bottom:var(--s4)">${tt.jump}</h2><div class="grid">${V.map(v=>`<a class="mini" href="#v-${v.id}"><span class="ph"><img src="shared/previews/${v.id}.png" alt="" loading="lazy"></span><b>${v.n}. ${esc(L(v.name))}</b></a>`).join("")}</div></section>
+  <section aria-labelledby="th"><h2 class="sec" id="th">${tt.tbl}</h2><p class="lede" style="margin:var(--s2) 0 var(--s3)">${tt.tblN}</p>
+   <div class="tbl"><table><thead><tr><th></th>${V.map(v=>`<th scope="col">${v.n}<br><span style="font-weight:400">${esc(L(v.name).split(":")[0])}</span></th>`).join("")}</tr></thead>
+   <tbody>${CRIT.map((c,i)=>`<tr><th scope="row">${esc(L(c))}</th>${V.map(v=>`<td>${dots(SCORES[v.id][i])}</td>`).join("")}</tr>`).join("")}</tbody></table></div></section>
+  ${V.map(v=>`<article class="vcard" id="v-${v.id}"><div class="phone"><img src="shared/previews/${v.id}.png" alt="${esc(L(v.name))}"></div><div style="display:grid;gap:var(--s4)">
+    <div class="vh"><span class="n">${v.n}</span><h2>${esc(L(v.name))}</h2><span class="stat">${esc(L(v.stat))}</span></div>
+    <p>${esc(L(v.idea))}</p><p class="lede"><b>${tt.who}:</b> ${esc(L(v.who))}</p>
+    <div class="box"><h3>${tt.flow}</h3><div class="flow">${v.flow.map((s,i)=>`${i?"<i>›</i>":""}<span>${esc(L(s))}</span>`).join("")}</div></div>
+    <div class="cols"><div class="box"><h3>${tt.feats}</h3><ul>${L(v.feats).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div style="display:grid;gap:var(--s4)"><div class="box pro"><h3>${tt.pros}</h3><ul>${L(v.pros).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div><div class="box con"><h3>${tt.cons}</h3><ul>${L(v.cons).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div></div>
+    <p class="steal"><b>${tt.steal}:</b> ${esc(L(v.steal))}</p>
+    <div class="acts"><a class="btn primary" href="${v.file}${q}">${esc(tt.open)}</a></div></div></article>`).join("")}
+  <section aria-labelledby="sh"><h2 class="sec" id="sh">${tt.syn}</h2><p class="lede" style="margin:var(--s2) 0 var(--s3)">${tt.synN}</p><ol class="syn">${SYN.map(s=>`<li><b>${esc(L(s)[0])}</b><small>${esc(L(s)[1])}</small></li>`).join("")}</ol></section>
+  <section aria-labelledby="eh"><h2 class="sec" id="eh">${tt.test}</h2><p class="lede" style="margin:var(--s2) 0 var(--s3)">${tt.testD}</p><div class="note"><ul style="display:grid;gap:6px;list-style:disc;padding-left:20px">${TESTS.flatMap(x=>L(x)).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></section>
+  <section aria-labelledby="rh"><h2 class="sec" id="rh">${tt.research}</h2><p class="lede" style="margin:var(--s2) 0 var(--s3)">${tt.resN}</p><ul style="display:grid;gap:6px;list-style:disc;padding-left:20px;margin-bottom:var(--s4)">${L(RES).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+   <h3>${tt.src}</h3><ul class="src" style="padding-left:20px;list-style:disc">${SRC.map(([n,u])=>`<li><a href="${u}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join("")}</ul></section>`;
+}
+applyTheme(state.theme,false);
+initChrome("hub",()=>render());
+render();
+</script>
+</body>
+</html>

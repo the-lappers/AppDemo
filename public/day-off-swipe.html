@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off · Swipe deck</title>
+<meta name="theme-color" content="#0E1220">
+<script>
+(function(){var p="system";try{p=localStorage.getItem("dayoff-theme")||"system";}catch(e){}
+if(!/^(light|dark|system)$/.test(p))p="system";
+var d=p==="dark"||(p==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themePref=p;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+/* SWIPE DECK: a night-market stage. One big card, thumb-zone buttons, the day falls out of what you keep. */
+:root{--bg:#EEF0F7;--surface:#E3E6F1;--card:#FFFFFF;--line:#D5D9E8;--track:#C3C9DD;--ink:#141A2E;--ink-2:#566079;--keep:#C93520;--stage:#F7F8FC}
+:root[data-theme="dark"]{--bg:#0B0F1C;--surface:#141A2E;--card:#18203A;--line:#26304F;--track:#33406A;--ink:#F2F4FB;--ink-2:#A3ADC9;--keep:#FF8A75;--stage:#0E1426}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+.header{background:var(--stage)}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1fr) minmax(0,44%);grid-template-rows:minmax(0,1fr)}}
+.stage{position:relative;min-height:0;display:flex;flex-direction:column;align-items:center;padding:var(--s4) var(--gutter) 0;background:radial-gradient(120% 70% at 50% 0,var(--surface),var(--bg) 70%);overflow:auto}
+.col{width:100%;max-width:460px;display:flex;flex-direction:column;flex:1;min-height:0}
+.mapwrap{display:none;position:relative;border-top:1px solid var(--line)}
+main[data-stage="day"] .mapwrap{display:block;height:34dvh}
+@media (min-width:900px){.mapwrap,main[data-stage="day"] .mapwrap{display:block;height:auto;border-top:0;border-left:1px solid var(--line)}}
+#map{position:absolute;inset:0}
+/* setup */
+.setup{display:grid;gap:var(--s5);align-content:center;flex:1;padding:var(--s5) 0}
+.setup h1{font-size:clamp(28px,7vw,40px);line-height:1.15}
+.setup p{color:var(--ink-2)}
+.spans{display:grid;gap:var(--s3)}
+.span{display:grid;grid-template-columns:auto 1fr auto;gap:var(--s4);align-items:center;text-align:left;padding:var(--s4);border:1px solid var(--line);border-radius:20px;background:var(--card);transition:transform 160ms var(--ease),border-color 160ms}
+.span:active{transform:scale(.98)}
+.span b{font:500 18px/1.2 var(--f-head);display:block}
+.span small{color:var(--ink-2)}
+.span .t{font:500 15px/1 var(--f-head);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.span .ico{width:28px;height:28px}
+@media (hover:hover){.span:hover{border-color:var(--ink)}}
+/* deck */
+.top{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding-bottom:var(--s3)}
+.prog{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--ink-2)}
+.dots{display:flex;gap:5px}.dots i{width:8px;height:8px;border-radius:50%;background:var(--track)}.dots i.on{background:var(--keep)}
+.deckwrap{position:relative;flex:1;min-height:340px;max-height:640px;touch-action:pan-y}
+.card{position:absolute;inset:0 0 0 0;border-radius:28px;overflow:hidden;background:var(--card);border:1px solid var(--line);box-shadow:0 24px 50px -24px rgba(8,12,30,.55);display:flex;flex-direction:column;user-select:none;will-change:transform}
+.card.back{transform:scale(.94) translateY(14px);opacity:.65;pointer-events:none}
+.card.back .body{visibility:hidden}
+.art{position:relative;flex:1 1 46%;min-height:150px;display:grid;place-items:center;color:var(--ic,#fff);background:linear-gradient(150deg,var(--t),color-mix(in srgb,var(--t) 55%,#000));overflow:hidden}
+.art .word{position:absolute;left:-6px;bottom:-22px;font:500 clamp(70px,22vw,120px)/1 var(--f-head);opacity:.14;white-space:nowrap;letter-spacing:-.02em}
+.art .ico{width:76px;height:76px;stroke-width:1.5;position:relative}
+.stamp{position:absolute;top:18px;padding:4px 14px;border:3px solid;border-radius:10px;font:500 22px/1.2 var(--f-head);opacity:0;transform:rotate(-10deg)}
+.stamp.k{left:18px;color:#fff;border-color:#fff} .stamp.s{right:18px;color:#fff;border-color:#fff;transform:rotate(10deg)}
+.body{padding:var(--s4) var(--s5) var(--s5);display:grid;gap:var(--s2);align-content:start}
+.body h2{font-size:24px;line-height:1.2}
+.meta{color:var(--ink-2);font-size:14px}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.bd{display:inline-flex;align-items:center;gap:5px;min-height:26px;padding:0 10px;border-radius:999px;background:var(--surface);font-size:12px;font-weight:600}
+.bd.ok{background:var(--gold-soft)} .bd.no{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+.vib{display:grid;gap:4px;margin-top:4px}.vib li{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.why{font-size:13px;color:var(--ink-2)}
+.pad{display:flex;justify-content:center;align-items:center;gap:var(--s5);padding:var(--s4) 0 calc(var(--s4) + env(safe-area-inset-bottom))}
+.rb{width:64px;height:64px;border-radius:50%;border:1px solid var(--track);background:var(--card);display:grid;place-items:center;transition:transform 160ms var(--ease),background-color 160ms}
+.rb .ico{width:26px;height:26px;stroke-width:2.2}
+.rb:active{transform:scale(.92)} .rb.keep{background:var(--keep);border-color:var(--keep);color:var(--on-accent);width:76px;height:76px}
+.rb.small{width:48px;height:48px}.rb.small .ico{width:20px;height:20px}
+.rb:disabled{opacity:.35}
+.hint{text-align:center;font-size:12px;color:var(--ink-2);padding-bottom:var(--s2)}
+.build{position:sticky;bottom:var(--s3);align-self:center}
+.empty{display:grid;gap:var(--s4);text-align:center;align-content:center;flex:1;padding:var(--s5)}
+/* day */
+.day{display:grid;gap:var(--s4);padding:var(--s2) 0 var(--s6)}
+.day h1{font-size:30px;line-height:1.15}
+.sum{display:flex;gap:var(--s5);font-size:13px;color:var(--ink-2)}.sum b{display:block;color:var(--ink);font:500 20px/1.2 var(--f-head);font-variant-numeric:tabular-nums}
+.tix{display:grid;gap:0}
+.tk{display:grid;grid-template-columns:62px 1fr auto;gap:var(--s3);align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:var(--s3) var(--s4)}
+.tk time{font:500 17px/1.2 var(--f-head);font-variant-numeric:tabular-nums}
+.tk time small{display:block;color:var(--ink-2);font:400 12px/1.3 var(--f-body)}
+.tk b{display:block}.tk span.m{color:var(--ink-2);font-size:13px}
+.walk{display:flex;align-items:center;gap:8px;padding:6px 0 6px 31px;color:var(--ink-2);font-size:12px}
+.walk::before{content:"";width:2px;height:22px;background:repeating-linear-gradient(var(--track) 0 4px,transparent 4px 8px);margin-right:20px}
+.x{width:var(--tap);height:var(--tap);border-radius:50%;border:0;background:var(--surface);display:grid;place-items:center}
+.warn{padding:var(--s3) var(--s4);border-radius:16px;border:1px dashed var(--warn);color:var(--warn);font-size:13px}
+.acts{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.fly{transition:transform 280ms var(--ease),opacity 280ms}
+</style>
+</head>
+<body>
+<header class="header" id="hdr"></header>
+<main id="main" data-stage="setup">
+  <section class="stage" id="stage" aria-live="off"><div class="col" id="col"></div></section>
+  <aside class="mapwrap" id="mapwrap"><div id="map" role="region"></div></aside>
+</main>
+<script src="env.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="shared/core.js"></script>
+<script src="shared/sprite.js"></script>
+<script src="shared/ui.js"></script>
+<script src="shared/map.js"></script>
+<script>
+addStrings({
+  h1:"How long is your day off?",sub:"Swipe places you like. The app builds the day from what you keep.",
+  half:"Half day",halfD:"Late brunch and a wander",full:"Full day",fullD:"Morning to late afternoon",eve:"Evening",eveD:"Dinner, markets and night views",
+  kept:"Kept {n}",need:"keep 3 to 6",skip:"Skip",keep:"Keep",undo2:"Undo swipe",build:"Build my day ({n})",
+  hint:"Swipe right to keep, left to skip. Arrow keys work too.",stampK:"Keep",stampS:"Skip",
+  match:"{n}% match",walkFrom:"{n} min from your last pick",walkMe:"{n} min from Hua Lamphong",
+  whyTaste:"Fits your taste for {a}",whyNew:"Fresh pick, nothing like this yet",
+  emptyT:"That is every place",emptyD:"You kept {n}. Build the day or start again.",again:"Start again",
+  yourDay:"Your day",stops:"Stops",finish:"Ends about",walking:"Walking",keepSwiping:"Keep swiping",startOver:"Start over",copy:"Copy plan",copied:"Plan copied",
+  remove:"Remove {name}",removed:"{name} removed",dropT:"Could not fit:",
+  r_closedday:"closed today",r_late:"opens after you would arrive",r_early:"closes before you would finish",r_window:"runs past your day end",r_unknown:"opening hours unknown",
+  wait:"wait {n} min",stay:"stay {n}",oneKept:"Keep at least 2 places to build a day",tooMany:"A day holds up to 6 stops",
+  cardLabel:"Place card. Swipe or use the buttons."
+},{
+  h1:"วันหยุดของคุณยาวแค่ไหน?",sub:"ปัดเลือกที่ที่ชอบ แล้วแอปจะสร้างแผนจากที่คุณเก็บไว้",
+  half:"ครึ่งวัน",halfD:"บรันช์สาย ๆ แล้วเดินเล่น",full:"เต็มวัน",fullD:"ตั้งแต่เช้าถึงบ่ายแก่",eve:"ช่วงเย็น",eveD:"มื้อค่ำ ตลาด และวิวยามค่ำ",
+  kept:"เก็บแล้ว {n}",need:"เก็บ 3 ถึง 6 ที่",skip:"ข้าม",keep:"เก็บ",undo2:"ย้อนการปัด",build:"สร้างแผนของฉัน ({n})",
+  hint:"ปัดขวาเพื่อเก็บ ปัดซ้ายเพื่อข้าม ใช้ปุ่มลูกศรได้ด้วย",stampK:"เก็บ",stampS:"ข้าม",
+  match:"ตรงใจ {n}%",walkFrom:"เดิน {n} นาทีจากที่ที่เก็บล่าสุด",walkMe:"เดิน {n} นาทีจากหัวลำโพง",
+  whyTaste:"เข้ากับที่คุณชอบ: {a}",whyNew:"ตัวเลือกใหม่ ยังไม่มีแบบนี้ในแผน",
+  emptyT:"ครบทุกที่แล้ว",emptyD:"คุณเก็บไว้ {n} ที่ สร้างแผนหรือเริ่มใหม่ได้",again:"เริ่มใหม่",
+  yourDay:"แผนของคุณ",stops:"จุดแวะ",finish:"จบประมาณ",walking:"การเดิน",keepSwiping:"ปัดต่อ",startOver:"เริ่มใหม่",copy:"คัดลอกแผน",copied:"คัดลอกแผนแล้ว",
+  remove:"ลบ {name}",removed:"ลบ {name} แล้ว",dropT:"ใส่ในแผนไม่ได้:",
+  r_closedday:"วันนี้ปิด",r_late:"เปิดหลังจากที่คุณไปถึง",r_early:"ปิดก่อนที่คุณจะเที่ยวเสร็จ",r_window:"เกินเวลาจบวัน",r_unknown:"ไม่ทราบเวลาเปิด",
+  wait:"รอ {n} นาที",stay:"อยู่ {n}",oneKept:"เก็บอย่างน้อย 2 ที่เพื่อสร้างแผน",tooMany:"หนึ่งวันมีได้สูงสุด 6 จุด",
+  cardLabel:"การ์ดสถานที่ ปัดหรือใช้ปุ่ม"
+});
+const SPANS=[{id:"half",s:600,e:900,i:"coffee"},{id:"full",s:600,e:1080,i:"route"},{id:"eve",s:960,e:1320,i:"market"}];
+const S={stage:"setup",deck:[],kept:[],hist:[],w:Object.fromEntries(allTags.map(k=>[k,1]))};
+const col=$("#col");
+
+function order(){
+  const last=S.kept.length?P[S.kept[S.kept.length-1]]:null;
+  const sc=id=>{ const p=P[id]; let s=scoreWeights(p,S.w);
+    if(last) s+=Math.max(0,1-meters(last,p)/1500)*.25; else s+=Math.max(0,1-meters(ME,p)/1500)*.1;
+    if(p.status==="closed") s-=.6; else if(p.status==="ok"&&!(p.close>state.startMin)) s-=.3; return s; };
+  S.deck.sort((a,b)=>sc(b)-sc(a));
+}
+function start(sp){ state.startMin=sp.s; state.endMin=sp.e; state.tray=[]; S.kept=[]; S.hist=[]; S.deck=PLACES.map(p=>p.id); S.w=Object.fromEntries(allTags.map(k=>[k,1])); S.stage="deck"; order(); render(); }
+function tagLine(p){ return topTags(p,2).filter(x=>x.v>=4).map(x=>TAGNAME[state.lang][x.k]); }
+function cardHTML(p,back){
+  const last=S.kept.length?P[S.kept[S.kept.length-1]]:null;
+  const w=last?walkMin(last,p):walkMin(ME,p);
+  const liked=Object.entries(S.w).filter(([k,v])=>v>1.2&&p.tags[k]>=4).map(([k])=>TAGNAME[state.lang][k]);
+  const st=p.status==="closed"||p.status==="unknown"?"no":isOpen(p)?"ok":"";
+  return `<article class="card tone-${p.tone}${back?" back":""}" data-id="${p.id}" ${back?'aria-hidden="true"':`role="group" aria-label="${esc(nm(p))}. ${esc(t("cardLabel"))}"`}>
+    <div class="art"><span class="word" aria-hidden="true">${esc(TYPENAME[state.lang][p.type])}</span>${icon(p.icon)}<span class="stamp k">${t("stampK")}</span><span class="stamp s">${t("stampS")}</span></div>
+    <div class="body"><h2>${esc(nm(p))}</h2>
+      <p class="meta">${esc(AREA[state.lang][p.area])} · ${esc(TYPENAME[state.lang][p.type])} · ${priceBand(p.price)}</p>
+      <div class="badges"><span class="bd ok">${t("match",{n:Math.round(scoreWeights(p,S.w)*100)})}</span><span class="bd ${st}">${esc(statusText(p))}</span><span class="bd">${icon("walk")} ${t("walk",{n:w})}</span></div>
+      <ul class="vib">${topTags(p,3).map(x=>`<li><span>${TAGNAME[state.lang][x.k]}</span>${slats(x.v)}</li>`).join("")}</ul>
+      <p class="why">${liked.length?t("whyTaste",{a:liked.slice(0,2).join(", ")}):t("whyNew")}</p></div></article>`;
+}
+function render(){
+  document.documentElement.lang=state.lang; $("#main").dataset.stage=S.stage;
+  if(S.stage==="setup") col.innerHTML=`<div class="setup"><div><h1>${t("h1")}</h1><p style="margin-top:8px">${t("sub")}</p></div>
+    <div class="spans">${SPANS.map(s=>`<button type="button" class="span" data-span="${s.id}">${icon(s.i)}<span><b>${t(s.id)}</b><small>${t(s.id+"D")}</small></span><span class="t">${fmt(s.s)}–${fmt(s.e)}</span></button>`).join("")}</div>
+    <p class="demo-note">${t("demoNote")}</p></div>`;
+  else if(S.stage==="deck") renderDeck(); else renderDay();
+  renderMap();
+}
+function renderDeck(){
+  const n=S.kept.length, cur=S.deck[0], nxt=S.deck[1];
+  const dots=Array.from({length:6},(_,i)=>`<i class="${i<n?"on":""}"></i>`).join("");
+  col.innerHTML=`<div class="top"><div class="prog"><span class="dots" aria-hidden="true">${dots}</span><span>${t("kept",{n})} · ${t("need")}</span></div><button class="btn ghost small" data-act="restart">${t("startOver")}</button></div>
+  ${cur?`<div class="deckwrap" id="deckwrap">${nxt?cardHTML(P[nxt],true):""}${cardHTML(P[cur],false)}</div>
+  <div class="pad"><button class="rb small" data-act="undo" aria-label="${t("undo2")}" title="${t("undo2")}" ${S.hist.length?"":"disabled"}>${icon("undo")}</button>
+    <button class="rb" data-act="skip" aria-label="${t("skip")}" title="${t("skip")}">${icon("x")}</button>
+    <button class="rb keep" data-act="keep" aria-label="${t("keep")}" title="${t("keep")}">${icon("check")}</button>
+    <button class="rb small" data-act="build" aria-label="${t("build",{n})}" title="${t("build",{n})}" ${n>=2?"":"disabled"}>${icon("route")}</button></div>
+  <p class="hint">${t("hint")}</p>`
+  :`<div class="empty"><h2>${t("emptyT")}</h2><p>${t("emptyD",{n})}</p><div class="acts" style="justify-content:center"><button class="btn primary" data-act="build" ${n>=2?"":"disabled"}>${t("build",{n})}</button><button class="btn ghost" data-act="restart">${t("again")}</button></div></div>`}
+  ${n>=2&&cur?`<div class="build"><button class="btn primary" data-act="build">${icon("route")} ${t("build",{n})}</button></div>`:""}`;
+  attachDrag();
+}
+function attachDrag(){
+  const wrap=$("#deckwrap"); if(!wrap) return; const card=wrap.querySelector(".card:not(.back)"); if(!card) return;
+  let x0=0,dx=0,down=false;
+  const ks=card.querySelector(".stamp.k"), ss=card.querySelector(".stamp.s");
+  card.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; down=true; x0=e.clientX; dx=0; card.setPointerCapture(e.pointerId); card.classList.remove("fly"); });
+  card.addEventListener("pointermove",e=>{ if(!down) return; dx=e.clientX-x0; card.style.transform=`translateX(${dx}px) rotate(${dx/22}deg)`; ks.style.opacity=Math.max(0,Math.min(1,dx/90)); ss.style.opacity=Math.max(0,Math.min(1,-dx/90)); });
+  const end=()=>{ if(!down) return; down=false; if(Math.abs(dx)>90) decide(dx>0?"keep":"skip"); else { card.classList.add("fly"); card.style.transform=""; ks.style.opacity=ss.style.opacity=0; } };
+  card.addEventListener("pointerup",end); card.addEventListener("pointercancel",end);
+}
+function decide(dir){
+  const id=S.deck[0]; if(!id||S.busy) return;
+  if(dir==="keep"&&S.kept.length>=6){ toast(t("tooMany")); return; }
+  S.busy=true;
+  const card=$("#deckwrap .card:not(.back)"), go=()=>{
+    S.busy=false; const p=P[id]; S.deck.shift(); S.hist.push({id,dir,w:{...S.w}});
+    allTags.forEach(k=>{ if(p.tags[k]>=4) S.w[k]=Math.max(0,S.w[k]+(dir==="keep"?.5:-.25)); });
+    if(dir==="keep"){ S.kept.push(id); state.tray=[...S.kept]; }
+    order(); render(); say(dir==="keep"?t("kept",{n:S.kept.length}):t("skip"));
+  };
+  if(card&&!reducedMotion()){ card.classList.add("fly"); card.style.transform=`translateX(${dir==="keep"?520:-520}px) rotate(${dir==="keep"?18:-18}deg)`; card.style.opacity=0; setTimeout(go,230); } else go();
+}
+function undoSwipe(){ if(S.busy) return; const h=S.hist.pop(); if(!h) return; S.deck.unshift(h.id); S.w=h.w; if(h.dir==="keep"){ S.kept.pop(); state.tray=[...S.kept]; } order(); S.deck=[h.id,...S.deck.filter(x=>x!==h.id)]; render(); }
+function renderDay(){
+  const pl=plan(S.kept), items=pl.items;
+  col.innerHTML=`<div class="day"><h1>${t("yourDay")}</h1>
+   <div class="sum"><div><b>${items.length}</b>${t("stops")}</div><div><b>${items.length?fmt(pl.finish):"–"}</b>${t("finish")}</div><div><b>${pl.walk}′</b>${t("walking")}</div></div>
+   <ol class="tix">${items.map((it,i)=>{ const p=P[it.id]; return `${i?`<li class="walk" aria-hidden="true">${icon("walk")} ${t("walk",{n:it.walk})}${it.wait?" · "+t("wait",{n:it.wait}):""}</li>`:""}
+     <li class="tk"><time>${fmt(it.start)}<small>${fmt(it.end)}</small></time><div><b>${esc(nm(p))}</b><span class="m">${esc(AREA[state.lang][p.area])} · ${t("stay",{n:durText(it.end-it.start)})}</span></div><button class="x" data-rm="${p.id}" aria-label="${esc(t("remove",{name:nm(p)}))}">${icon("x")}</button></li>`; }).join("")}</ol>
+   ${pl.dropped.length?`<div class="warn"><b>${t("dropT")}</b> ${pl.dropped.map(d=>`${esc(nm(P[d.id]))} (${t("r_"+d.reason)})`).join(", ")}</div>`:""}
+   <div class="acts"><button class="btn dark" data-act="more">${icon("back")} ${t("keepSwiping")}</button><button class="btn ghost" data-act="copy">${icon("copy")} ${t("copy")}</button><button class="btn ghost" data-act="restart">${t("startOver")}</button></div></div>`;
+}
+function renderMap(){
+  if(S.stage==="deck"){
+    const cur=S.deck[0];
+    DayMap.pins([...S.deck.map(id=>({id,kind:id===cur?"res":"faint",best:id===cur})),...S.kept.map((id,i)=>({id,kind:"num",n:i+1}))],{fit:false});
+    if(cur) DayMap.focus(cur);
+  } else if(S.stage==="day"){
+    const pl=plan(S.kept); DayMap.pins(pl.items.map((it,i)=>({id:it.id,kind:"num",n:i+1})));
+    DayMap.route(pl.items);
+  } else DayMap.pins(PLACES.map(p=>({id:p.id,kind:"faint"})));
+}
+document.addEventListener("click",e=>{
+  const sp=e.target.closest("[data-span]"); if(sp){ start(SPANS.find(s=>s.id===sp.dataset.span)); return; }
+  const rm=e.target.closest("[data-rm]"); if(rm){ const id=rm.dataset.rm, prev=[...S.kept]; S.kept=S.kept.filter(x=>x!==id); state.tray=[...S.kept]; render(); toast(t("removed",{name:nm(P[id])}),()=>{ S.kept=prev; state.tray=[...prev]; render(); }); return; }
+  const a=e.target.closest("[data-act]"); if(!a) return;
+  const k=a.dataset.act;
+  if(k==="keep"||k==="skip") decide(k);
+  else if(k==="undo") undoSwipe();
+  else if(k==="build"){ if(S.kept.length<2){ toast(t("oneKept")); return; } S.stage="day"; render(); col.querySelector("h1")?.setAttribute("tabindex","-1"); col.querySelector("h1")?.focus(); }
+  else if(k==="more"){ S.stage="deck"; render(); }
+  else if(k==="restart"){ S.stage="setup"; render(); }
+  else if(k==="copy"){ const pl=plan(S.kept); const txt=pl.items.map(it=>fmt(it.start)+" "+nm(P[it.id])).join("\n"); try{ navigator.clipboard?.writeText(txt); }catch(x){} toast(t("copied")); }
+});
+document.addEventListener("keydown",e=>{
+  if(S.stage!=="deck"||e.target.closest("input,textarea,select")||e.altKey||e.ctrlKey||e.metaKey) return;
+  if(e.key==="ArrowRight"){ e.preventDefault(); decide("keep"); } else if(e.key==="ArrowLeft"){ e.preventDefault(); decide("skip"); }
+});
+applyTheme(state.theme,false);
+initChrome("swipe",()=>{ render(); });
+DayMap.init("#map",{zoom:"topright"});
+render();
+</script>
+</body>
+</html>

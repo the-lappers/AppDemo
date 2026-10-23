@@ -1,0 +1,10 @@
+services:
+  day-off:
+    build: .
+    image: day-off
+    ports:
+      - "${PORT:-4173}:4173"
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off · My trips</title>
+<meta name="theme-color" content="#ffffff">
+<script>
+(function(){var p="system";try{p=localStorage.getItem("dayoff-theme")||"system";}catch(e){}
+if(!/^(light|dark|system)$/.test(p))p="system";
+var d=p==="dark"||(p==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themePref=p;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+/* TRIPS: where every trip lives. The start page (Home) is unchanged; this page only manages trips. */
+body{min-height:100dvh;background:var(--surface)}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--s3);height:var(--header-h);padding:0 var(--gutter);background:var(--bg);border-bottom:1px solid var(--line)}
+.top h1{font-size:20px}
+.top .l{display:flex;align-items:center;gap:var(--s3);min-width:0}
+.back{display:inline-flex;align-items:center;gap:var(--s2);min-height:var(--tap);padding:0 var(--s3) 0 var(--s2);border-radius:999px;background:var(--surface);color:var(--ink);text-decoration:none;font-weight:500;font-size:14px}
+.btn{text-decoration:none}
+.back .ico{width:18px;height:18px}
+.wrap{max-width:720px;margin:0 auto;padding:var(--s5) var(--gutter) var(--s6);display:grid;gap:var(--s6)}
+h2.sec{font-size:16px;margin-bottom:var(--s3)}
+.list{display:grid;gap:var(--s3)}
+.trip{display:grid;gap:var(--s3);padding:var(--s4) var(--s5);border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.trip.cur{border-color:var(--ink);border-width:2px}
+.trip h3{font:500 17px/1.35 var(--f-head)}
+.trip .meta{font-size:13px;color:var(--ink-2)}
+.stops{display:flex;flex-wrap:wrap;gap:6px}
+.stops span{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:2px 10px;border-radius:999px;background:var(--surface)}
+.stops b{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--pill);color:var(--on-pill);font-size:11px;font-weight:600}
+.acts{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.tag{justify-self:start;font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--gold-soft)}
+.empty{display:grid;gap:var(--s3);padding:var(--s5);border-radius:16px;background:var(--card);border:1px dashed var(--track);color:var(--ink-2)}
+.join{display:flex;gap:var(--s2);align-items:center}
+.join input{flex:1;min-width:0;min-height:var(--tap);padding:0 var(--s4);border:1px solid var(--track);border-radius:999px;background:var(--bg);font-size:14px}
+.join input:focus-visible{outline-offset:0;border-color:var(--ink)}
+.err{color:var(--warn);font-size:13px}
+.hctl{display:flex;align-items:center;gap:var(--s2)}
+dialog .sheet h2{font-size:18px}
+dialog textarea,dialog input.nm{width:100%;min-height:var(--tap);padding:var(--s3) var(--s4);border:1px solid var(--track);border-radius:12px;background:var(--bg);font:inherit;font-size:14px}
+dialog textarea{min-height:84px;resize:none;word-break:break-all}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="l"><a class="back" id="back" href="day-off-home.html" data-testid="back-home"></a><h1 id="ttl"></h1></div>
+  <div class="hctl" id="hctl"></div>
+</header>
+<main class="wrap" id="main"></main>
+<dialog id="sheet" aria-labelledby="sheet-title"></dialog>
+<div class="toasts" id="toasts"></div>
+<div class="sr" id="live" role="status" aria-live="polite"></div>
+<script src="shared/core.js"></script>
+<script src="shared/sprite.js"></script>
+<script src="shared/ui.js"></script>
+<script>
+addStrings({
+  trTitle:"My trips", trBack:"Home", trCurrent:"In progress", trNone:"No trip in progress", trNoneB:"Plan a day from Home and it shows up here.",
+  trNew:"Plan a new trip", trContinue:"Continue", trFinish:"Finish and save", trShare:"Share", trReuse:"Reuse as a new trip", trRename:"Rename", trDelete:"Delete",
+  trPast:"Past trips", trPastNone:"No saved trips yet. Finish a trip to keep it here.", trShared:"Shared with me", trSharedNone:"Nothing shared yet. Paste a code below to join a trip.",
+  trJoin:"Join a trip", trJoinPh:"Paste a trip code or link", trJoinBtn:"Join", trJoinBad:"That code did not work. Check it and try again.", trJoined:"Joined: {name}",
+  trSaved:"Saved to past trips", trDeleted:"Deleted: {name}", trStops:"{n} stops", trDefName:"{first} + {n} more", trShareH:"Share this trip", trShareB:"Send this code or link. Anyone who pastes it can join a copy of the trip.",
+  trCopy:"Copy code", trCopyLink:"Copy link", trCopied:"Copied", trClose:"Close", trRenameH:"Rename trip", trSave:"Save", trSampleTag:"Sample", trFrom:"from a shared code",
+  trNote:"Trips are saved only in this browser. A code carries the whole trip, so there is no server.", undo:"Undo"
+},{
+  trTitle:"ทริปของฉัน", trBack:"หน้าแรก", trCurrent:"กำลังไป", trNone:"ยังไม่มีทริปที่กำลังไป", trNoneB:"วางแผนวันจากหน้าแรก แล้วจะมาอยู่ที่นี่",
+  trNew:"วางแผนทริปใหม่", trContinue:"ไปต่อ", trFinish:"จบและบันทึก", trShare:"แชร์", trReuse:"ใช้เป็นทริปใหม่", trRename:"เปลี่ยนชื่อ", trDelete:"ลบ",
+  trPast:"ทริปที่ผ่านมา", trPastNone:"ยังไม่มีทริปที่บันทึก จบทริปเพื่อเก็บไว้ที่นี่", trShared:"แชร์มาถึงฉัน", trSharedNone:"ยังไม่มีใครแชร์ วางรหัสด้านล่างเพื่อเข้าร่วมทริป",
+  trJoin:"เข้าร่วมทริป", trJoinPh:"วางรหัสหรือลิงก์ของทริป", trJoinBtn:"เข้าร่วม", trJoinBad:"รหัสนี้ใช้ไม่ได้ ตรวจสอบแล้วลองใหม่", trJoined:"เข้าร่วมแล้ว: {name}",
+  trSaved:"บันทึกในทริปที่ผ่านมาแล้ว", trDeleted:"ลบแล้ว: {name}", trStops:"{n} จุด", trDefName:"{first} และอีก {n} จุด", trShareH:"แชร์ทริปนี้", trShareB:"ส่งรหัสหรือลิงก์นี้ ใครวางรหัสก็เข้าร่วมสำเนาของทริปได้",
+  trCopy:"คัดลอกรหัส", trCopyLink:"คัดลอกลิงก์", trCopied:"คัดลอกแล้ว", trClose:"ปิด", trRenameH:"เปลี่ยนชื่อทริป", trSave:"บันทึก", trSampleTag:"ตัวอย่าง", trFrom:"จากรหัสที่แชร์",
+  trNote:"ทริปถูกเก็บในเบราว์เซอร์นี้เท่านั้น รหัสพกทั้งทริปไปด้วย จึงไม่ต้องมีเซิร์ฟเวอร์", undo:"เลิกทำ"
+});
+const KT="dayoff-trips", KC="dayoff-current";
+const rd=(k,d)=>{ try{ const v=JSON.parse(localStorage.getItem(k)); return v??d; }catch(e){ return d; } };
+const wr=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+let trips=rd(KT,null);
+if(!trips){   /* two sample past trips so the page is not empty in the demo */
+  const day=864e5, now=Date.now();
+  trips=[{id:"s1",name:null,tray:["soheng","eiahsae","gulongbao","yoofish"],startMin:600,endMin:1080,date:now-7*day,src:"sample"},
+         {id:"s2",name:null,tray:["hongsieng","influence","naam"],startMin:660,endMin:1080,date:now-14*day,src:"sample"}];
+  wr(KT,trips);
+}
+const valid=ids=>(ids||[]).filter(id=>P[id]);
+const newId=()=>"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const tripName=tr=>tr.name||(tr.tray.length>1?t("trDefName",{first:nm(P[tr.tray[0]]),n:tr.tray.length-1}):nm(P[tr.tray[0]]));
+const cur=()=>{ const c=rd(KC,null); return c&&valid(c.tray).length?{...c,tray:valid(c.tray)}:null; };
+const q=()=>{ const u=new URLSearchParams({lang:state.lang}); if(params.get("at")) u.set("at",params.get("at")); return u; };
+const homeUrl=tr=>{ const u=q(); if(tr){ u.set("tray",tr.tray.join(",")); u.set("start",tr.startMin); u.set("end",tr.endMin); } return "day-off-home.html?"+u; };
+const dateTxt=ms=>new Date(ms).toLocaleDateString(state.lang==="th"?"th-TH":"en-GB",{day:"numeric",month:"short"});
+/* a share code carries the whole trip */
+const encode=tr=>"DO1-"+btoa(JSON.stringify({s:tr.tray,a:tr.startMin,b:tr.endMin,n:tr.name||null})).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+function decode(txt){
+  try{
+    const m=String(txt).match(/DO1-[A-Za-z0-9_-]+/); if(!m) return null;
+    const j=JSON.parse(atob(m[0].slice(4).replace(/-/g,"+").replace(/_/g,"/")));
+    const tray=valid(j.s).slice(0,MAX_STOPS); if(!tray.length) return null;
+    return {tray,startMin:+j.a>=0&&+j.a<1440?+j.a:600,endMin:+j.b>0&&+j.b<=1440?+j.b:1080,name:typeof j.n==="string"?j.n.slice(0,60):null};
+  }catch(e){ return null; }
+}
+const stopsHTML=tr=>`<div class="stops">${tr.tray.map((id,i)=>`<span><b>${i+1}</b>${esc(nm(P[id]))}</span>`).join("")}</div>`;
+const metaTxt=(tr,extra)=>[extra,t("trStops",{n:tr.tray.length}),fmt(tr.startMin)+"–"+fmt(tr.endMin)].filter(Boolean).join(" · ");
+function tripCard(tr,kind){
+  const acts=kind==="cur"
+    ? `<a class="btn small primary" href="${esc(homeUrl(tr))}" data-testid="continue">${icon("walk")}${t("trContinue")}</a>
+       <button type="button" class="btn small dark" data-act="finish" data-testid="finish">${icon("check")}${t("trFinish")}</button>
+       <button type="button" class="btn small ghost" data-act="share" data-id="cur" data-testid="share">${icon("share")}${t("trShare")}</button>`
+    : `<a class="btn small primary" href="${esc(homeUrl(tr))}" data-testid="reuse">${icon("route")}${t("trReuse")}</a>
+       <button type="button" class="btn small ghost" data-act="share" data-id="${tr.id}" data-testid="share">${icon("share")}${t("trShare")}</button>
+       <button type="button" class="btn small ghost" data-act="rename" data-id="${tr.id}">${t("trRename")}</button>
+       <button type="button" class="btn small ghost" data-act="del" data-id="${tr.id}" data-testid="delete">${icon("x")}${t("trDelete")}</button>`;
+  const extra=kind==="cur"?"":dateTxt(tr.date);
+  return `<article class="trip ${kind}" data-testid="trip-${kind}" aria-label="${esc(tripName(tr))}">${tr.src==="sample"?`<span class="tag">${t("trSampleTag")}</span>`:""}<h3>${esc(tripName(tr))}</h3>
+    <p class="meta">${esc(metaTxt(tr,extra))}${tr.src==="shared"?" · "+t("trFrom"):""}</p>${stopsHTML(tr)}<div class="acts">${acts}</div></article>`;
+}
+function render(){
+  document.documentElement.lang=state.lang;
+  document.title="Day-Off · "+t("trTitle");
+  $("#ttl").textContent=t("trTitle");
+  $("#back").innerHTML=icon("back")+t("trBack"); $("#back").href=homeUrl();
+  const next=THEME_ORDER[(THEME_ORDER.indexOf(state.theme)+1)%3], ic={system:"auto",light:"sun",dark:"moon"};
+  $("#hctl").innerHTML=`<button type="button" class="theme-cycle" data-act="theme" aria-label="${esc(t("themeCycle",{cur:t({system:"themeSystem",light:"themeLight",dark:"themeDark"}[state.theme]),next:t({system:"themeSystem",light:"themeLight",dark:"themeDark"}[next])}))}">${icon(ic[state.theme])}</button>
+    <div class="seg" role="group" aria-label="${esc(t("langGroup"))}"><button type="button" data-act="lang" data-lang="th" aria-pressed="${state.lang==="th"}">ไทย</button><button type="button" data-act="lang" data-lang="en" aria-pressed="${state.lang==="en"}">EN</button></div>`;
+  const c=cur(), mine=trips.filter(x=>x.src!=="shared"), shared=trips.filter(x=>x.src==="shared");
+  const sec=(id,h,body)=>`<section aria-labelledby="${id}"><h2 class="sec" id="${id}">${h}</h2>${body}</section>`;
+  $("#main").innerHTML=
+    sec("hc",t("trCurrent"),c?tripCard(c,"cur"):`<div class="empty" data-testid="no-current"><strong>${t("trNone")}</strong><p>${t("trNoneB")}</p><div class="acts"><a class="btn small primary" href="${esc(homeUrl())}" data-testid="new-trip">${icon("route")}${t("trNew")}</a></div></div>`)+
+    sec("hp",t("trPast"),mine.length?`<div class="list" data-testid="past">${mine.map(x=>tripCard(x,"past")).join("")}</div>`:`<div class="empty">${t("trPastNone")}</div>`)+
+    sec("hs",t("trShared"),shared.length?`<div class="list" data-testid="shared">${shared.map(x=>tripCard(x,"past")).join("")}</div>`:`<div class="empty">${t("trSharedNone")}</div>`)+
+    sec("hj",t("trJoin"),`<form class="join" id="joinForm" novalidate><input id="joinTxt" type="text" autocomplete="off" aria-label="${esc(t("trJoinPh"))}" placeholder="${esc(t("trJoinPh"))}" data-testid="join-input"><button type="submit" class="btn primary" data-testid="join-btn">${t("trJoinBtn")}</button></form><p class="err" id="joinErr" role="alert"></p>`)+
+    `<p class="meta" style="font-size:13px;color:var(--ink-2)">${t("trNote")}</p>`;
+}
+function openShare(tr){
+  const code=encode(tr), link=location.origin+"/day-off-trips.html?"+new URLSearchParams({lang:state.lang,join:code});
+  const sh=$("#sheet");
+  sh.innerHTML=`<div class="sheet"><h2 id="sheet-title">${t("trShareH")}</h2><p>${t("trShareB")}</p>
+    <textarea readonly aria-label="${esc(t("trShareH"))}" data-testid="share-code">${esc(code)}</textarea>
+    <div class="sheet-actions"><button type="button" class="btn primary" data-act="copy" data-v="${esc(code)}">${t("trCopy")}</button><button type="button" class="btn ghost" data-act="copy" data-v="${esc(link)}">${t("trCopyLink")}</button><button type="button" class="btn ghost" data-act="cancel">${t("trClose")}</button></div></div>`;
+  sh.showModal();
+}
+function join(txt){
+  const tr=decode(txt);
+  if(!tr){ $("#joinErr").textContent=t("trJoinBad"); return false; }
+  trips.unshift({id:newId(),name:tr.name,tray:tr.tray,startMin:tr.startMin,endMin:tr.endMin,date:Date.now(),src:"shared"});
+  wr(KT,trips); render(); toast(t("trJoined",{name:tripName(trips[0])})); return true;
+}
+const byId=id=>id==="cur"?(cur()&&{...cur(),name:null}):trips.find(x=>x.id===id);
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const a=b.dataset.act, id=b.dataset.id;
+  if(a==="theme"){ applyTheme(THEME_ORDER[(THEME_ORDER.indexOf(state.theme)+1)%3],true); render(); }
+  else if(a==="lang"){ state.lang=b.dataset.lang; render(); }
+  else if(a==="finish"){ const c=cur(); if(!c) return; trips.unshift({id:newId(),name:null,tray:c.tray,startMin:c.startMin,endMin:c.endMin,date:Date.now(),src:"mine"}); wr(KT,trips); try{ localStorage.removeItem(KC); }catch(x){} render(); toast(t("trSaved")); }
+  else if(a==="share"){ const tr=byId(id); if(tr) openShare(tr); }
+  else if(a==="copy"){ try{ navigator.clipboard?.writeText(b.dataset.v); }catch(x){} toast(t("trCopied")); }
+  else if(a==="del"){ const i=trips.findIndex(x=>x.id===id); if(i<0) return; const [gone]=trips.splice(i,1); wr(KT,trips); render(); toast(t("trDeleted",{name:tripName(gone)}),()=>{ trips.splice(i,0,gone); wr(KT,trips); render(); }); }
+  else if(a==="rename"){ const tr=trips.find(x=>x.id===id); if(!tr) return; const sh=$("#sheet"); sh.dataset.id=id;
+    sh.innerHTML=`<form class="sheet" id="renameForm" method="dialog"><h2 id="sheet-title">${t("trRenameH")}</h2><input class="nm" id="nameTxt" type="text" maxlength="60" value="${esc(tripName(tr))}" aria-label="${esc(t("trRenameH"))}"><div class="sheet-actions"><button type="submit" class="btn primary">${t("trSave")}</button><button type="button" class="btn ghost" data-act="cancel">${t("trClose")}</button></div></form>`;
+    sh.showModal(); $("#nameTxt").select(); }
+  else if(a==="cancel"){ $("#sheet").close(); }
+});
+document.addEventListener("submit",e=>{
+  if(e.target.id==="joinForm"){ e.preventDefault(); $("#joinErr").textContent=""; const v=$("#joinTxt").value.trim(); if(v&&join(v)) $("#joinTxt").value=""; else if(!v) $("#joinErr").textContent=t("trJoinBad"); }
+  else if(e.target.id==="renameForm"){ const tr=trips.find(x=>x.id===$("#sheet").dataset.id); const v=$("#nameTxt").value.trim().slice(0,60); if(tr){ tr.name=v||null; wr(KT,trips); } setTimeout(render,0); }
+});
+$("#sheet").addEventListener("click",e=>{ if(e.target===$("#sheet")) $("#sheet").close(); });
+applyTheme(state.theme,false);
+render();
+if(params.get("join")){ const j=params.get("join"); if(!join(j)) toast(t("trJoinBad")); history.replaceState(null,"",location.pathname+"?"+q()); }
+</script>
+</body>
+</html>

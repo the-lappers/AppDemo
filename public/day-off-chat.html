@@ -1,0 +1,2021 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-Off Chat · เดย์ออฟ</title>
+<meta name="description" content="Chat with Day-Off: say a vibe or ask where to go next, and get a one-day walking route for Yaowarat, Song Wat and Talat Noi.">
+<meta name="theme-color" content="#ffffff">
+<script>
+/* Resolve the theme before first paint so there is no flash. */
+(function(){
+  var p="system";
+  try{ p=localStorage.getItem("dayoff-theme")||"system"; }catch(e){}
+  if(!/^(light|dark|system)$/.test(p)) p="system";
+  var dark = p==="dark" || (p==="system" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  var r=document.documentElement; r.dataset.theme=dark?"dark":"light"; r.dataset.themePref=p;
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#FFFFFF; --surface:#F4F5F7; --card:#FFFFFF; --line:#E4E7EC; --track:#D9DDE4;
+  --ink:#1B2233; --ink-2:#596273; --on-ink:#FFFFFF;
+  --accent:#C93520; --accent-d:#AE2C1A; --on-accent:#FFFFFF;
+  --warn:#B3261E; --gold:#E3AE3C; --gold-soft:#FBF0D4; --on-gold:#1B2233;
+  --pill:#1B2233; --on-pill:#FFFFFF; --done:#6B7384;
+  --toast-bg:#1B2233; --toast-fg:#FFFFFF; --toast-act:#F2C265;
+  --scrim:rgba(27,34,51,.45);
+  --shadow:0 1px 2px rgba(27,34,51,.06),0 6px 16px -8px rgba(27,34,51,.14);
+  --ease:cubic-bezier(.23,1,.32,1);
+  --f-head:'Mitr','Noto Sans Thai',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+  --header-h:56px; --tap:36px; --tap-sm:32px; --gutter:16px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+}
+@media (pointer:coarse){:root{--tap:44px;--tap-sm:44px}}
+@media (min-width:900px){:root{--gutter:32px}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111418; --surface:#181C22; --card:#1E232A; --line:#2D343E; --track:#3A424E;
+  --ink:#EDF0F4; --ink-2:#A9B1BD; --on-ink:#111418;
+  --accent:#FF8A75; --accent-d:#FFA08E; --on-accent:#1A0B08;
+  --warn:#FF9488; --gold:#E3AE3C; --gold-soft:#3A3115; --on-gold:#1B2233;
+  --pill:#EDF0F4; --on-pill:#111418; --done:#8C94A2;
+  --toast-bg:#EDF0F4; --toast-fg:#1B2233; --toast-act:#8A3A00;
+  --scrim:rgba(0,0,0,.6);
+  --shadow:0 0 0 1px rgba(255,255,255,.04);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--header-h) + var(--tap) + 16px);scroll-padding-bottom:96px}
+.view{scroll-padding:16px}
+body{margin:0;height:100dvh;overflow:hidden;background:var(--bg);color:var(--ink);font:400 15px/1.55 var(--f-body);caret-color:var(--accent);overflow-wrap:anywhere}
+::selection{background:var(--gold);color:var(--on-gold)}
+*{scrollbar-width:thin;scrollbar-color:var(--track) transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1,h2{font-family:var(--f-head);font-weight:500}
+h3{font-weight:600}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+dl,dd{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ico{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* header */
+.header{position:sticky;top:0;z-index:30;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);padding:0 var(--gutter);background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:var(--s2);font:500 20px/1 var(--f-head);white-space:nowrap}
+.brand-mark rect.f{fill:var(--ink)} .brand-mark g{fill:var(--bg)} .brand-mark circle{fill:var(--accent)}
+.hctl{display:flex;align-items:center;gap:var(--s3)}
+.live{display:none;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);white-space:nowrap}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+#themeSlot{display:contents}
+.seg{display:flex;background:var(--surface);border-radius:999px;padding:2px}
+.seg button{min-width:var(--tap);min-height:var(--tap);border:0;border-radius:999px;background:transparent;font-weight:600;font-size:13px;display:grid;place-items:center;padding:0 var(--s2);transition:background-color 160ms var(--ease)}
+.seg button[aria-pressed="true"]{background:var(--pill);color:var(--on-pill)}
+.seg-full{display:none}
+.hlink{width:var(--tap);height:var(--tap);flex:none;border-radius:50%;display:grid;place-items:center;text-decoration:none;transition:transform 160ms var(--ease),background-color 160ms var(--ease)}
+.hlink .ico{width:20px;height:20px}
+.hlink:active{transform:scale(.94)}
+.hlink.primary{background:var(--accent);color:var(--on-accent)}
+.hlink.soft{background:var(--surface);color:var(--ink)}
+@media (hover:hover) and (pointer:fine){.hlink.primary:hover{background:var(--accent-d)}.hlink.soft:hover{background:var(--track)}}
+.theme-cycle{min-width:var(--tap);min-height:var(--tap);border:0;border-radius:50%;background:var(--surface);display:grid;place-items:center}
+@media (min-width:560px){.seg-full{display:flex}.theme-cycle{display:none}}
+@media (min-width:700px){.live{display:inline-flex}}
+.inner{max-width:760px;margin:0 auto;display:grid;gap:var(--s5)}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);min-height:var(--tap);padding:0 var(--s4);border-radius:999px;border:1px solid transparent;font:600 14px/1 var(--f-body);white-space:nowrap;transition:transform 160ms var(--ease),background-color 160ms var(--ease),opacity 160ms}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.dark{background:var(--pill);color:var(--on-pill)}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--track)}
+.btn.small{min-height:var(--tap-sm);padding:0 var(--s3);font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+@media (hover:hover) and (pointer:fine){
+  .btn.primary:hover{background:var(--accent-d)} .btn.dark:hover{opacity:.88} .btn.ghost:hover{background:var(--surface)}
+  .chip:hover{background:var(--surface)} .add:hover{background:var(--surface)} .linkbtn:hover{background:var(--bg)}
+  .seg button:hover:not([aria-pressed="true"]){background:var(--track)} .theme-cycle:hover{background:var(--track)}
+}
+.linkbtn{display:inline-flex;align-items:center;gap:6px;min-height:var(--tap-sm);padding:0 var(--s2);border:0;background:transparent;border-radius:var(--s2);color:var(--ink);font-weight:600;font-size:13px;text-decoration:underline;text-decoration-color:var(--track);text-underline-offset:3px}
+.linkbtn[aria-pressed="true"]{background:var(--bg)}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid color-mix(in srgb,currentColor 35%,transparent);border-top-color:currentColor;animation:spin 700ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap-sm);padding:0 var(--s3);border-radius:999px;border:1px solid var(--track);background:var(--card);font:500 13px/1.2 var(--f-body);transition:background-color 160ms var(--ease),transform 160ms var(--ease)}
+.chip:active{transform:scale(.97)}
+.chip[aria-pressed="true"]{background:var(--pill);color:var(--on-pill);border-color:var(--pill)}
+.chiprow{display:flex;flex-wrap:wrap;gap:var(--s2)}
+
+/* type */
+h1{font-size:28px;line-height:1.3}
+h2{font-size:20px;line-height:1.35}
+.sub{color:var(--ink-2);font-size:14px}
+.hint{font-size:13px;color:var(--ink-2)}
+.lbl{display:block;font-weight:600;font-size:14px;margin-bottom:var(--s2)}
+.card{background:var(--card);border-radius:16px;box-shadow:var(--shadow)}
+/* notices */
+.notice{display:flex;gap:var(--s3);align-items:flex-start;padding:var(--s3) var(--s4);border-radius:12px;background:var(--card);box-shadow:var(--shadow);font-size:14px}
+.notice.warn{background:var(--gold-soft);box-shadow:none}
+.notice .ico{margin-top:3px}
+.notice .chiprow{margin-top:var(--s2)}
+.res-head{display:grid;gap:var(--s1)}
+.matched{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.pill{display:inline-flex;align-items:center;padding:2px var(--s3);border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-size:13px;font-weight:500}
+.filters{padding:var(--s4) var(--s5);display:grid;gap:var(--s4)}
+.sliders{display:grid;gap:var(--s4) var(--s5);grid-template-columns:1fr}
+@media (min-width:700px){.sliders{grid-template-columns:1fr 1fr}}
+.slider{display:grid;gap:var(--s2)}
+.slider .top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2);font-size:13px}
+.slider label{font-weight:600}
+.slider output{color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;margin:0;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(to right,var(--ink) var(--p,0%),var(--track) var(--p,0%))}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--track)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--ink)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;border-radius:50%;background:var(--card);border:2px solid var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--card);border:2px solid var(--ink)}
+input[type=range]:focus-visible{outline:none}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--ink);outline-offset:3px}
+input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--ink);outline-offset:3px}
+@media (pointer:coarse){input[type=range]{height:36px}input[type=range]::-webkit-slider-thumb{width:24px;height:24px;margin-top:-10px}}
+.thumb{position:relative;width:64px;height:64px;border-radius:12px;display:grid;place-items:center;color:var(--ic,#fff);background:var(--t);overflow:hidden}
+.thumb .ico{width:24px;height:24px}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tone-ink{--t:#1B2233} .tone-red{--t:#C93520} .tone-slate{--t:#4B5568} .tone-gold{--t:#E3AE3C;--ic:#1B2233}
+:root[data-theme="dark"] .tone-ink{--t:#3A4659}
+.name-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1) var(--s2)}
+.name-line h3{font-size:16px;line-height:1.4}
+.best{background:var(--gold);color:var(--on-gold);font-size:12px;font-weight:600;padding:0 var(--s2);border-radius:6px;line-height:1.6}
+.best.alt{background:var(--surface);color:var(--ink);border:1px solid var(--track)}
+.st{display:inline-flex;align-items:center;gap:4px;padding:0 var(--s2);border-radius:6px;background:var(--surface);color:var(--ink);font-size:12px;font-weight:600;line-height:1.6}
+.st .ico{width:12px;height:12px}
+.st.warn{background:var(--gold-soft)}
+.st.done{background:var(--done);color:var(--bg)}
+.meta{font-size:13px;color:var(--ink-2);margin-top:2px}
+.vibes{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s4);margin-top:var(--s3)}
+.vibe{display:inline-flex;align-items:center;gap:var(--s2);font-size:13px}
+.vibe .vs{color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.slats{display:inline-flex;gap:2px}
+.slats i{width:9px;height:6px;border-radius:2px;background:var(--track);transform-origin:left center}
+.slats i.on{background:var(--ink)}
+.scored .slats i.on{animation:slat 380ms var(--ease) backwards;animation-delay:calc(var(--r)*90ms + var(--i)*30ms)}
+@keyframes slat{from{transform:scaleX(.2);opacity:0}}
+.evid{font-size:12px;color:var(--ink-2);margin-top:var(--s2)}
+.empty{padding:var(--s5);display:grid;gap:var(--s3);justify-items:start}
+.empty p{color:var(--ink-2)}
+/* day */
+.day-head{display:grid;gap:var(--s3)}
+.day-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:var(--s3)}
+.head-acts{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center}
+.day-meta{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);align-items:center}
+.field{display:flex;align-items:center;gap:var(--s2);font-size:13px}
+.field label{font-weight:600}
+select{min-height:var(--tap-sm);padding:0 var(--s3);border:1px solid var(--track);border-radius:999px;background:var(--card);font-weight:500;font-size:13px}
+.sum{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s5);font-size:14px}
+.sum>div{display:flex;gap:6px;align-items:baseline}
+.sum dt{color:var(--ink-2)}
+.sum dd{font-weight:600;font-variant-numeric:tabular-nums}
+.sum dd small{color:var(--ink-2);font-weight:400;margin-left:4px}
+.late-chip{display:inline-flex;align-items:center;gap:6px;background:var(--gold-soft);padding:2px var(--s3);border-radius:999px;font-weight:600;font-size:13px;justify-self:start}
+.suggest{padding:var(--s4) var(--s5);display:grid;gap:var(--s3)}
+.suggest h3{display:flex;gap:var(--s2);align-items:center;font-size:14px;color:var(--ink-2)}
+.suggest .pick h3{font-size:16px;color:var(--ink)}
+.suggest .facts{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s4);font-size:13px}
+.suggest .facts span{display:inline-flex;gap:6px;align-items:center}
+.suggest .rank{font-size:12px;color:var(--ink-2)}
+.sug-acts{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center}
+.timeline{position:relative;padding:var(--s4) var(--s4) var(--s2)}
+.stop{background:var(--card);border-radius:12px}
+.stop .walkin,.stop .srow{display:grid;grid-template-columns:44px 24px minmax(0,1fr);column-gap:var(--s3)}
+.stop .walkin[hidden]{display:none}
+.rail{position:relative;display:flex;justify-content:center}
+.rail::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:var(--track)}
+.walkin .rail::after{background:repeating-linear-gradient(180deg,var(--track) 0 4px,transparent 4px 8px)}
+.stop:first-child .srow .rail::after{top:12px}
+.stop:last-child .srow .rail::after{bottom:auto;height:12px}
+.dot{position:relative;z-index:1;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font:500 12px/1 var(--f-head);box-shadow:0 0 0 3px var(--card)}
+.dot.done{background:var(--done);color:var(--bg)}
+.dot .ico{width:12px;height:12px;stroke-width:3}
+.time{font:500 14px/24px var(--f-head);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stop.done .time,.stop.done h3{color:var(--ink-2)}
+.stop-body{position:relative;min-width:0;padding-bottom:var(--s3)}
+.stop-body h3{font-size:15px;line-height:24px}
+.stop-chips{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s2);margin-top:var(--s1)}
+.note{display:flex;gap:6px;align-items:flex-start;font-size:13px;color:var(--ink-2);margin-top:var(--s1)}
+.note .ico{margin-top:2px;width:14px;height:14px}
+.note.warn{color:var(--warn);font-weight:600}
+.acts{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s2);margin-top:var(--s2)}
+.walk-body{display:flex;align-items:center;gap:var(--s2);padding:var(--s1) 0 var(--s3);font-size:13px;color:var(--ink-2)}
+.rm,.ibtn{width:var(--tap-sm);height:var(--tap-sm);flex:none;display:grid;place-items:center;border-radius:50%;border:0;background:transparent;color:var(--ink-2)}
+.ibtn[aria-pressed="true"]{color:var(--accent)} .ibtn[aria-pressed="true"] .ico{fill:currentColor}
+/* the tools sit top-right beside the name only; notes, stepper and buttons below use the full width, so nothing overflows the card on a phone */
+.stop-tools{position:absolute;top:calc((24px - var(--tap-sm)) / 2);right:0;display:flex;align-items:flex-start}
+.stop:not(.done) .stop-body h3{padding-right:calc(var(--tap-sm) * 3 + var(--s2))}
+/* manual ordering */
+.grip{touch-action:none;cursor:grab}
+.grip:active{cursor:grabbing}
+/* the lifted stop gets breathing room on every side: a card-coloured ring (no layout change, so the list does not jump) plus a soft shadow */
+.stop.lifting{position:relative;z-index:4;cursor:grabbing;border-radius:16px;box-shadow:0 0 0 12px var(--card),0 14px 32px 8px rgba(27,34,51,.26)}
+:root[data-theme="dark"] .stop.lifting{box-shadow:0 0 0 12px var(--card),0 14px 32px 8px rgba(0,0,0,.55)}
+.timeline.reordering{user-select:none;-webkit-user-select:none}
+.timeline.reordering .stop:not(.lifting) .time,.timeline.reordering .walk-body{opacity:.35}
+@media (hover:hover) and (pointer:fine){.rm:hover,.ibtn:hover{background:var(--surface)} .rm:hover{color:var(--warn)}}
+.nofit,.skipbox{padding:var(--s4) var(--s5)}
+.nofit h3,.skipbox h3{display:flex;gap:var(--s2);align-items:center;font-size:14px}
+.nofit h3{color:var(--warn)}
+.nofit ul,.skipbox ul{margin-top:var(--s2)}
+.nofit li,.skipbox li{display:flex;justify-content:space-between;gap:var(--s3);align-items:center;padding:var(--s3) 0;border-top:1px solid var(--line)}
+.nofit li:first-child,.skipbox li:first-child{border-top:0}
+.day-foot{display:flex;justify-content:flex-start}
+/* sheet */
+dialog{border:0;padding:0;background:transparent;max-width:none;margin:auto auto 0;width:100%;color:var(--ink)}
+dialog::backdrop{background:var(--scrim)}
+dialog[open]{animation:sheetin 240ms var(--ease)}
+dialog[open]::backdrop{animation:fade 200ms ease-out}
+@keyframes sheetin{from{transform:translateY(16px);opacity:0}}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--card);border-radius:20px 20px 0 0;padding:var(--s5);max-width:560px;margin:0 auto;display:grid;gap:var(--s4);overscroll-behavior:contain;max-height:88dvh;overflow:auto;padding-bottom:calc(var(--s5) + env(safe-area-inset-bottom))}
+.sheet h2{font-size:20px}
+.sheet h3{font-size:14px;margin-bottom:var(--s2)}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s2);border:0;padding:0;margin:0}
+.opts legend{font-weight:600;font-size:14px;margin-bottom:var(--s2);padding:0}
+.opt{position:relative;display:block}
+.opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.opt span{display:flex;align-items:center;justify-content:center;min-height:var(--tap);border:1px solid var(--track);border-radius:999px;font-weight:600;font-size:13px;transition:background-color 160ms var(--ease)}
+.opt input:checked+span{background:var(--pill);color:var(--on-pill);border-color:var(--pill)}
+.opt input:focus-visible+span{outline:2px solid var(--ink);outline-offset:2px}
+.diff{display:grid;gap:var(--s2);background:var(--surface);border-radius:12px;padding:var(--s3) var(--s4);font-size:14px}
+.diff li{display:flex;gap:var(--s2);align-items:flex-start}
+.diff .ico{margin-top:3px}
+.diff .bad{color:var(--warn);font-weight:600}
+.sheet-actions{display:flex;justify-content:flex-end;gap:var(--s2)}
+.axes{display:grid;gap:var(--s2)}
+.axes li{display:grid;grid-template-columns:minmax(76px,auto) auto 1fr;gap:var(--s3);align-items:center;font-size:13px}
+.axes .mn{color:var(--ink-2);font-size:12px;text-align:right}
+.rev{display:grid;gap:var(--s2);font-size:13px;color:var(--ink-2)}
+.srcline{display:flex;gap:var(--s2);align-items:flex-start;font-size:12px;color:var(--ink-2)}
+.srcline .ico{margin-top:2px;width:14px;height:14px}
+.linkrow{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.linkrow code{flex:1;min-width:0;background:var(--surface);border-radius:999px;padding:var(--s2) var(--s4);font:500 13px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all}
+.votes{display:grid}
+.votes li{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);padding:var(--s2) 0;border-top:1px solid var(--line);font-size:14px}
+.votes li:first-child{border-top:0}
+.vt{display:grid;gap:4px;justify-items:end;min-width:104px}
+.vbar{display:flex;width:88px;height:6px;border-radius:3px;background:var(--track);overflow:hidden}
+.vbar .up{background:var(--ink)} .vbar .dn{background:var(--accent)}
+.vt .vs{font-size:12px;color:var(--ink-2)}
+/* toast */
+.toasts{position:fixed;left:var(--gutter);right:var(--gutter);bottom:84px;z-index:40;display:flex;justify-content:center;pointer-events:none}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:var(--s2);max-width:420px;width:100%;background:var(--toast-bg);color:var(--toast-fg);border-radius:12px;padding:var(--s1) var(--s1) var(--s1) var(--s4);font-size:14px;box-shadow:0 12px 28px -10px rgba(0,0,0,.4);animation:toastin 200ms var(--ease)}
+.toast span{flex:1;padding:var(--s2) 0}
+.toast button{min-height:var(--tap);padding:0 var(--s3);border:0;border-radius:8px;background:transparent;color:var(--toast-act);font-weight:600}
+.toast :focus-visible{outline-color:var(--toast-fg)}
+@keyframes toastin{from{transform:translateY(8px);opacity:0}}
+/* map pins (Leaflet divIcons) */
+.leaflet-container{font:inherit;background:var(--surface)}
+:root[data-theme="dark"] #map[data-tiles="osm"] .leaflet-tile-pane,:root[data-theme="dark"] #map[data-tiles="carto"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9)}
+.leaflet-control-attribution{font-size:11px}
+.pin{display:grid;place-items:center;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);color:#fff;font:500 12px/1 var(--f-head);transition:transform 160ms var(--ease)}
+.pin.res{width:16px;height:16px;background:var(--accent)}
+.pin.tray{width:16px;height:16px;background:#1B2233}
+.pin.num{width:26px;height:26px;background:var(--accent);color:var(--on-accent)}
+.pin.num.done{background:var(--done);color:#fff}
+.pin.faint{width:9px;height:9px;background:#9AA3B2;border-width:1.5px}
+.pin.best{box-shadow:0 0 0 4px var(--gold),0 1px 4px rgba(0,0,0,.35)}
+.pinbox{width:100%;height:100%;display:grid;place-items:center}
+.leaflet-marker-icon:focus-visible .pin,.leaflet-marker-icon:hover .pin{transform:scale(1.2)}
+.leaflet-marker-icon:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;border-radius:50%}
+@media (pointer:coarse){.leaflet-bar a{width:44px;height:44px;line-height:44px}}
+/* adjustable time at a place */
+.stay{display:inline-flex;align-items:center;gap:var(--s1);margin-top:var(--s1);font-size:13px;color:var(--ink-2)}
+.stay output{min-width:56px;text-align:center;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.ibtn.sm{width:var(--tap-sm);height:var(--tap-sm);border:1px solid var(--track);color:var(--ink);font-size:16px;line-height:1}
+/* place photo in the detail sheet */
+.hero{margin:0;display:grid;gap:var(--s2)}
+.hero-img{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--surface);display:grid;place-items:center;color:var(--ink-2)}
+.hero-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.hero figcaption{font-size:12px;color:var(--ink-2)}
+.hero figcaption a{color:inherit}
+
+/* ===== chat layout: phone = map strip on top, chat below. desktop = chat 55% | map 45% ===== */
+:root{--strip-h:156px;--bar-h:52px;--stack:84px}
+.app{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:var(--strip-h) minmax(0,1fr);grid-template-areas:"map" "chat";height:calc(100dvh - var(--header-h));overflow:hidden;background:var(--surface)}
+.app[data-map="off"]{grid-template-rows:var(--bar-h) minmax(0,1fr)}
+.mapcol{grid-area:map;position:relative;min-height:0;isolation:isolate;background:var(--surface);margin:var(--s2) var(--s3) 0;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow),inset 0 0 0 3px var(--card)}
+.mapcol::after{content:"";position:absolute;inset:0;z-index:1000;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px var(--line)}
+.app[data-map="full"] .mapcol{grid-area:auto;position:absolute;inset:0;z-index:8;margin:0;border:0;border-radius:0;box-shadow:none}
+.app[data-map="full"] .mapcol::after{display:none}
+.app[data-map="off"] #map{display:none}
+#map{position:absolute;inset:0;background:var(--surface)}
+.mapfail{padding:var(--s5);color:var(--ink-2)}
+.mapbar{position:absolute;left:var(--s2);top:var(--s2);z-index:1100;display:flex;gap:var(--s2)}
+.app[data-map="off"] .mapbar{top:50%;transform:translateY(-50%)}
+.mapbar .iconbtn{width:var(--tap-sm);padding:0}
+.mapbar .btn{box-shadow:var(--shadow)}
+.mapsw{position:absolute;left:var(--s2);bottom:var(--s2);z-index:1100;display:flex;padding:2px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.mapsw[hidden],.app[data-map="off"] .mapsw{display:none}
+.mapsw button{min-height:var(--tap-sm);padding:0 var(--s3);border:0;border-radius:999px;background:transparent;font-weight:600;font-size:12px;color:var(--ink);transition:background-color 160ms var(--ease)}
+.mapsw button[aria-pressed="true"]{background:var(--pill);color:var(--on-pill)}
+@media (hover:hover){.mapsw button:hover:not([aria-pressed="true"]){background:var(--track)}}
+.mapsw button:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+@media (pointer:coarse){.mapsw button{min-height:var(--tap)}}
+.chatcol{grid-area:chat;position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--surface)}
+.chatmain{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+
+/* conversation */
+.log{position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--s4) var(--gutter) var(--s4);display:flex;flex-direction:column;gap:var(--s3);scroll-padding:var(--s4)}
+.log>.msg{width:100%;max-width:720px;margin-inline:auto}
+.msg{display:flex;gap:var(--s2);align-items:flex-start}
+.msg.user{justify-content:flex-end}
+.msg.fresh{animation:msgin 220ms var(--ease)}
+@keyframes msgin{from{transform:translateY(8px);opacity:0}}
+.avatar{width:28px;height:28px;flex:none;border-radius:50%;background:var(--pill);color:var(--on-pill);display:grid;place-items:center}
+.avatar .ico{width:16px;height:16px}
+.stack{display:grid;gap:var(--s2);min-width:0;justify-items:start;flex:1 1 auto;max-width:600px}
+.msg.user .stack{justify-items:end;flex:0 1 auto;max-width:min(86%,520px)}
+.bubble{padding:10px var(--s4);border-radius:18px 18px 18px 6px;background:var(--card);border:1px solid var(--line);max-width:min(100%,520px)}
+.bubble p+p{margin-top:var(--s2)}
+.msg.user .bubble{background:var(--pill);color:var(--on-pill);border-color:var(--pill);border-radius:18px 18px 6px 18px}
+.fnote{font-size:13px;color:var(--ink-2)}
+.typing .bubble{display:flex;align-items:center;gap:4px;padding:14px var(--s4)}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--ink-2);animation:blink 1.1s ease-in-out infinite}
+.typing i:nth-of-type(2){animation-delay:.15s}.typing i:nth-of-type(3){animation-delay:.3s}
+@keyframes blink{0%,60%,100%{opacity:.3}30%{opacity:1}}
+.cards{display:grid;gap:var(--s2);width:100%;max-width:560px}
+.pcard{display:grid;grid-template-columns:56px minmax(0,1fr);gap:var(--s2) var(--s3);padding:var(--s3)}
+.thumbbtn{width:56px;height:56px;padding:0;border:0;background:transparent;border-radius:12px;cursor:pointer}
+.thumbbtn .thumb{width:56px;height:56px}
+.pc-acts{grid-column:2;display:flex;flex-wrap:wrap;gap:var(--s2)}
+.pcard .name-line h3{font-size:15px}
+.pcard .vibes{margin-top:var(--s2)}
+.miniday{padding:var(--s3) var(--s4);display:grid;gap:var(--s3);justify-items:start}
+.miniday ol{display:grid;gap:var(--s1);width:100%}
+.miniday li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:var(--s2);font-size:14px}
+.miniday .time{font:500 14px/1.55 var(--f-head);font-variant-numeric:tabular-nums}
+.stack>.diff{width:100%;max-width:520px}
+.stack>.filters{width:100%;max-width:560px}
+.sugcard{padding:var(--s3) var(--s4);display:grid;gap:var(--s2);width:100%;max-width:560px}
+.sugcard .rank{font-size:12px;color:var(--ink-2)}
+.resolved{font-size:13px;font-weight:600;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
+
+/* bottom stack: day bar, quick replies, composer */
+.bottom{flex:none;background:var(--bg);border-top:1px solid var(--line);padding:var(--s2) var(--gutter) calc(var(--s2) + env(safe-area-inset-bottom))}
+.bottom-in{display:grid;gap:var(--s2);max-width:720px;margin:0 auto}
+.bottom-in [hidden]{display:none}
+.embedbar{display:flex;gap:var(--s2)}
+.embedbar[hidden]{display:none}
+.embedbar .btn{flex:1}
+.embed #toClassic,.embed #toHub{display:none}
+.hlink.closer{display:none}
+.embed .hlink.closer{display:grid}
+.daybtn{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:52px;padding:var(--s2) var(--s4) var(--s2) var(--s3);border:1px solid var(--track);border-radius:16px;background:var(--card);text-align:left;transition:transform 160ms var(--ease),background-color 160ms var(--ease)}
+.daybtn:active{transform:scale(.99)}
+.db-ico{width:32px;height:32px;flex:none;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center}
+.db-txt{flex:1;min-width:0;display:grid;line-height:1.35}
+.db-txt strong{font-weight:600}
+.db-txt span{font-size:13px;color:var(--ink-2)}
+.db-go .ico{width:18px;height:18px;transform:rotate(180deg)}
+.quick{display:flex;gap:var(--s2);overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.quick .chip{flex:none;white-space:nowrap}
+.composer{display:flex;align-items:flex-end;gap:var(--s2)}
+.cinput{flex:1;min-width:0;min-height:var(--tap);max-height:120px;resize:none;padding:8px var(--s4);border:1px solid var(--track);border-radius:22px;background:var(--bg);font-size:15px;line-height:1.45;overflow-y:auto}
+.cinput::placeholder{color:var(--ink-2);opacity:1}
+.cinput:focus-visible{outline-offset:0;border-color:var(--ink)}
+.sendbtn{width:var(--tap);height:var(--tap);flex:none;border:0;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;transition:transform 160ms var(--ease),opacity 160ms,background-color 160ms var(--ease)}
+.micbtn{width:var(--tap);height:var(--tap);flex:none;border:1px solid var(--track);border-radius:50%;background:var(--card);color:var(--ink);display:grid;place-items:center;transition:transform 160ms var(--ease),background-color 160ms var(--ease)}
+.micbtn[hidden]{display:none}
+.vlang{flex:none;min-width:var(--tap);height:var(--tap);padding:0 var(--s2);border:0;border-radius:999px;background:transparent;color:var(--ink-2);font:600 12px/1 var(--f-body)}
+.vlang[hidden]{display:none}
+.vlang:hover{color:var(--ink)}
+.micbtn .ico{width:20px;height:20px}
+.micbtn:active{transform:scale(.94)}
+.micbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);animation:mic-pulse 1.4s var(--ease) infinite}
+@keyframes mic-pulse{0%{box-shadow:0 0 0 0 rgba(201,53,32,.45)}100%{box-shadow:0 0 0 12px rgba(201,53,32,0)}}
+@media (hover:hover) and (pointer:fine){.micbtn:not([aria-pressed="true"]):hover{background:var(--surface)}}
+@media (prefers-reduced-motion:reduce){.micbtn[aria-pressed="true"]{animation:none}}
+.sendbtn:active{transform:scale(.94)}
+.sendbtn:disabled{opacity:.4;cursor:not-allowed}
+.sendbtn .ico{width:18px;height:18px}
+@media (hover:hover) and (pointer:fine){.daybtn:hover{background:var(--surface)}.sendbtn:not(:disabled):hover{background:var(--accent-d)}.thumbbtn:hover{opacity:.9}}
+
+/* day panel: covers the chat column only, so the map and its route stay visible */
+.daypanel{position:absolute;inset:-1px 0 0;z-index:6;display:flex;flex-direction:column;background:var(--surface)}
+.daypanel[hidden]{display:none}
+.daypanel:not([hidden]){animation:panelin 240ms var(--ease)}
+@keyframes panelin{from{transform:translateY(24px);opacity:0}}
+.dp-head{flex:none;display:flex;align-items:center;padding:var(--s2) var(--gutter);background:var(--bg);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.dp-view{flex:1 1 auto;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--s4) var(--gutter) var(--s5);scroll-padding:var(--s4);outline:0}
+.daydock{flex:none;background:var(--bg);border-top:1px solid var(--line);padding:var(--s3) var(--gutter) calc(var(--s3) + env(safe-area-inset-bottom))}
+.daydock[hidden]{display:none}
+.dock-in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:var(--s4)}
+.dock-txt strong{display:block;font-weight:600;line-height:1.35}
+
+/* toasts sit just above whichever bar is at the bottom */
+.toasts{position:fixed;left:var(--gutter);right:var(--gutter);bottom:calc(var(--stack) + 12px);z-index:40;display:flex;justify-content:center;pointer-events:none}
+
+@media (min-width:900px){
+  .app,.app[data-map]{grid-template-columns:minmax(0,55fr) minmax(0,45fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"chat map"}
+  .mapcol,.app[data-map] .mapcol{grid-area:map;position:relative;inset:auto;z-index:auto;margin:0;border:0;border-radius:0;box-shadow:none;border-left:1px solid var(--line)}
+  .mapcol::after,.app[data-map] .mapcol::after{display:none}
+  .app[data-map] #map{display:block}
+  .mapbar{display:none}
+  .toasts{left:0;right:auto;width:55vw}
+  dialog{margin:auto;width:480px}
+  .sheet{border-radius:20px}
+}
+@media (max-width:420px){
+  .nofit,.skipbox,.suggest,.filters{padding:var(--s4)}
+}
+@media (prefers-reduced-motion:reduce){
+  .msg.fresh,.daypanel:not([hidden]),dialog[open],dialog[open]::backdrop,.toast{animation:none}
+  .typing i{animation:none;opacity:.6}
+  .btn,.chip,.daybtn,.sendbtn,.pin{transition:none}
+  .spin{animation-duration:2s}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><path d="M7 4c1.5 0 2.5 1.7 2.5 3.5S8.5 11 8.5 13h-3c0-2-1-3.7-1-5.5S5.5 4 7 4z"/><path d="M5.5 16h3v1a1.5 1.5 0 0 1-3 0z"/><path d="M17 9c1.5 0 2.5 1.7 2.5 3.5S18.5 16 18.5 18h-3c0-2-1-3.7-1-5.5S15.5 9 17 9z"/><path d="M15.5 21h3"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="m7 4-4 4 4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+    <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M17 8h1a3 3 0 0 1 0 6h-1M3 8h14v6a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M7 2v3M11 2v3"/></symbol>
+    <symbol id="i-food" viewBox="0 0 24 24"><path d="M6 3v7a2 2 0 0 0 4 0V3M8 3v18"/><path d="M17 3c-2 2-3 5-3 8h3v10"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.9 1.4-1.9-.3-1 .3-2.1 1.4-2.1H17a4 4 0 0 0 4-4c0-5-4-10-9-10z"/><path d="M7.5 11h.01M10 7.5h.01M14 7.5h.01M16.5 11h.01"/></symbol>
+    <symbol id="i-shrine" viewBox="0 0 24 24"><path d="M3 9l9-6 9 6M5 9v11M19 9v11M9 20V12M15 20V12M3 21h18"/></symbol>
+    <symbol id="i-market" viewBox="0 0 24 24"><path d="m4 9 1-5h14l1 5M5 9v11h14V9M9 20v-6h6v6"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    <symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><path stroke-width="3" d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M8 3h8l-1 6 3 3H6l3-3z"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="m5 5 8 7-8 7zM18 5v14"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-classic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="i-brand" viewBox="0 0 24 24"><path d="M5 7h14M5 11.5h14M5 16h8"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6"/></symbol>
+    <symbol id="i-minimize" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></symbol>
+  </defs>
+</svg>
+
+<header class="header">
+  <div class="brand">
+    <svg class="brand-mark" width="26" height="26" viewBox="0 0 30 30" aria-hidden="true"><rect class="f" x="3" y="4" width="24" height="22" rx="5"/><g><rect x="6" y="8" width="18" height="2.5" rx="1"/><rect x="6" y="12.5" width="18" height="2.5" rx="1"/><rect x="6" y="17" width="18" height="2.5" rx="1"/></g><circle cx="22.5" cy="22" r="3.6"/></svg>
+    <span>Day-Off</span>
+  </div>
+  <div class="hctl">
+    <span class="live" id="liveClock"></span>
+    <span id="themeSlot"></span>
+    <div class="seg" role="group" aria-label="Language">
+      <button type="button" data-act="lang" data-lang="th" aria-pressed="true">ไทย</button>
+      <button type="button" data-act="lang" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <button type="button" class="hlink soft closer" id="embedClose" data-act="embedClose" data-testid="embed-close"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    <a class="hlink soft" id="toClassic" href="day-off-demo.html" data-testid="to-classic"><svg class="ico" aria-hidden="true"><use href="#i-classic"/></svg></a>
+    <a class="hlink soft" id="toHub" href="versions.html" data-testid="to-hub"><svg class="ico" aria-hidden="true"><use href="#i-spark"/></svg></a>
+  </div>
+</header>
+
+<div class="app" id="app" data-map="strip">
+  <aside class="mapcol" id="mapcol">
+    <div id="map" role="region"></div>
+    <div class="mapbar" id="mapbar"></div>
+    <div class="mapsw" id="mapsw" role="group" aria-label="Map provider" hidden></div>
+  </aside>
+  <section class="chatcol" id="chatcol">
+    <div class="chatmain" id="chatmain">
+      <main class="log" id="log" role="log" aria-live="off" data-testid="chat-log"></main>
+      <div class="bottom" id="bottom">
+        <div class="bottom-in">
+          <div class="embedbar" id="embedbar" hidden></div>
+          <div id="daybar" hidden></div>
+          <div class="quick" id="quick" role="group" hidden></div>
+          <form class="composer" id="composer" novalidate>
+            <textarea class="cinput" id="msg" rows="1" enterkeyhint="send" autocomplete="off"></textarea>
+            <button type="button" class="vlang" id="vlang" data-testid="vlang" hidden></button>
+            <button type="button" class="micbtn" id="mic" aria-pressed="false" hidden data-testid="mic"><svg class="ico" aria-hidden="true"><use href="#i-mic"/></svg></button>
+            <button type="submit" class="sendbtn" id="send" disabled><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <section class="daypanel" id="daypanel" role="region" hidden>
+      <div class="dp-head"><button type="button" class="btn small ghost" id="dpBack" data-act="closeDay" data-fk="dpBack"></button></div>
+      <div class="dp-view" id="dayview" tabindex="-1"></div>
+      <div class="daydock" id="daydock" hidden></div>
+    </section>
+  </section>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div class="sr" id="live" aria-live="polite" role="status"></div>
+<dialog id="sheet" aria-labelledby="sheet-title"></dialog>
+
+<script src="env.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+/* ---------- i18n ---------- */
+const STR = {
+  en:{
+    tabVibe:"Vibe", tabPlaces:"Places", tabDay:"My day",
+    h1:"What kind of day off do you want?", lbl:"Describe the vibe",
+    ph:"e.g. quiet cafe, old walls, not too crowded",
+    hint:"Thai or English both work. Pilot area: Yaowarat, Song Wat, Talat Noi.",
+    find:"Find places", scoring:"Scoring places…", example:"Try an example", quick:"Quick vibes", sampleTrip:"Load sample trip",
+    sample:"Places, coordinates and opening hours come from OpenStreetMap. Vibe scores and price bands are demo estimates until the review pipeline runs.",
+    resTitle:"{n} places match", resFor:"For “{q}”", resForEmpty:"No vibe typed", matching:"Matching on", best:"Best match", close:"Closest match",
+    add:"Add {name} to my day", remove:"Remove {name} from my day", why:"Why this match", details:"Details", detailsFor:"Details for {name}",
+    matchPct:"{n}% match", hoursLine:"Open {a}–{b}", open24:"Open 24 hours", openUntil:"Open until {t}", hoursUnknown:"Hours unknown", closedToday:"Closed today",
+    visit:"About {n} min here", fromHere:"{n} min walk from {name}",
+    sigCat:"OpenStreetMap category: {c}", sigHours:"Opening hours are listed in OpenStreetMap", sigNoHours:"OpenStreetMap has no opening hours for this place",
+    sigScore:"Vibe scores are demo estimates, not measured from reviews yet",
+    fGroup:"Filters", fMin:"Minimum match", fWalk:"Walk from {name}", fAny:"Any", fMinTxt:"{n}% or more", fWalkTxt:"{n} min or less", fOpen:"Open now",
+    fHint:"It is {d} {t} in Bangkok. “Open now” uses this live time.", walkOrigin:"Hua Lamphong MRT",
+    clearF:"Reset filters", noFilterTitle:"No places pass these filters", noFilterBody:"Lower the minimum match, raise the walking limit or turn off “Open now”.",
+    noteFew:"Few places match closely, so the next closest are added and marked “Closest match”.",
+    noteNone:"We didn't recognise “{q}”. Showing places that cover the most vibes.",
+    noteEmpty:"No vibe typed. Showing places that cover the most vibes. Try one of these:",
+    change:"Change vibe",
+    trayN:"{n} stops", trayWalk:"{m} min walking", trayEmpty:"Tap + to add stops", build:"Build my day", full:"Your day is full. Remove a stop to add another.",
+    dayTitle:"Your day", dayOn:"{d}", start:"Start time", endLbl:"Day ends", ends:"Day ends about {t}", lateChip:"Starting {t}, {n} late", undoChange:"Undo last change",
+    sumStops:"Stops", sumLen:"Day length", sumWalk:"Walking", durH:"{h} h {m} min", durHo:"{h} h", kmTxt:"{km} km",
+    walk:"{n} min walk", walkApprox:"~{n} min walk", wait:"Opens {t}, wait {n} min", soon:"Closes {t}, don't linger", dur:"{n} min", hrs:"{n} hr", rm:"Remove {name}",
+    late:"Running late? Re-plan", notfit:"Doesn't fit today", swap:"Swap for another place",
+    reasonLate:"Opens {t}, too late to fit", reasonEarly:"Closes {t}, you'd arrive too late", reasonWindow:"Would end after {t}, past your day window", reasonUnknown:"Hours unknown, so it can't be scheduled", reasonClosed:"Closed today, so it can't be scheduled",
+    warnWindow:"Not everything fits before {t}. Remove a stop or move the end time later.",
+    dayEmpty:"No stops yet", dayEmptyBody:"Find places that match your vibe, then add them here.",
+    stDone:"Done", stLate:"Late", stPinned:"Pinned", visited:"Visited {a}–{b}", skippedH:"Skipped",
+    doneBtn:"Done", doneAria:"Mark {name} done", skipBtn:"Skip", skipAria:"Skip {name}", pinBtn:"Pin", pinAria:"Pin {name} to this position", unpinAria:"Unpin {name}",
+    tDone:"{name} marked done", tSkipped:"{name} skipped", tPinned:"{name} pinned to stop {n}", tUnpinned:"{name} unpinned",
+    sugBtn:"Suggest next stop", sugTitle:"Suggested next stop", sugWalk:"{n} min walk", sugLeft:"{t} left in your day",
+    sugRank:"Ranked by vibe match 50%, distance 35%, data freshness 15%. A different type from {type}.",
+    sugAdd:"Add to my day", sugReject:"Not this one", sugHide:"Hide", sugNone:"Nothing else fits before {t}. Finish your day at {name}.", tSugAdded:"{name} added to your day",
+    routeDown:"Routing is unavailable. Walk times are straight-line estimates (~) and may be short.", simDown:"Demo: simulate routing outage", simUp:"Demo: restore routing",
+    tRouteDown:"Routing outage simulated", tRouteUp:"Routing restored",
+    sheetTitle:"Running late?", sheetQ:"How late are you?", min:"+{n} min", hr:"+{n} hr", changes:"What changes",
+    nochange:"Nothing changes. You still make every stop.", moved:"{name}: {a} → {b}", skipped:"{name} won't fit", fits:"{name} fits again",
+    apply:"Re-plan my day", cancel:"Cancel", closeBtn:"Close",
+    axes:"Vibe scores (demo estimates)", srcLine:"Place data © OpenStreetMap contributors (ODbL). Scores are not yet measured from reviews or photos.",
+    shareBtn:"Share trip", shareTitle:"Share this trip", shareNote:"Anyone with this link can view this trip only. Nothing else in your account is shared.",
+    copy:"Copy link", tCopied:"Link copied", votesH:"Votes from friends (sample)", votesSub:"{names} voted.", sugBy:"Suggested by {name}", tally:"{u} like · {d} skip",
+    regroup:"Re-plan with group picks", groupChanges:"Group picks would change", groupDrop:"Remove {name} ({u} like · {d} skip)", groupAdd:"Add {name} ({u} like · {d} skip)", groupNone:"The group's picks match your plan.", tGroup:"Re-planned with the group's picks",
+    tAdded:"{name} added", tRemoved:"{name} removed", tReplanned:"Day re-planned", tSwapped:"Swapped {a} for {b}", tNoSwap:"No other place fits that slot",
+    tStart:"Start time changed", tEnd:"End time changed", undo:"Undo", undone:"Change undone", liveAdded:"{name} added. {n} stops.", liveRemoved:"{name} removed. {n} stops.",
+    tSample:"Sample trip loaded. The first stop is done.", photoBy:"Photo: Wikipedia",
+    themeGroup:"Theme", themeLight:"Light", themeDark:"Dark", themeSystem:"System", themeCycle:"Theme: {cur}. Switch to {next}", tTheme:"Theme: {cur}",
+    mapLabel:"Map of Yaowarat, Song Wat and Talat Noi", mapStops:"Map with {n} places", mapFail:"The map could not load. Check your connection and reload.",
+    live:"{d} {t} in Bangkok", routeLive:"Walking route from OpenStreetMap routing",
+    fPrice:"Price", fPriceTxt0:"Free only", fPriceTxt1:"Up to ฿", fPriceTxt2:"Up to ฿฿", fPriceTxt3:"Any price", fDist:"Distance from {name}", fDistTxt:"Within {km} km",
+    priceFree:"Free", priceEst:"Price bands are category-level estimates",
+    stay:"Time here", stayShort:"Shorter stay at {name}", stayLong:"Longer stay at {name}", tStay:"Time at {name}: {n}",
+    grabLabel:"Resize the list. Now: {s}. Press to change.", grab_peek:"map", grab_half:"split", grab_list:"list",
+    photoNear:"Photo near this place", photoWiki:"Photo from Wikipedia", aerial:"Aerial view of this spot", photoNone:"No photo available for this place", photoLoading:"Loading photo…",
+    reorderHint:"Drag the handle to reorder, or focus it and press ↑ ↓.", gripLabel:"Reorder {name}. Drag, or press the up or down arrow key.", tMoved:"{name} is now stop {n} of {m}", moveEdge:"{name} cannot move further",
+    manualChip:"Manual order", autoOrder:"Auto order", tAuto:"Order optimised by Day-Off",
+    conflictClose:"Closes {t}. You would finish after closing", conflictWindow:"Ends after {t}, past your day window"
+  },
+  th:{
+    tabVibe:"บรรยากาศ", tabPlaces:"สถานที่", tabDay:"วันของฉัน",
+    h1:"วันนี้อยากได้ออฟแบบไหน?", lbl:"เล่าบรรยากาศที่อยากได้",
+    ph:"เช่น คาเฟ่เงียบ ๆ ตึกเก่า คนไม่เยอะ",
+    hint:"พิมพ์ไทยหรืออังกฤษก็ได้ ย่านนำร่อง: เยาวราช ซองวัด ตลาดน้อย",
+    find:"หาที่เที่ยว", scoring:"กำลังให้คะแนนสถานที่…", example:"ลองตัวอย่าง", quick:"ตัวเลือกด่วน", sampleTrip:"ลองทริปตัวอย่าง",
+    sample:"ชื่อสถานที่ พิกัด และเวลาเปิดมาจาก OpenStreetMap ส่วนคะแนนบรรยากาศและระดับราคาเป็นค่าประมาณสำหรับเดโม จนกว่าระบบรีวิวจะทำงาน",
+    resTitle:"เจอ {n} ที่ที่เข้ากับบรรยากาศ", resFor:"จาก “{q}”", resForEmpty:"ยังไม่ได้พิมพ์บรรยากาศ", matching:"จับคู่จาก", best:"เข้าที่สุด", close:"ใกล้เคียง",
+    add:"เพิ่ม {name} เข้าวัน", remove:"เอา {name} ออกจากวัน", why:"ทำไมถึงเข้า", details:"รายละเอียด", detailsFor:"รายละเอียดของ {name}",
+    matchPct:"เข้ากัน {n}%", hoursLine:"เปิด {a}–{b}", open24:"เปิดตลอด 24 ชม.", openUntil:"เปิดถึง {t}", hoursUnknown:"ไม่ทราบเวลาเปิด", closedToday:"วันนี้ปิด",
+    visit:"แวะประมาณ {n} นาที", fromHere:"เดิน {n} นาทีจาก{name}",
+    sigCat:"ประเภทใน OpenStreetMap: {c}", sigHours:"มีเวลาเปิดบันทึกไว้ใน OpenStreetMap", sigNoHours:"OpenStreetMap ไม่มีเวลาเปิดของที่นี่",
+    sigScore:"คะแนนบรรยากาศเป็นค่าประมาณสำหรับเดโม ยังไม่ได้วัดจากรีวิว",
+    fGroup:"ตัวกรอง", fMin:"ความเข้ากันขั้นต่ำ", fWalk:"เดินจาก{name}", fAny:"ไม่จำกัด", fMinTxt:"{n}% ขึ้นไป", fWalkTxt:"ไม่เกิน {n} นาที", fOpen:"เปิดอยู่ตอนนี้",
+    fHint:"ตอนนี้ {d} {t} เวลากรุงเทพฯ “เปิดอยู่ตอนนี้” ใช้เวลาจริงนี้", walkOrigin:"MRT หัวลำโพง",
+    clearF:"รีเซ็ตตัวกรอง", noFilterTitle:"ไม่มีที่ไหนผ่านตัวกรองเหล่านี้", noFilterBody:"ลดความเข้ากันขั้นต่ำ เพิ่มระยะเดิน หรือปิด “เปิดอยู่ตอนนี้”",
+    noteFew:"มีที่เข้ากับบรรยากาศไม่มาก จึงเพิ่มที่ใกล้เคียงที่สุดและติดป้าย “ใกล้เคียง”",
+    noteNone:"ไม่เข้าใจคำว่า “{q}” จึงแสดงที่ที่ครอบคลุมบรรยากาศมากที่สุด",
+    noteEmpty:"ยังไม่ได้พิมพ์บรรยากาศ จึงแสดงที่ที่ครอบคลุมบรรยากาศมากที่สุด ลองคำค้นเหล่านี้:",
+    change:"เปลี่ยนบรรยากาศ",
+    trayN:"{n} จุด", trayWalk:"เดิน {m} นาที", trayEmpty:"แตะ + เพื่อเพิ่มจุดแวะ", build:"จัดวันให้เลย", full:"วันเต็มแล้ว เอาจุดหนึ่งออกก่อนจึงเพิ่มได้",
+    dayTitle:"วันของคุณ", dayOn:"{d}", start:"เวลาเริ่ม", endLbl:"จบวันเวลา", ends:"จบวันประมาณ {t}", lateChip:"เริ่ม {t} ช้า {n}", undoChange:"ย้อนการเปลี่ยนแปลงล่าสุด",
+    sumStops:"จุดแวะ", sumLen:"ความยาววัน", sumWalk:"การเดิน", durH:"{h} ชม. {m} นาที", durHo:"{h} ชม.", kmTxt:"{km} กม.",
+    walk:"เดิน {n} นาที", walkApprox:"เดินประมาณ {n} นาที", wait:"เปิด {t} รอ {n} นาที", soon:"ปิด {t} อย่าอยู่นาน", dur:"{n} นาที", hrs:"{n} ชม.", rm:"เอา {name} ออก",
+    late:"ไปช้า? จัดวันใหม่", notfit:"วันนี้ไม่ทัน", swap:"เปลี่ยนเป็นที่อื่น",
+    reasonLate:"เปิด {t} ไม่ทันแล้ว", reasonEarly:"ปิด {t} ไปถึงไม่ทัน", reasonWindow:"จะจบหลัง {t} เกินเวลาของวัน", reasonUnknown:"ไม่ทราบเวลาเปิด จึงจัดเวลาไม่ได้", reasonClosed:"วันนี้ปิด จึงจัดเวลาไม่ได้",
+    warnWindow:"บางจุดไม่ทันก่อน {t} เอาจุดออก หรือเลื่อนเวลาจบวันให้ช้าลง",
+    dayEmpty:"ยังไม่มีจุดแวะ", dayEmptyBody:"หาที่ที่เข้ากับบรรยากาศ แล้วเพิ่มมาไว้ที่นี่",
+    stDone:"เสร็จแล้ว", stLate:"ช้า", stPinned:"ปักหมุด", visited:"แวะ {a}–{b}", skippedH:"จุดที่ข้าม",
+    doneBtn:"เสร็จแล้ว", doneAria:"ทำเครื่องหมาย {name} ว่าเสร็จแล้ว", skipBtn:"ข้าม", skipAria:"ข้าม {name}", pinBtn:"ปักหมุด", pinAria:"ปักหมุด {name} ไว้ลำดับนี้", unpinAria:"เลิกปักหมุด {name}",
+    tDone:"{name} เสร็จแล้ว", tSkipped:"ข้าม {name} แล้ว", tPinned:"ปักหมุด {name} ไว้จุดที่ {n}", tUnpinned:"เลิกปักหมุด {name} แล้ว",
+    sugBtn:"แนะนำจุดต่อไป", sugTitle:"จุดต่อไปที่แนะนำ", sugWalk:"เดิน {n} นาที", sugLeft:"เหลือเวลาอีก {t}",
+    sugRank:"จัดอันดับจากความเข้ากับบรรยากาศ 50% ระยะทาง 35% ความสดของข้อมูล 15% และเป็นคนละประเภทกับ {type}",
+    sugAdd:"เพิ่มเข้าวัน", sugReject:"ไม่เอาที่นี่", sugHide:"ซ่อน", sugNone:"ไม่มีที่ไหนทันก่อน {t} จบวันที่ {name}", tSugAdded:"เพิ่ม {name} เข้าวันแล้ว",
+    routeDown:"ใช้ระบบนำทางไม่ได้ เวลาเดินเป็นค่าประมาณแบบเส้นตรง (~) อาจน้อยกว่าจริง", simDown:"เดโม: จำลองระบบนำทางล่ม", simUp:"เดโม: คืนระบบนำทาง",
+    tRouteDown:"จำลองระบบนำทางล่มแล้ว", tRouteUp:"คืนระบบนำทางแล้ว",
+    sheetTitle:"ไปช้ากว่าแผน?", sheetQ:"ช้ากว่าแผนเท่าไหร่", min:"+{n} นาที", hr:"+{n} ชม.", changes:"สิ่งที่จะเปลี่ยน",
+    nochange:"ไม่มีอะไรเปลี่ยน ยังทันทุกจุด", moved:"{name}: {a} → {b}", skipped:"{name} ไม่ทัน", fits:"{name} กลับมาทันแล้ว",
+    apply:"จัดวันใหม่", cancel:"ยกเลิก", closeBtn:"ปิด",
+    axes:"คะแนนบรรยากาศ (ค่าประมาณสำหรับเดโม)", srcLine:"ข้อมูลสถานที่ © ผู้ร่วมสร้าง OpenStreetMap (ODbL) คะแนนยังไม่ได้วัดจากรีวิวหรือรูปภาพ",
+    shareBtn:"แชร์ทริป", shareTitle:"แชร์ทริปนี้", shareNote:"ใครมีลิงก์นี้ดูได้เฉพาะทริปนี้เท่านั้น ข้อมูลอื่นในบัญชีไม่ถูกแชร์",
+    copy:"คัดลอกลิงก์", tCopied:"คัดลอกลิงก์แล้ว", votesH:"โหวตจากเพื่อน (ตัวอย่าง)", votesSub:"{names} โหวตแล้ว", sugBy:"{name} เสนอ", tally:"ชอบ {u} · ข้าม {d}",
+    regroup:"จัดวันใหม่ตามเสียงกลุ่ม", groupChanges:"สิ่งที่จะเปลี่ยนตามเสียงกลุ่ม", groupDrop:"เอา {name} ออก (ชอบ {u} · ข้าม {d})", groupAdd:"เพิ่ม {name} (ชอบ {u} · ข้าม {d})", groupNone:"เสียงของกลุ่มตรงกับแผนของคุณแล้ว", tGroup:"จัดวันใหม่ตามเสียงกลุ่มแล้ว",
+    tAdded:"เพิ่ม {name} แล้ว", tRemoved:"เอา {name} ออกแล้ว", tReplanned:"จัดวันใหม่แล้ว", tSwapped:"เปลี่ยน {a} เป็น {b}", tNoSwap:"ไม่มีที่อื่นที่ทัน",
+    tStart:"เปลี่ยนเวลาเริ่มแล้ว", tEnd:"เปลี่ยนเวลาจบวันแล้ว", undo:"ย้อนกลับ", undone:"ย้อนกลับแล้ว", liveAdded:"เพิ่ม {name} แล้ว รวม {n} จุด", liveRemoved:"เอา {name} ออกแล้ว เหลือ {n} จุด",
+    tSample:"โหลดทริปตัวอย่างแล้ว จุดแรกเสร็จแล้ว", photoBy:"รูป: Wikipedia",
+    themeGroup:"ธีม", themeLight:"สว่าง", themeDark:"มืด", themeSystem:"ตามระบบ", themeCycle:"ธีม: {cur} สลับเป็น {next}", tTheme:"ธีม: {cur}",
+    mapLabel:"แผนที่เยาวราช ซองวัด และตลาดน้อย", mapStops:"แผนที่ {n} สถานที่", mapFail:"โหลดแผนที่ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วโหลดหน้าใหม่",
+    live:"{d} {t} เวลากรุงเทพฯ", routeLive:"เส้นทางเดินจากระบบนำทางของ OpenStreetMap",
+    fPrice:"ราคา", fPriceTxt0:"ฟรีเท่านั้น", fPriceTxt1:"ไม่เกิน ฿", fPriceTxt2:"ไม่เกิน ฿฿", fPriceTxt3:"ทุกระดับราคา", fDist:"ระยะทางจาก{name}", fDistTxt:"ไม่เกิน {km} กม.",
+    priceFree:"ฟรี", priceEst:"ระดับราคาเป็นค่าประมาณตามประเภทสถานที่",
+    stay:"เวลาที่ใช้ที่นี่", stayShort:"อยู่ {name} สั้นลง", stayLong:"อยู่ {name} นานขึ้น", tStay:"เวลาที่ {name}: {n}",
+    grabLabel:"ปรับขนาดรายการ ตอนนี้: {s} กดเพื่อเปลี่ยน", grab_peek:"แผนที่", grab_half:"ครึ่งหน้าจอ", grab_list:"รายการ",
+    photoNear:"รูปใกล้สถานที่นี้", photoWiki:"รูปจาก Wikipedia", aerial:"ภาพถ่ายทางอากาศของจุดนี้", photoNone:"ไม่มีรูปของสถานที่นี้", photoLoading:"กำลังโหลดรูป…",
+    reorderHint:"ลากที่จับเพื่อเรียงลำดับ หรือโฟกัสแล้วกด ↑ ↓", gripLabel:"จัดลำดับ {name} ลาก หรือกดลูกศรขึ้นหรือลง", tMoved:"{name} เป็นจุดที่ {n} จาก {m}", moveEdge:"ย้าย {name} ต่อไปอีกไม่ได้",
+    manualChip:"เรียงเอง", autoOrder:"จัดลำดับอัตโนมัติ", tAuto:"จัดลำดับให้ใหม่แล้ว",
+    conflictClose:"ปิด {t} จะเสร็จหลังร้านปิด", conflictWindow:"จบหลัง {t} เกินเวลาของวัน"
+  }
+};
+
+/* ---------- chat strings (merged into STR) ---------- */
+const CHAT = {
+  en:{
+    you:"You", logLabel:"Conversation with Day-Off", composerLbl:"Message Day-Off", composerPh:"Ask where to go…", send:"Send", micOn:"Speak your question (Thai or English)", micOff:"Stop listening", listening:"Listening…", toClassic:"Open the classic version", tMicBlocked:"Microphone is blocked. Allow it in your browser settings, or type instead.", tMicNone:"Didn't catch that. Try again or type.", tMicNet:"Voice could not reach the speech service. It needs internet and Chrome, Edge or Safari. Type instead, or add ?voice=demo to the address to try the flow.", tMicBrave:"Brave blocks the speech service. Open this page in Chrome or Edge, or add ?voice=demo to the address to try the flow.", voiceLang:"Voice language: {v}", voiceAuto:"Thai and English (auto)", voiceTh:"Thai only", voiceEn:"English only", tMicDemo:"Demo voice: pretending you said something.", tMicRetry:"Not sure I heard that. Trying {lang}, say it again.", typing:"Day-Off is typing",
+    greet:"Hi! Where should I take you today? Tell me a vibe, or tap one.",
+    demoNote:"Demo: I match your words to a fixed list of places, there is no live AI. Places and opening hours come from OpenStreetMap. Vibe scores and price bands are estimates.",
+    c_cafe:"Chill cafe", c_street:"Cheap street food", c_open:"Open right now", c_plan:"Plan my whole day",
+    c_art:"Art and murals", c_old:"Old shophouses",
+    c_cheaper:"Cheaper", c_closer:"Closer", c_openNow:"Open now", c_filters:"Show filters", c_planDay:"Plan my day",
+    c_next:"Where should I go next?", c_late:"I'm 1 hour late", c_share:"Share my trip", c_sample:"Load sample trip", c_help:"What can you do?", c_reset:"Reset filters",
+    rFound:"Found {n} for “{q}”. Best match first:", rFoundAll:"Here are {n} places that cover the most vibes:", rStart:"Good places to start. Pick one, or tell me a vibe:",
+    rNone:"I don't know “{q}” yet, so these places cover the most vibes. Try a vibe like quiet, old town, street food or art:",
+    rFew:"Only a few places match closely, so the next closest are marked “Closest match”.",
+    rNoPass:"No places pass these filters. Loosen one of them, or reset.", rFilterNow:"Filters now: {s}.",
+    rFilters:"Drag a slider. The list updates as you move it.", rReset:"Filters reset.",
+    rPlan:"Here's a day for you: {n} stops, ending about {t}. Open it to reorder, skip or re-plan.",
+    rPlanFail:"I couldn't fit an open place into your day. Try a different vibe, or reset the filters.",
+    rDay:"Your day so far: {n} stops, ending about {t}.", rNoDay:"There are no stops yet. Tell me a vibe, or say “plan my day”.",
+    rLate:"Re-planned for {d} late.", rLateNone:"Nothing changes. You still make every stop.", rLateNeed:"Add a stop first, then I can re-plan if you're late.",
+    rShare:"Here's the link to your trip, with sample votes from friends.", rShareNeed:"Add a stop first, then I can share your trip.",
+    rNext:"How about {name} next? {w}, with {left} left in your day.", rAdded:"Added {name}. It's stop {n} of your day.",
+    rDone:"Marked {name} done.", rDoneNone:"There's no stop to mark done yet.", rSkip:"Skipped {name}.", rSkipNone:"There's no stop to skip yet.",
+    rUndo:"Undone.", rUndoNone:"There's nothing to undo.", rSample:"Loaded a sample trip. The first stop is done.",
+    rHelp:"I can find places by vibe, filter by price, distance or open now, plan a whole day, suggest your next stop, re-plan if you're late, and share your trip. Try one:",
+    rHello:"Hi! Tell me a vibe, like “quiet cafe, old walls”, or tap one below.",
+    embedPick:"Pick places myself", embedUse:"Use this plan", embedClose:"Close planner",
+    showMore:"Show {n} more", showOnMap:"Show {name} on map", addToDay:"Add to day", inDay:"In my day", openDay:"Open my day", backToChat:"Back to chat",
+    mapExpand:"Full screen map", mapHide:"Hide map", mapShow:"Show map", mapBack:"Back to chat", resAdded:"Added", resSkipped:"Not this one"
+  },
+  th:{
+    you:"คุณ", logLabel:"บทสนทนากับ Day-Off", composerLbl:"พิมพ์ถึง Day-Off", composerPh:"ถามได้เลยว่าจะไปไหนดี…", send:"ส่ง", micOn:"พูดคำถามของคุณ (ไทยหรืออังกฤษ)", micOff:"หยุดฟัง", listening:"กำลังฟัง…", toClassic:"เปิดเวอร์ชันคลาสสิก", tMicBlocked:"ไมโครโฟนถูกบล็อก เปิดอนุญาตในการตั้งค่าเบราว์เซอร์ หรือพิมพ์แทนได้", tMicNone:"ฟังไม่ทัน ลองใหม่หรือพิมพ์แทนได้", tMicNet:"เชื่อมต่อบริการรับเสียงไม่ได้ ต้องใช้อินเทอร์เน็ตและ Chrome, Edge หรือ Safari พิมพ์แทนได้ หรือเติม ?voice=demo ท้ายที่อยู่เพื่อลองขั้นตอน", tMicBrave:"Brave บล็อกบริการรับเสียง เปิดหน้านี้ใน Chrome หรือ Edge หรือเติม ?voice=demo ท้ายที่อยู่เพื่อลองขั้นตอน", voiceLang:"ภาษาเสียง: {v}", voiceAuto:"ไทยและอังกฤษ (อัตโนมัติ)", voiceTh:"ไทยอย่างเดียว", voiceEn:"อังกฤษอย่างเดียว", tMicDemo:"เสียงตัวอย่าง: แกล้งทำเป็นว่าคุณพูดแล้ว", tMicRetry:"ฟังไม่ชัด ลองฟังเป็น{lang} พูดอีกครั้ง", typing:"Day-Off กำลังพิมพ์",
+    greet:"สวัสดี! วันนี้อยากให้พาไปไหนดี? เล่าบรรยากาศที่อยากได้ หรือแตะตัวเลือกเลย",
+    demoNote:"เดโม: ระบบจับคู่คำของคุณกับรายการสถานที่ที่กำหนดไว้ ไม่ได้ใช้ AI จริง ชื่อสถานที่และเวลาเปิดมาจาก OpenStreetMap ส่วนคะแนนบรรยากาศและระดับราคาเป็นค่าประมาณ",
+    c_cafe:"คาเฟ่ชิล ๆ", c_street:"ของกินริมทางราคาถูก", c_open:"ที่ที่เปิดอยู่ตอนนี้", c_plan:"จัดทั้งวันให้หน่อย",
+    c_art:"ซอยอาร์ต ภาพมูรัล", c_old:"ตึกเก่าย้อนยุค",
+    c_cheaper:"ถูกกว่านี้", c_closer:"ใกล้กว่านี้", c_openNow:"เปิดอยู่ตอนนี้", c_filters:"ดูตัวกรอง", c_planDay:"จัดวันให้เลย",
+    c_next:"ไปไหนต่อดี", c_late:"ฉันช้า 1 ชั่วโมง", c_share:"แชร์ทริป", c_sample:"ลองทริปตัวอย่าง", c_help:"ทำอะไรได้บ้าง", c_reset:"รีเซ็ตตัวกรอง",
+    rFound:"เจอ {n} ที่สำหรับ “{q}” เรียงจากเข้าที่สุด:", rFoundAll:"นี่คือ {n} ที่ที่ครอบคลุมบรรยากาศมากที่สุด:", rStart:"ที่น่าไปเป็นจุดเริ่มต้น เลือกได้เลย หรือเล่าบรรยากาศที่อยากได้:",
+    rNone:"ยังไม่รู้จักคำว่า “{q}” จึงแสดงที่ที่ครอบคลุมบรรยากาศมากที่สุด ลองบอกบรรยากาศ เช่น เงียบ ๆ ย่านเก่า สตรีทฟู้ด หรืออาร์ต:",
+    rFew:"มีที่เข้ากันใกล้เคียงไม่มาก จึงเพิ่มที่ใกล้เคียงที่สุดและติดป้าย “ใกล้เคียง”",
+    rNoPass:"ไม่มีที่ไหนผ่านตัวกรองเหล่านี้ ลองผ่อนตัวกรองสักตัว หรือรีเซ็ต", rFilterNow:"ตัวกรองตอนนี้: {s}",
+    rFilters:"ลากแถบเลื่อนได้เลย รายการจะเปลี่ยนตามทันที", rReset:"รีเซ็ตตัวกรองแล้ว",
+    rPlan:"จัดวันให้แล้ว {n} จุด จบประมาณ {t} เปิดดูเพื่อเรียงลำดับ ข้าม หรือจัดใหม่ได้",
+    rPlanFail:"ยังจัดที่ที่เปิดอยู่ลงวันของคุณไม่ได้ ลองบอกบรรยากาศอื่น หรือรีเซ็ตตัวกรอง",
+    rDay:"วันของคุณตอนนี้: {n} จุด จบประมาณ {t}", rNoDay:"ยังไม่มีจุดแวะ เล่าบรรยากาศที่อยากได้ หรือพิมพ์ “จัดวันให้เลย”",
+    rLate:"จัดวันใหม่แล้ว เผื่อช้า {d}", rLateNone:"ไม่มีอะไรเปลี่ยน ยังทันทุกจุด", rLateNeed:"เพิ่มจุดแวะก่อน แล้วค่อยให้จัดใหม่ถ้าไปช้า",
+    rShare:"นี่คือลิงก์ทริปของคุณ พร้อมโหวตตัวอย่างจากเพื่อน", rShareNeed:"เพิ่มจุดแวะก่อน แล้วค่อยแชร์ทริปได้",
+    rNext:"ต่อไปไป {name} ดีไหม? {w} เหลือเวลา {left}", rAdded:"เพิ่ม {name} แล้ว เป็นจุดที่ {n} ของวัน",
+    rDone:"ทำเครื่องหมาย {name} ว่าเสร็จแล้ว", rDoneNone:"ยังไม่มีจุดให้ทำเครื่องหมายว่าเสร็จ", rSkip:"ข้าม {name} แล้ว", rSkipNone:"ยังไม่มีจุดให้ข้าม",
+    rUndo:"ย้อนกลับแล้ว", rUndoNone:"ไม่มีอะไรให้ย้อนกลับ", rSample:"โหลดทริปตัวอย่างแล้ว จุดแรกเสร็จแล้ว",
+    rHelp:"หาที่ตามบรรยากาศ กรองตามราคา ระยะทาง หรือเปิดอยู่ตอนนี้ จัดทั้งวัน แนะนำจุดต่อไป จัดใหม่เมื่อไปช้า และแชร์ทริปได้ ลองสักอย่าง:",
+    rHello:"สวัสดี! เล่าบรรยากาศที่อยากได้ เช่น “คาเฟ่เงียบ ๆ ตึกเก่า” หรือแตะตัวเลือกด้านล่าง",
+    embedPick:"เลือกสถานที่เอง", embedUse:"ใช้แผนนี้", embedClose:"ปิดตัวช่วยวางแผน",
+    showMore:"ดูเพิ่มอีก {n}", showOnMap:"ดู {name} บนแผนที่", addToDay:"เพิ่มเข้าวัน", inDay:"อยู่ในวันแล้ว", openDay:"เปิดวันของฉัน", backToChat:"กลับไปแชท",
+    mapExpand:"แผนที่เต็มจอ", mapHide:"ซ่อนแผนที่", mapShow:"แสดงแผนที่", mapBack:"กลับไปแชท", resAdded:"เพิ่มแล้ว", resSkipped:"ไม่เอาที่นี่"
+  }
+};
+Object.assign(STR.en,CHAT.en); Object.assign(STR.th,CHAT.th);
+const TAGNAME = {
+  en:{calm:"Calm", oldtown:"Old town", street:"Street food", art:"Art", river:"Riverside", lively:"Lively"},
+  th:{calm:"สงบ", oldtown:"ย่านเก่า", street:"สตรีทฟู้ด", art:"อาร์ต", river:"ริมน้ำ", lively:"คึกคัก"}
+};
+const TYPENAME = {
+  en:{cafe:"Café", food:"Food", art:"Gallery", shrine:"Shrine", temple:"Temple", market:"Market"},
+  th:{cafe:"คาเฟ่", food:"อาหาร", art:"แกลเลอรี", shrine:"ศาลเจ้า", temple:"วัด", market:"ตลาด"}
+};
+const AREA = {en:{songwat:"Song Wat", yaowarat:"Yaowarat", talatnoi:"Talat Noi"}, th:{songwat:"ซองวัด", yaowarat:"เยาวราช", talatnoi:"ตลาดน้อย"}};
+const DAYS = {en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], th:["จ.","อ.","พ.","พฤ.","ศ.","ส.","อา."]};
+const CHIPS = [
+  {tag:"calm",   en:"quiet and slow",  th:"เงียบ ๆ ชิล ๆ"},
+  {tag:"oldtown",en:"old shophouses",  th:"ตึกเก่าย้อนยุค"},
+  {tag:"street", en:"street eats",     th:"ของกินริมทาง"},
+  {tag:"art",    en:"arty corners",    th:"มุมอาร์ต ๆ"}
+];
+const EXAMPLES = [
+  {en:"quiet cafe, old walls",   th:"คาเฟ่เงียบ ๆ ตึกเก่า"},
+  {en:"street food at night",    th:"ของกินริมทางยามค่ำ"},
+  {en:"art alleys and murals",   th:"ซอยอาร์ต ภาพมูรัล"},
+  {en:"riverside, golden hour",  th:"ริมน้ำ พระอาทิตย์ตก"}
+];
+const KEYWORDS = {
+  calm:["quiet","calm","chill","slow","peace","relax","cozy","เงียบ","สงบ","ชิล","สบาย","ผ่อนคลาย"],
+  oldtown:["old","vintage","heritage","retro","shophouse","wall","histor","ตึกเก่า","เก่า","ย้อนยุค","วินเทจ","ตึกแถว","กำแพง"],
+  street:["street","food","eat","noodle","snack","cheap","อาหาร","กิน","สตรีท","ริมทาง","ก๋วยเตี๋ยว","ขนม"],
+  art:["art","mural","gallery","creative","graffiti","อาร์ต","ศิลปะ","มูรัล","แกลเลอรี","ภาพวาด"],
+  river:["river","water","pier","sunset","แม่น้ำ","ริมน้ำ","ท่าเรือ","พระอาทิตย์ตก"],
+  lively:["lively","busy","buzz","crowd","night","vibrant","คึกคัก","ตลาด","ยามค่ำ","คนเยอะ","สนุก"]
+};
+const FRIENDS = [
+  {id:"mint", en:"Mint", th:"มิ้นต์"},
+  {id:"beam", en:"Beam", th:"บีม"},
+  {id:"ploy", en:"Ploy", th:"พลอย"}
+];
+/* sample votes: +1 like, -1 skip, 0 no vote */
+const VOTES = {
+  mint:{hongsieng:1,soheng:1,eiahsae:1,hoytod:1,tk:1,yoofish:1,gulongbao:1,naam:0,influence:1,fishball:0,walkst:1,traimit:1,mangkon:-1,chowsue:1,sampeng:-1},
+  beam:{hongsieng:1,soheng:1,eiahsae:-1,hoytod:1,tk:1,yoofish:1,gulongbao:1,naam:0,influence:-1,fishball:1,walkst:1,traimit:1,mangkon:1,chowsue:-1,sampeng:1},
+  ploy:{hongsieng:-1,soheng:1,eiahsae:1,hoytod:-1,tk:-1,yoofish:1,gulongbao:-1,naam:1,influence:1,fishball:0,walkst:0,traimit:1,mangkon:-1,chowsue:-1,sampeng:-1}
+};
+const SUGGESTS = [{by:"beam", id:"yoofish"},{by:"mint", id:"hoytod"}];
+
+/* ---------- real places: names, coordinates and opening_hours are copied from OpenStreetMap (osm = element id).
+   Vibe scores (tags) are demo estimates, NOT measured; there are no review quotes, mention counts or prices for real venues. ---------- */
+const PLACES = [
+  {id:"hongsieng", osm:"node/9329112618", en:"Hong Sieng Kong", th:"ฮงเซียงกง", area:"talatnoi", type:"cafe", cat:"cafe · coffee_shop", icon:"coffee", tone:"ink", lat:13.73474, lng:100.51159, h:"Tu-Su 10:00-18:00", dur:50, tags:{calm:4,oldtown:5,street:1,art:4,river:3,lively:2}},
+  {id:"soheng", osm:"node/4411212890", en:"So Heng Tai Café", th:"โซวเฮงไถ่", area:"talatnoi", type:"cafe", cat:"cafe · coffee_shop", icon:"coffee", tone:"ink", lat:13.73363, lng:100.51198, h:"Mo-Su 09:00-18:00", dur:50, tags:{calm:4,oldtown:5,street:0,art:3,river:3,lively:2}},
+  {id:"eiahsae", osm:"node/3096836173", en:"Eiah Sae", th:"Eiah Sae", area:"yaowarat", type:"cafe", cat:"cafe · coffee_shop", icon:"coffee", tone:"slate", lat:13.73931, lng:100.51063, h:"Mo-Su 09:00-18:00", dur:40, tags:{calm:3,oldtown:5,street:2,art:1,river:0,lively:3}},
+  {id:"gulongbao", osm:"way/12164752827", en:"Gu Long Bao Bun Shop", th:"กู่ หลง เปา ซาลาเปาโบราณ", area:"songwat", type:"food", cat:"restaurant · dumplings", icon:"food", tone:"red", lat:13.73793, lng:100.50798, h:"10:00-19:00", dur:30, tags:{calm:3,oldtown:4,street:4,art:1,river:1,lively:2}},
+  {id:"naam", osm:"way/1487597298", en:"NAAM 1608", th:"น้ำ หนึ่งหกศูนย์แปด", area:"songwat", type:"food", cat:"restaurant · thai", icon:"food", tone:"red", lat:13.73594, lng:100.50997, h:"Tu-Su 11:00-22:00", dur:60, tags:{calm:3,oldtown:3,street:1,art:2,river:2,lively:3}},
+  {id:"hoytod", osm:"node/4148053090", en:"Nai Mong Hoy Tod", th:"Nai Mong Hoy Tod", area:"yaowarat", type:"food", cat:"restaurant · asian", icon:"food", tone:"red", lat:13.74204, lng:100.51065, h:"Mo-Su 10:30-21:30", dur:40, tags:{calm:1,oldtown:3,street:5,art:0,river:0,lively:4}},
+  {id:"yoofish", osm:"node/4789519436", en:"Yoo Fishball Noodles", th:"ยู้ ลูกชิ้นปลาเยาวราช", area:"yaowarat", type:"food", cat:"restaurant · noodles", icon:"food", tone:"red", lat:13.7403, lng:100.51014, h:"Mo-Su 10:00-23:00", dur:40, tags:{calm:1,oldtown:4,street:5,art:0,river:0,lively:4}},
+  {id:"fishball", osm:"node/4548714689", en:"Fish Ball Noodles (Pae Tiang)", th:"แปะเตียง", area:"yaowarat", type:"food", cat:"restaurant · noodles", icon:"food", tone:"red", lat:13.74385, lng:100.5072, h:"Mo-Su 08:00-15:00", dur:35, tags:{calm:2,oldtown:3,street:5,art:0,river:0,lively:3}},
+  {id:"tk", osm:"node/3096836189", en:"T&K Seafood", th:"T&K Seafood", area:"yaowarat", type:"food", cat:"restaurant · chinese, thai", icon:"food", tone:"red", lat:13.74012, lng:100.51067, h:"Mo-Su 16:30-02:00", dur:75, tags:{calm:0,oldtown:3,street:5,art:0,river:0,lively:5}},
+  {id:"walkst", osm:"way/950315091", en:"Khlong Ong Ang Walking Street", th:"ถนนคนเดินคลองโอ่งอ่าง", area:"yaowarat", type:"market", cat:"marketplace", icon:"market", tone:"gold", lat:13.74469, lng:100.50278, h:"Fr-Su 16:00-22:00", dur:60, tags:{calm:1,oldtown:2,street:4,art:3,river:2,lively:5}},
+  {id:"influence", osm:"node/11063201970", en:"Over the Influence", th:"โอเวอร์ ดิอินฟลูเอนซ์", area:"talatnoi", type:"art", cat:"gallery", icon:"palette", tone:"ink", lat:13.73717, lng:100.51269, h:"We-Su 11:00-20:00", dur:45, tags:{calm:4,oldtown:3,street:0,art:5,river:2,lively:1}},
+  {id:"traimit", osm:"way/241879483", en:"Wat Traimit", th:"วัดไตรมิตรวิทยารามวรวิหาร", area:"yaowarat", type:"temple", cat:"place_of_worship", icon:"shrine", tone:"gold", lat:13.73809, lng:100.51363, h:null, dur:40, wiki:"Wat_Traimit", tags:{calm:4,oldtown:5,street:0,art:3,river:1,lively:2}},
+  {id:"mangkon", osm:"way/301157259", en:"Wat Mangkon Kamalawat", th:"วัดมังกรกมลาวาส", area:"yaowarat", type:"temple", cat:"place_of_worship", icon:"shrine", tone:"gold", lat:13.74353, lng:100.50958, h:null, dur:40, wiki:"Wat_Mangkon_Kamalawat", tags:{calm:3,oldtown:5,street:1,art:3,river:0,lively:3}},
+  {id:"chowsue", osm:"node/3265832103", en:"Chow Sue Kong Shrine", th:"ศาลเจ้าโจวซือกง", area:"talatnoi", type:"shrine", cat:"place_of_worship", icon:"shrine", tone:"slate", lat:13.73442, lng:100.51171, h:null, dur:20, tags:{calm:4,oldtown:5,street:0,art:2,river:3,lively:1}},
+  {id:"sampeng", osm:"relation/20440796", en:"Sampeng Lane Market", th:"ตลาดสำเพ็ง", area:"yaowarat", type:"market", cat:"marketplace", icon:"market", tone:"gold", lat:13.7412, lng:100.50605, h:null, dur:45, tags:{calm:0,oldtown:4,street:4,art:1,river:0,lively:5}}
+];
+const P = Object.fromEntries(PLACES.map(p=>[p.id,p]));
+/* price bands are category-level ESTIMATES (OpenStreetMap carries no prices): 0 free, 1 ฿ street/market, 2 ฿฿ café, 3 ฿฿฿ sit-down */
+const PRICE={hongsieng:2,soheng:2,eiahsae:1,gulongbao:1,naam:3,hoytod:1,yoofish:1,fishball:1,tk:3,walkst:1,influence:1,traimit:1,mangkon:0,chowsue:0,sampeng:1};
+PLACES.forEach(p=>{ p.price=PRICE[p.id]; });
+const DIST_MAX = 25;   /* distance slider is in 100 m steps: 25 = "any" */
+const MAX_STOPS = 6, ME = {lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
+
+/* ---------- live clock (Bangkok). ?at=Sat-11:00 pins it for demos and tests ---------- */
+const params = new URLSearchParams(location.search);
+function bangkokNow(){
+  const m=(params.get("at")||"").match(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[ -](\d\d):(\d\d)$/);
+  if(m) return {dow:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].indexOf(m[1]), min:+m[2]*60+ +m[3]};
+  const f=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Bangkok",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
+  const g=k=>f.find(x=>x.type===k).value;
+  return {dow:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].indexOf(g("weekday")), min:(+g("hour")%24)*60+ +g("minute")};
+}
+const DAYIDX = {Mo:0,Tu:1,We:2,Th:3,Fr:4,Sa:5,Su:6};
+/* minimal opening_hours reader for the shapes used above: "Mo-Su 09:00-18:00", "Tu-Su ...", "10:00-19:00" */
+function hoursFor(h,dow){
+  if(!h) return {status:"unknown"};
+  const m=h.match(/^(?:(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))? )?(\d\d):(\d\d)-(\d\d):(\d\d)$/);
+  if(!m) return {status:"unknown"};
+  const a=m[1]?DAYIDX[m[1]]:0, b=m[1]?(m[2]?DAYIDX[m[2]]:a):6;
+  if(dow<a||dow>b) return {status:"closed"};
+  const o=+m[3]*60+ +m[4]; let c=+m[5]*60+ +m[6]; if(c<=o) c+=1440;
+  return {status:"ok", open:o, close:c};
+}
+
+/* ---------- state ---------- */
+const state = {
+  lang: params.get("lang")==="en" ? "en" : "th",
+  theme: document.documentElement.dataset.themePref || "system",
+  now: bangkokNow(),
+  msgs:[], typing:false, dayOpen:false, map:"strip",
+  query:"", searched:false, parsed:{tags:[],cafe:false}, results:[], mode:"match", filters:{price:3, dist:DIST_MAX, open:false},
+  tray:[], startMin:600, endMin:1080, delay:0,
+  visits:[], skipped:[], pins:{}, rejected:[], suggest:false, routeDown:false,
+  prev:null, photos:{}, durs:{}, manual:false
+};
+function applyHours(){ PLACES.forEach(p=>{ const r=hoursFor(p.h,state.now.dow); p.status=r.status; p.open=r.open??null; p.close=r.close??null; }); }
+applyHours();
+const EMBED=params.get("embed")==="1";
+if(EMBED) document.documentElement.classList.add("embed");
+{ const ids=(params.get("tray")||"").split(",").filter(id=>P[id]);
+  if(ids.length){ state.tray=ids; const a=+params.get("start"), b=+params.get("end"); if(a>=0&&a<1440) state.startMin=a; if(b>0&&b<=1440) state.endMin=b; } }
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const t = (k,v={}) => (STR[state.lang][k] ?? k).replace(/\{(\w+)\}/g,(_,n)=>v[n] ?? "");
+const nm = p => p[state.lang];
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+const fmt = m => pad(Math.floor(m/60)%24)+":"+pad(m%60);
+const icon = (n,cls="") => `<svg class="ico ${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+function meters(a,b){ const R=6371000, r=Math.PI/180, dx=(b.lng-a.lng)*r*Math.cos((a.lat+b.lat)/2*r), dy=(b.lat-a.lat)*r; return R*Math.hypot(dx,dy); }
+const walkMin = (a,b) => Math.max(2, Math.round(meters(a,b)*(state.routeDown?1:DETOUR)/WALK_M_PER_MIN));
+const hit = (s,k) => /^[a-z]/.test(k) ? new RegExp("\\b"+k).test(s) : s.includes(k);
+const durText = m => { const h=Math.floor(m/60), r=m%60; return h ? (r ? t("durH",{h,m:r}) : t("durHo",{h})) : t("dur",{n:r}); };
+const allTags = Object.keys(TAGNAME.en);
+const visited = id => state.visits.some(v=>v.id===id);
+const durOf = p => state.durs[p.id] ?? p.dur;
+const priceBand = n => n===0 ? t("priceFree") : "฿".repeat(n);
+const isOpen = p => p.status==="ok" && state.now.min>=p.open && state.now.min<p.close;
+const dayName = () => DAYS[state.lang][state.now.dow];
+const clockText = () => t("live",{d:dayName(), t:fmt(state.now.min)});
+
+/* ---------- theme ---------- */
+const THEME_COLOR = {light:"#ffffff", dark:"#111418"};
+function applyTheme(pref, persist){
+  state.theme = pref;
+  const dark = pref==="dark" || (pref==="system" && matchMedia("(prefers-color-scheme: dark)").matches);
+  const r = document.documentElement;
+  r.dataset.theme = dark ? "dark" : "light"; r.dataset.themePref = pref;
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", THEME_COLOR[dark?"dark":"light"]);
+  if(persist){ try{ localStorage.setItem("dayoff-theme", pref); }catch(e){} }
+}
+const THEME_ORDER = ["system","light","dark"];
+function themeLabel(k){ return t({system:"themeSystem",light:"themeLight",dark:"themeDark"}[k]); }
+function renderTheme(){
+  const ic = {system:"auto", light:"sun", dark:"moon"};
+  const next = THEME_ORDER[(THEME_ORDER.indexOf(state.theme)+1)%THEME_ORDER.length];
+  $("#themeSlot").innerHTML =
+    `<div class="seg seg-full" role="group" aria-label="${esc(t("themeGroup"))}">${THEME_ORDER.map(k=>`<button type="button" data-act="theme" data-theme="${k}" data-fk="th-${k}" aria-pressed="${k===state.theme}" aria-label="${esc(themeLabel(k))}" title="${esc(themeLabel(k))}">${icon(ic[k])}</button>`).join("")}</div>
+     <button type="button" class="theme-cycle" data-act="theme-cycle" data-fk="th-cycle" aria-label="${esc(t("themeCycle",{cur:themeLabel(state.theme),next:themeLabel(next)}))}">${icon(ic[state.theme])}</button>`;
+}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{ if(state.theme==="system"){ applyTheme("system",false); renderMap(); } });
+/* ---------- vibe matching (mock of the precomputed score matrix) ---------- */
+function parseQuery(q){
+  const s = q.toLowerCase();
+  const tags = Object.keys(KEYWORDS).filter(tag => KEYWORDS[tag].some(k=>hit(s,k)));
+  return {tags, cafe:/cafe|café|coffee|คาเฟ่|กาแฟ/.test(s)};
+}
+const baseTags = () => state.parsed.tags.length ? state.parsed.tags : allTags;
+function rank(q,parsed){
+  const base=parsed.tags.length?parsed.tags:allTags;
+  const mode = !q ? "empty" : !parsed.tags.length ? "none" : "match";
+  const list = PLACES.map(p=>{
+    const m = base.reduce((a,x)=>a+p.tags[x],0)/base.length/5 + (parsed.cafe&&p.type==="cafe"?.2:0);
+    return {id:p.id, m:Math.min(1,m)};
+  }).sort((a,b)=>b.m-a.m);
+  return {mode, list};
+}
+const matchPct = r => Math.round(r.m*100);
+function visibleResults(){
+  const f=state.filters;
+  return state.results.filter(r=>{
+    const p=P[r.id];
+    if(p.price>f.price) return false;
+    if(f.open && !isOpen(p)) return false;
+    if(f.dist<DIST_MAX && meters(ME,p)>f.dist*100) return false;
+    return true;
+  }).slice(0,10);
+}
+const isWeak = r => state.mode==="match" && r.m<.6;
+/* ---------- route solver (mock of the OR-Tools step) ---------- */
+function simulate(order,start,prevPlace,endMin,manual=false){
+  let now=start, prev=prevPlace||null, walk=0; const items=[], dropped=[];
+  for(const id of order){
+    const p=P[id];
+    if(p.status==="unknown"){ dropped.push({id, reason:"unknown"}); continue; }
+    if(p.status==="closed"){ dropped.push({id, reason:"closedday"}); continue; }
+    const w=prev?walkMin(prev,p):0, arr=now+w, s=Math.max(arr,p.open), end=s+durOf(p);
+    let conflict=null;
+    /* automatic mode drops what cannot fit; manual mode keeps the user's order and flags the conflict instead */
+    if(end>p.close){ if(!manual){ dropped.push({id, reason: arr<p.open ? "late" : "early"}); continue; } conflict="close"; }
+    else if(end>endMin){ if(!manual){ dropped.push({id, reason:"window"}); continue; } conflict="window"; }
+    items.push({id, walk:w, wait:s-arr, start:s, end, conflict});
+    walk+=w; now=end; prev=p;
+  }
+  return {items,dropped,finish:now,walk};
+}
+const fitsIn=(pl,id)=>pl.items.some(i=>i.id===id&&!i.conflict);
+function solve(ids,start,prevPlace,endMin,pins,base){
+  if(!ids.length) return {items:[],dropped:[],finish:start,walk:0};
+  const pinned=Object.keys(pins).filter(id=>ids.includes(id));
+  const run=useP=>{
+    let best=null;
+    (function perm(rest,cur){
+      if(!rest.length){
+        if(useP && pinned.some(id=>cur.indexOf(id)+base!==pins[id])) return;
+        const r=simulate(cur,start,prevPlace,endMin), cost=r.dropped.length*1e5+r.finish+r.walk*0.01;
+        if(!best||cost<best.cost) best={...r,cost};
+        return;
+      }
+      rest.forEach((id,i)=>perm([...rest.slice(0,i),...rest.slice(i+1)],[...cur,id]));
+    })(ids,[]);
+    return best;
+  };
+  return (pinned.length && run(true)) || run(false);   /* pins are respected when any order allows them */
+}
+function plan(tray=state.tray, delay=state.delay, start=state.startMin, end=state.endMin){
+  const vs=state.visits.filter(v=>tray.includes(v.id));   /* visited stops stay fixed (FR-706) */
+  const items=[]; let prev=null, walk=0;
+  vs.forEach(v=>{ const p=P[v.id], w=prev?walkMin(prev,p):0; items.push({id:v.id,walk:w,wait:0,start:v.start,end:v.end,done:true}); walk+=w; prev=p; });
+  const rest=tray.filter(id=>!vs.some(v=>v.id===id));
+  const t0=vs.length ? vs[vs.length-1].end+delay : start+delay;
+  const r=state.manual ? simulate(rest,t0,prev,end,true) : solve(rest,t0,prev,end,state.pins,vs.length);
+  const all=[...items,...r.items];
+  return {items:all, dropped:r.dropped, finish:all.length?all[all.length-1].end:t0, walk:walk+r.walk};
+}
+
+/* ---------- snapshots / undo ---------- */
+const snap = () => JSON.stringify({tray:state.tray,startMin:state.startMin,endMin:state.endMin,delay:state.delay,visits:state.visits,skipped:state.skipped,pins:state.pins,rejected:state.rejected,durs:state.durs,manual:state.manual});
+function pushUndo(){ state.prev = snap(); }
+function restore(s){ Object.assign(state, JSON.parse(s)); }
+function undoLast(){ if(!state.prev) return; restore(state.prev); state.prev=null; clearToast(); say(t("undone")); render({focus:"#vh"}); }
+
+/* ---------- toast / live ---------- */
+let toastTimer=null;
+function say(msg){ const l=$("#live"); l.textContent=""; setTimeout(()=>{l.textContent=msg;},30); }
+function clearToast(){ clearTimeout(toastTimer); $("#toasts").innerHTML=""; }
+function toast(msg,withUndo){
+  clearToast();
+  const el=document.createElement("div"); el.className="toast";
+  el.innerHTML=`<span>${esc(msg)}</span>${withUndo?`<button type="button" data-act="undo">${icon("undo")}&nbsp;${t("undo")}</button>`:""}`;
+  $("#toasts").appendChild(el);
+  const arm=()=>{ clearTimeout(toastTimer); toastTimer=setTimeout(clearToast, withUndo?8000:4000); };
+  if(matchMedia("(hover: hover)").matches){                       /* a tap is not a hover: only pause for real pointers */
+    el.addEventListener("mouseenter",()=>clearTimeout(toastTimer));
+    el.addEventListener("mouseleave",arm);
+  }
+  el.addEventListener("focusin",()=>clearTimeout(toastTimer));
+  el.addEventListener("focusout",arm);
+  arm();
+  if(!withUndo) say(msg);
+}
+/* ---------- views ---------- */
+function slatsHTML(tag,score,row){
+  const label=`${TAGNAME[state.lang][tag]} ${score}/5`;
+  let s=""; for(let i=0;i<5;i++) s+=`<i class="${i<score?"on":""}" style="--i:${i}"></i>`;
+  return `<span class="vibe" style="--r:${row}"><span>${TAGNAME[state.lang][tag]}</span><span class="slats" role="img" aria-label="${label}">${s}</span><span class="vs" aria-hidden="true">${score}/5</span></span>`;
+}
+function hoursText(p){
+  if(p.status==="unknown") return t("hoursUnknown");
+  if(p.status==="closed") return t("closedToday");
+  return p.open===0&&p.close===1440 ? t("open24") : t("hoursLine",{a:fmt(p.open),b:fmt(p.close)});
+}
+function untilText(p){
+  if(p.status==="unknown") return t("hoursUnknown");
+  if(p.status==="closed") return t("closedToday");
+  return p.open===0&&p.close===1440 ? t("open24") : t("openUntil",{t:fmt(p.close)});
+}
+function thumbHTML(p){
+  const ph=state.photos[p.id];
+  return `<div class="thumb tone-${p.tone}" data-pid="${p.id}" aria-hidden="true">${icon(p.icon)}${ph?`<img src="${esc(ph)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:""}</div>`;
+}
+function sliderHTML(id,label,min,max,val,out,step=1){
+  return `<div class="slider"><div class="top"><label for="${id}">${label}</label><output id="${id}-o" for="${id}">${out}</output></div>
+    <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}" style="--p:${(val-min)/(max-min)*100}%" data-fk="${id}"></div>`;
+}
+const priceTxt3 = v => t("fPriceTxt"+v);
+const distTxt = v => v>=DIST_MAX ? t("fAny") : t("fDistTxt",{km:(v/10).toFixed(1)});
+function filtersHTML(){
+  const f=state.filters;
+  return `<div class="card filters" role="group" aria-label="${t("fGroup")}">
+    <div class="sliders">
+      ${sliderHTML("fPrice",t("fPrice"),0,3,f.price,priceTxt3(f.price))}
+      ${sliderHTML("fDist",t("fDist",{name:t("walkOrigin")}),3,DIST_MAX,f.dist,distTxt(f.dist))}
+    </div>
+    <div class="chiprow">
+      <button type="button" class="chip" data-act="filterOpen" data-fk="f-open" aria-pressed="${f.open}">${f.open?icon("check"):""}${t("fOpen")}</button>
+      <button type="button" class="linkbtn" data-act="clearF" data-fk="clearF">${t("clearF")}</button>
+    </div>
+    <p class="hint">${t("fHint",{d:dayName(),t:fmt(state.now.min)})}</p>
+  </div>`;
+}
+/* next stop: reachable before close, not visited/skipped/rejected, different type from previous, ranked by vibe/distance/freshness */
+function nextCandidates(){
+  if(state.tray.length>=MAX_STOPS) return [];
+  const pl=plan();
+  const done=pl.items.filter(i=>i.done), lastDone=done[done.length-1], lastAny=pl.items[pl.items.length-1], ref=lastDone||lastAny;
+  const from=ref?P[ref.id]:ME;
+  const at=lastDone ? lastDone.end+state.delay : (lastAny ? lastAny.end : state.startMin+state.delay);
+  const base=baseTags();
+  return PLACES.filter(p=>p.status==="ok" && !state.tray.includes(p.id) && !visited(p.id) && !state.skipped.includes(p.id) && !state.rejected.includes(p.id) && (!ref || p.type!==P[ref.id].type))
+    .map(p=>{ const w=walkMin(from,p), arr=at+w; return {p,w,arr}; })
+    .filter(c=>fitsIn(plan([...state.tray,c.p.id]),c.p.id))
+    .map(c=>{
+      const vibe=base.reduce((a,x)=>a+c.p.tags[x],0)/base.length/5, prox=1-Math.min(c.w,15)/15, fresh=1;   /* demo data has no per-place freshness, so every place scores equally here */
+      return {...c, score:.5*vibe+.35*prox+.15*fresh, left:state.endMin-c.arr};
+    }).sort((a,b)=>b.score-a.score);
+}
+function suggestCard(pl){
+  const c=nextCandidates()[0];
+  const ref=[...pl.items].reverse().find(i=>i.done)||pl.items[pl.items.length-1];
+  if(!c){
+    const last=ref?nm(P[ref.id]):"";
+    return `<div class="card suggest" data-testid="suggest" role="region" aria-label="${t("sugTitle")}"><h3>${icon("spark")}${t("sugTitle")}</h3>
+      <p>${state.tray.length>=MAX_STOPS?t("full"):t("sugNone",{t:fmt(state.endMin),name:esc(last)})}</p>
+      <div class="sug-acts"><button type="button" class="btn small ghost" data-act="sugHide" data-fk="sug-hide">${t("sugHide")}</button></div></div>`;
+  }
+  const p=c.p;
+  return `<div class="card suggest" data-testid="suggest" role="region" aria-label="${t("sugTitle")}"><h3>${icon("spark")}${t("sugTitle")}</h3>
+    <div class="pick"><h3>${esc(nm(p))}</h3>
+    <p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${untilText(p)}</p></div>
+    <p class="facts"><span>${icon("walk")}${t(state.routeDown?"walkApprox":"sugWalk",{n:c.w})}</span><span>${icon("clock")}${t("sugLeft",{t:durText(Math.max(0,c.left))})}</span></p>
+    <p class="rank">${t("sugRank",{type:ref?TYPENAME[state.lang][P[ref.id].type]:"—"})}</p>
+    <div class="sug-acts">
+      <button type="button" class="btn small primary" data-act="sugAdd" data-id="${p.id}" data-fk="sug-add">${icon("plus")}${t("sugAdd")}</button>
+      <button type="button" class="btn small ghost" data-act="sugReject" data-fk="sug-reject">${t("sugReject")}</button>
+      <button type="button" class="linkbtn" data-act="sugHide" data-fk="sug-hide">${t("sugHide")}</button>
+    </div></div>`;
+}
+function viewDay(){
+  if(!state.tray.length){
+    return `<section class="inner"><div class="card empty"><h2 id="vh" tabindex="-1">${t("dayEmpty")}</h2><p>${t("dayEmptyBody")}</p>
+      <div class="actions"><button class="btn primary" data-act="closeDay">${icon("chat")}${t("backToChat")}</button>
+      <button class="linkbtn" data-act="sample" data-fk="sample">${icon("route")}${t("sampleTrip")}</button></div></div></section>`;
+  }
+  const pl=plan(), s=state.startMin, hasVisits=state.visits.some(v=>state.tray.includes(v.id));
+  const opts=(from,to,sel)=>{ let o=""; for(let m=from;m<=to;m+=30) o+=`<option value="${m}" ${m===sel?"selected":""}>${fmt(m)}</option>`; return o; };
+  const cur=pl.items.find(i=>!i.done);
+  let list="";
+  pl.items.forEach((it,i)=>{
+    const p=P[it.id], pinned=state.pins[it.id]!=null, isCur=cur&&cur.id===it.id;
+    const walkTxt = i>0 ? `${icon("walk")}${t(state.routeDown?"walkApprox":"walk",{n:it.walk})}` : "";
+    let note;
+    if(it.done) note=`<p class="note">${icon("lock")}<span>${t("visited",{a:fmt(it.start),b:fmt(it.end)})}</span></p>`;
+    else if(it.conflict) note=`<p class="note warn">${icon("alert")}<span>${it.conflict==="close"?t("conflictClose",{t:fmt(p.close)}):t("conflictWindow",{t:fmt(state.endMin)})}</span></p>`;
+    else if(it.wait>0) note=`<p class="note">${icon("clock")}<span>${t("wait",{t:fmt(p.open),n:it.wait})}</span></p>`;
+    else if(p.close<1440 && it.end>p.close-30) note=`<p class="note warn">${icon("alert")}<span>${t("soon",{t:fmt(p.close)})}</span></p>`;
+    else note=`<p class="note">${icon("clock")}<span>${untilText(p)}</span></p>`;
+    const chips=[it.done?`<span class="st done">${icon("check")}${t("stDone")}</span>`:"",
+      (!it.done&&isCur&&state.delay)?`<span class="st warn">${icon("clock")}${t("stLate")}</span>`:""].join("");
+    const acts = (!it.done&&isCur) ? `<div class="acts">
+      <button type="button" class="btn small dark" data-act="done" data-id="${p.id}" data-fk="done-${p.id}" aria-label="${esc(t("doneAria",{name:nm(p)}))}">${icon("check")}${t("doneBtn")}</button>
+      <button type="button" class="btn small ghost" data-act="skip" data-id="${p.id}" data-fk="skip-${p.id}" aria-label="${esc(t("skipAria",{name:nm(p)}))}">${icon("skip")}${t("skipBtn")}</button></div>` : "";
+    const grip=`<button type="button" class="ibtn grip" data-act="grip" data-id="${p.id}" data-fk="grip-${p.id}" aria-label="${esc(t("gripLabel",{name:nm(p)}))}" title="${esc(t("gripLabel",{name:nm(p)}))}">${icon("grip")}</button>`;
+    const pinBtn=state.manual ? "" : `<button type="button" class="ibtn" data-act="pin" data-id="${p.id}" data-fk="pin-${p.id}" aria-pressed="${pinned}" title="${esc(t(pinned?"unpinAria":"pinAria",{name:nm(p)}))}" aria-label="${esc(t(pinned?"unpinAria":"pinAria",{name:nm(p)}))}">${icon("pin")}</button>`;
+    const tools = it.done ? "" : `<div class="stop-tools">${grip}${pinBtn}<button type="button" class="rm" data-act="rm" data-id="${p.id}" data-fk="rm-${p.id}" aria-label="${esc(t("rm",{name:nm(p)}))}">${icon("x")}</button></div>`;
+    list+=`<li class="stop ${it.done?"done":""}" data-testid="stop" data-pid="${p.id}"><div class="walkin" ${i>0?"":"hidden"}><span></span><span class="rail"></span><div class="walk-body">${walkTxt}</div></div>
+      <div class="srow"><span class="time">${fmt(it.start)}</span><span class="rail"><span class="dot ${it.done?"done":""}">${it.done?icon("check"):i+1}</span></span>
+      <div class="stop-body"><div><h3>${esc(nm(p))}</h3><p class="meta">${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)}${it.done?` · ${t("dur",{n:durOf(p)})}`:""}</p>${it.done?"":`<div class="stay" role="group" aria-label="${esc(t("stay"))}: ${esc(nm(p))}"><button type="button" class="ibtn sm" data-act="dur" data-d="-15" data-id="${p.id}" data-fk="dm-${p.id}" aria-label="${esc(t("stayShort",{name:nm(p)}))}">−</button><output>${t("dur",{n:durOf(p)})}</output><button type="button" class="ibtn sm" data-act="dur" data-d="15" data-id="${p.id}" data-fk="dp-${p.id}" aria-label="${esc(t("stayLong",{name:nm(p)}))}">+</button></div>`}${chips?`<div class="stop-chips">${chips}</div>`:""}${note}${acts}</div>
+      ${tools}</div></div></li>`;
+  });
+  const drop=pl.dropped.map(d=>{
+    const p=P[d.id];
+    const why=d.reason==="late"?t("reasonLate",{t:fmt(p.open)}):d.reason==="early"?t("reasonEarly",{t:fmt(p.close)}):d.reason==="window"?t("reasonWindow",{t:fmt(state.endMin)}):d.reason==="closedday"?t("reasonClosed"):t("reasonUnknown");
+    return `<li><div><strong>${esc(nm(p))}</strong><p class="note warn">${icon("alert")}<span>${why}</span></p></div>
+      <button type="button" class="btn ghost small" data-act="swap" data-id="${p.id}" data-fk="swap-${p.id}">${icon("swap")}${t("swap")}</button></li>`;
+  }).join("");
+  const windowHit=pl.dropped.some(d=>d.reason==="window") || pl.items.some(i=>i.conflict==="window");
+  const lateBase=hasVisits?state.visits.filter(v=>state.tray.includes(v.id)).slice(-1)[0].end:s;
+  const first=pl.items[0], len=first?pl.finish-first.start:0, km=(pl.walk*WALK_M_PER_MIN/1000).toFixed(1);
+  return `<section class="inner">
+    <div class="day-head">
+      <div class="day-top">
+        <div><h2 id="vh" tabindex="-1">${t("dayTitle")}</h2><p class="sub">${t("dayOn",{d:dayName()})}</p></div>
+        <div class="head-acts">
+          ${state.manual?`<button type="button" class="btn small ghost" data-act="autoOrder" data-fk="autoOrder">${icon("route")}${t("autoOrder")}</button>`:""}
+          <button type="button" class="btn small ghost" data-act="suggest" data-fk="suggest">${icon("spark")}${t("sugBtn")}</button>
+          <button type="button" class="btn small dark" data-act="share" data-fk="share">${icon("share")}${t("shareBtn")}</button>
+        </div>
+      </div>
+      <div class="day-meta">
+        ${hasVisits?"":`<div class="field"><label for="startSel">${t("start")}</label><select id="startSel" data-fk="start">${opts(420,840,s)}</select></div>`}
+        <div class="field"><label for="endSel">${t("endLbl")}</label><select id="endSel" data-fk="end">${opts(900,1380,state.endMin)}</select></div>
+        ${state.prev?`<button type="button" class="linkbtn" data-act="undoChange" data-fk="undoChange">${icon("undo")}${t("undoChange")}</button>`:""}
+      </div>
+      ${pl.items.length?`<dl class="sum" data-testid="summary">
+        <div><dt>${t("sumStops")}</dt><dd>${pl.items.length}</dd></div>
+        <div><dt>${t("sumLen")}</dt><dd>${durText(len)}</dd></div>
+        <div><dt>${t("sumWalk")}</dt><dd>${t("dur",{n:pl.walk})}<small>${t("kmTxt",{km})}</small></dd></div></dl>`:""}
+      ${state.manual?`<span class="late-chip">${icon("grip")}${t("manualChip")}</span>`:""}
+      ${state.delay?`<span class="late-chip">${icon("clock")}${t("lateChip",{t:fmt(lateBase+state.delay),n:state.delay%60===0?t("hrs",{n:state.delay/60}):t("dur",{n:state.delay})})}</span>`:""}
+    </div>
+    ${state.routeDown?`<div class="notice warn" role="status" data-testid="route-notice">${icon("alert")}<p>${t("routeDown")}</p></div>`:""}
+    ${windowHit?`<div class="notice warn" role="status">${icon("alert")}<p>${t("warnWindow",{t:fmt(state.endMin)})}</p></div>`:""}
+    ${state.suggest?suggestCard(pl):""}
+    ${pl.items.some(i=>!i.done)?`<p class="hint">${t("reorderHint")}</p>`:""}
+    ${pl.items.length?`<ol class="card timeline" data-testid="timeline">${list}</ol>`:""}
+    ${drop?`<div class="card nofit"><h3>${icon("alert")}${t("notfit")}</h3><ul>${drop}</ul></div>`:""}
+    ${state.skipped.length?`<div class="card skipbox"><h3>${icon("skip")}${t("skippedH")}</h3><ul>${state.skipped.map(id=>`<li><strong>${esc(nm(P[id]))}</strong></li>`).join("")}</ul></div>`:""}
+    <div class="day-foot"><button type="button" class="linkbtn" data-act="routing" data-fk="routing" aria-pressed="${state.routeDown}">${icon("route")}${t(state.routeDown?"simUp":"simDown")}</button></div>
+  </section>`;
+}
+/* ---------- real map (Leaflet + OpenStreetMap tiles) ---------- */
+let LMAP=null, LGROUP=null, LROUTE=null, lastFit="", routeToken=0;
+/* Tiles: Mapbox when MAP_BLOCK_KEY is available (served by server.mjs as /env.js), else OSM over http, else CARTO.
+   Three tile errors (bad token, URL restriction, 403) retire a provider and the next one takes over. */
+const MAP_KEY = (window.DAYOFF_ENV && window.DAYOFF_ENV.MAP_BLOCK_KEY) || "";
+const LONGDO_KEY = (window.DAYOFF_ENV && window.DAYOFF_ENV.LONGDO_MAP_KEY) || "";
+/* "Mapbox | Longdo" switch: only shown when both keys exist; the choice is saved like the theme */
+let mapPref="mapbox"; try{ mapPref=localStorage.getItem("dayoff-map")==="longdo"?"longdo":"mapbox"; }catch(e){}
+const OSM_ATTR='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+let TL=null, tileKind="", tileErrs=0; const tileDead=new Set();
+function wantTiles(){
+  if(LONGDO_KEY && mapPref==="longdo" && !tileDead.has("longdo")) return "longdo";
+  if(MAP_KEY && !tileDead.has("mapbox")) return document.documentElement.dataset.theme==="dark" ? "mapbox-dark" : "mapbox-light";
+  if(location.protocol==="file:" || tileDead.has("osm")) return "carto";
+  return "osm";
+}
+function tileSpec(kind){
+  if(kind.startsWith("mapbox")){
+    const style = kind==="mapbox-dark" ? "dark-v11" : "streets-v12";
+    return {url:`https://api.mapbox.com/styles/v1/mapbox/${style}/tiles/512/{z}/{x}/{y}@2x?access_token=${MAP_KEY}`, opt:{tileSize:512, zoomOffset:-1, maxZoom:19, attribution:'&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> '+OSM_ATTR}};
+  }
+  if(kind==="longdo") return {url:`https://ms.longdo.com/mmmap/tile.php?zoom={z}&x={x}&y={y}&key=${LONGDO_KEY}&proj=epsg3857&HD=true`, opt:{tileSize:256, maxZoom:19, attribution:'&copy; <a href="https://map.longdo.com/">Longdo Map</a> '+OSM_ATTR}};
+  if(kind==="carto") return {url:"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", opt:{maxZoom:19, subdomains:"abcd", attribution:OSM_ATTR+' &copy; <a href="https://carto.com/attributions">CARTO</a>'}};
+  return {url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png", opt:{maxZoom:19, attribution:OSM_ATTR}};
+}
+function renderMapSwitch(){
+  const el=$("#mapsw"); if(!el) return;
+  if(!(MAP_KEY && LONGDO_KEY)){ el.hidden=true; return; }
+  el.hidden=false;
+  el.innerHTML=["mapbox","longdo"].map(k=>`<button type="button" data-prov="${k}" aria-pressed="${k===mapPref}">${k==="mapbox"?"Mapbox":"Longdo"}</button>`).join("");
+}
+function setMapProvider(k){
+  mapPref=k; try{ localStorage.setItem("dayoff-map",k); }catch(e){}
+  tileDead.delete(k); renderMapSwitch(); syncTiles();
+}
+function syncTiles(){
+  if(!LMAP) return;
+  const kind=wantTiles(); if(kind===tileKind) return;
+  if(TL) LMAP.removeLayer(TL);
+  const sp=tileSpec(kind); TL=L.tileLayer(sp.url,sp.opt).addTo(LMAP); tileKind=kind; tileErrs=0;
+  $("#map").dataset.tiles = kind.startsWith("mapbox") ? "mapbox" : kind;
+  TL.on("tileerror",()=>{ if(++tileErrs>=3){ tileDead.add(kind.startsWith("mapbox")?"mapbox":kind); syncTiles(); } });
+}
+const routeCache=new Map();
+function initMap(){
+  if(!window.L){ $("#map").innerHTML=`<p class="mapfail">${t("mapFail")}</p>`; return; }
+  LMAP=L.map("map",{zoomControl:false,attributionControl:false,scrollWheelZoom:true,keyboard:true}).setView([13.7385,100.5105],15);
+  L.control.attribution({position:"topright"}).addTo(LMAP); L.control.zoom({position:"bottomright"}).addTo(LMAP);   /* top-right so the phone bottom sheet never hides it */
+  syncTiles(); renderMapSwitch();
+  $("#mapsw").addEventListener("click",e=>{ const b=e.target.closest("button[data-prov]"); if(b) setMapProvider(b.dataset.prov); });
+  LGROUP=L.layerGroup().addTo(LMAP);
+  new ResizeObserver(()=>{ LMAP.invalidateSize(); }).observe($("#map"));
+}
+function pinIcon(kind,n,best){
+  const dot = kind==="num"||kind==="done" ? 26 : kind==="faint" ? 9 : 16;
+  const size = kind==="faint" ? 14 : Math.max(dot,30);          /* hit area stays comfortable even when the dot is small */
+  const cls = kind==="done" ? "num done" : kind;
+  return L.divIcon({className:"", html:`<div class="pinbox"><div class="pin ${cls}${best?" best":""}">${n||""}</div></div>`, iconSize:[size,size], iconAnchor:[size/2,size/2]});
+}
+async function walkGeometry(pts){
+  const key=pts.map(p=>p.lng.toFixed(5)+","+p.lat.toFixed(5)).join(";");
+  if(routeCache.has(key)) return routeCache.get(key);
+  try{
+    const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),6000);
+    const r=await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${key}?overview=full&geometries=geojson`,{signal:ctl.signal});
+    clearTimeout(to);
+    if(!r.ok) throw new Error("route "+r.status);
+    const j=await r.json(); const g=j.routes&&j.routes[0]&&j.routes[0].geometry.coordinates.map(([x,y])=>[y,x]);
+    routeCache.set(key,g||null); return g||null;
+  }catch(e){ routeCache.set(key,null); return null; }
+}
+
+const LMARKERS={};
+function focusItem(id){
+  const el=document.querySelector(`.stop[data-pid="${id}"]`);
+  if(!el) return;
+  el.scrollIntoView({block:"center",behavior:reducedMotion()?"auto":"smooth"});
+}
+function renderMap(){
+  const col=$("#mapcol");
+  if(!LMAP) return;
+  syncTiles();                         /* follows the theme (light / dark Mapbox style) */
+  LGROUP.clearLayers(); if(LROUTE){ LMAP.removeLayer(LROUTE); LROUTE=null; }
+  Object.keys(LMARKERS).forEach(k=>delete LMARKERS[k]);
+  routeToken++;
+  let pins=[], route=[], focus=[], mode="all";
+  const live=liveResults(), inTray=id=>state.tray.includes(id);
+  if(state.dayOpen || (!live && state.tray.length)){
+    mode="day";
+    const pl=plan();
+    pl.items.forEach((it,i)=>{ const p=P[it.id]; pins.push({p,kind:it.done?"done":"num",n:i+1}); focus.push(p); });
+    route=pl.items.map(i=>P[i.id]);
+    PLACES.filter(p=>!pl.items.some(i=>i.id===p.id)).forEach(p=>pins.unshift({p,kind:"faint"}));
+  } else if(live && live.items.length){
+    mode="places";
+    const ids=live.items.map(r=>r.id);
+    live.items.forEach((r,i)=>{ const p=P[r.id]; pins.push({p,kind:inTray(p.id)?"tray":"res",best:i===0&&!r.weak}); focus.push(p); });
+    PLACES.filter(p=>!ids.includes(p.id)).forEach(p=>pins.unshift({p,kind:inTray(p.id)?"tray":"faint"}));
+  } else { PLACES.forEach(p=>pins.push({p,kind:inTray(p.id)?"tray":"faint"})); }
+  pins.forEach(({p,kind,n,best})=>{
+    const m=L.marker([p.lat,p.lng],{icon:pinIcon(kind,n,best),title:nm(p),alt:nm(p),keyboard:kind!=="faint",riseOnHover:true});
+    m.bindTooltip(esc(nm(p)),{direction:"top",offset:[0,-8]});
+    m.on("click",()=>{ if(state.dayOpen) focusItem(p.id); else openDetail(p.id); });
+    m.addTo(LGROUP); LMARKERS[p.id]=m;
+  });
+  $("#map").setAttribute("aria-label", mode!=="all"&&focus.length?t("mapStops",{n:focus.length}):t("mapLabel"));
+  if(route.length>1){
+    const pts=route.map(p=>[p.lat,p.lng]), token=routeToken;
+    LROUTE=L.polyline(pts,{color:"#C93520",weight:4,opacity:.85,dashArray:"2 8",lineCap:"round"}).addTo(LMAP);
+    if(!state.routeDown) walkGeometry(route).then(g=>{
+      if(!g||token!==routeToken||!LMAP) return;
+      LMAP.removeLayer(LROUTE); LROUTE=L.polyline(g,{color:"#C93520",weight:4,opacity:.9}).addTo(LMAP);
+      LROUTE.getElement()?.setAttribute("data-route","osm");
+    });
+  }
+  if(col.offsetWidth===0 || col.clientHeight<60){ lastFit=""; return; }     /* map is hidden or collapsed */
+  const key=mode+"|"+focus.map(p=>p.id).join(",")+"|"+mapState();
+  if(key!==lastFit){
+    lastFit=key; LMAP.invalidateSize();
+    const pts=(focus.length?focus:PLACES).map(p=>[p.lat,p.lng]);
+    if(pts.length===1) LMAP.setView(pts[0],16,{animate:false});
+    else LMAP.fitBounds(L.latLngBounds(pts),{padding:[28,28],maxZoom:17,animate:false});
+  }
+}
+/* ---------- live photos (Wikipedia, only where a page exists; the icon tile is the fallback) ---------- */
+async function loadPhotos(){
+  await Promise.all(PLACES.filter(p=>p.wiki).map(async p=>{
+    try{
+      const r=await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+p.wiki);
+      if(!r.ok) return;
+      const j=await r.json(); const src=j.thumbnail&&j.thumbnail.source;
+      if(src){ state.photos[p.id]=src; document.querySelectorAll(`.thumb[data-pid="${p.id}"]`).forEach(el=>{ if(!el.querySelector("img")) el.insertAdjacentHTML("beforeend",`<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer">`); }); }
+    }catch(e){}
+  }));
+}
+function addToggle(id){
+  const i=state.tray.indexOf(id);
+  if(i>=0){ state.tray.splice(i,1); state.visits=state.visits.filter(v=>v.id!==id); delete state.pins[id]; say(t("liveRemoved",{name:nm(P[id]),n:state.tray.length})); }
+  else if(state.tray.length>=MAX_STOPS){ toast(t("full")); return false; }
+  else { state.tray.push(id); state.skipped=state.skipped.filter(x=>x!==id); say(t("liveAdded",{name:nm(P[id]),n:state.tray.length})); }
+  state.prev=null; render(); return true;
+}
+function removeStop(id){
+  pushUndo(); state.tray=state.tray.filter(x=>x!==id); delete state.pins[id]; render({focus:"#vh"});
+  toast(t("tRemoved",{name:nm(P[id])}),true);
+}
+function swapStop(id){
+  const base=baseTags();
+  const cands=PLACES.filter(p=>!state.tray.includes(p.id)).sort((a,b)=>base.reduce((s,x)=>s+b.tags[x],0)-base.reduce((s,x)=>s+a.tags[x],0));
+  for(const c of cands){
+    const next=state.tray.map(x=>x===id?c.id:x);
+    if(fitsIn(plan(next),c.id)){
+      pushUndo(); state.tray=next; delete state.pins[id]; render({focus:"#vh"});
+      toast(t("tSwapped",{a:nm(P[id]),b:nm(c)}),true); return;
+    }
+  }
+  toast(t("tNoSwap"));
+}
+function markDone(id){
+  const pl=plan(), cur=pl.items.find(i=>!i.done);
+  if(!cur||cur.id!==id) return;
+  pushUndo();
+  state.visits.push({id,start:cur.start,end:cur.end}); delete state.pins[id];
+  state.suggest=true; state.rejected=[];
+  render({focus:"#vh"}); toast(t("tDone",{name:nm(P[id])}),true);
+}
+function skipStop(id){
+  pushUndo();
+  state.tray=state.tray.filter(x=>x!==id); state.skipped.push(id); delete state.pins[id];
+  state.suggest=true; state.rejected=[];
+  render({focus:"#vh"}); toast(t("tSkipped",{name:nm(P[id])}),true);
+}
+function togglePin(id){
+  pushUndo();
+  if(state.pins[id]!=null){ delete state.pins[id]; render(); toast(t("tUnpinned",{name:nm(P[id])}),true); return; }
+  const idx=plan().items.findIndex(i=>i.id===id);
+  state.pins[id]=Math.max(0,idx); render(); toast(t("tPinned",{name:nm(P[id]),n:idx+1}),true);
+}
+function acceptSuggestion(id){
+  if(state.tray.length>=MAX_STOPS){ toast(t("full")); return; }
+  pushUndo(); state.tray.push(id); state.rejected=[]; render({focus:"#vh"}); toast(t("tSugAdded",{name:nm(P[id])}),true);
+}
+function diffLines(oldPl,newPl){
+  const om=new Map(oldPl.items.map(i=>[i.id,i])), out=[];
+  newPl.items.forEach(i=>{ const o=om.get(i.id); if(i.conflict && !(o&&o.conflict)){ out.push({cls:"bad",txt:t("skipped",{name:nm(P[i.id])})}); return; } if(!o) out.push({cls:"",txt:t("fits",{name:nm(P[i.id])})}); else if(o.start!==i.start) out.push({cls:"",txt:t("moved",{name:nm(P[i.id]),a:fmt(o.start),b:fmt(i.start)})}); });
+  newPl.dropped.forEach(d=>{ if(!oldPl.dropped.some(x=>x.id===d.id)) out.push({cls:"bad",txt:t("skipped",{name:nm(P[d.id])})}); });
+  return out;
+}
+const DELAYS=[30,60,120,240];
+const delayLabel=n=>n<60?t("min",{n}):t("hr",{n:n/60});
+function openSheet(){
+  const cur=DELAYS.includes(state.delay)?state.delay:30;
+  const sh=$("#sheet");
+  sh.innerHTML=`<div class="sheet">
+    <h2 id="sheet-title">${t("sheetTitle")}</h2>
+    <fieldset class="opts"><legend>${t("sheetQ")}</legend>
+      ${DELAYS.map(n=>`<label class="opt"><input type="radio" name="delay" value="${n}" ${n===cur?"checked":""}><span>${delayLabel(n)}</span></label>`).join("")}
+    </fieldset>
+    <div><h3>${t("changes")}</h3><ul class="diff" id="diff" aria-live="polite" data-testid="diff"></ul></div>
+    <div class="sheet-actions"><button type="button" class="btn ghost" data-act="cancel">${t("cancel")}</button><button type="button" class="btn primary" data-act="apply" data-testid="apply">${t("apply")}</button></div>
+  </div>`;
+  const upd=()=>{
+    const n=+sh.querySelector("input:checked").value;
+    const lines=diffLines(plan(), plan(state.tray,n));
+    sh.querySelector("#diff").innerHTML = lines.length ? lines.map(l=>`<li class="${l.cls}">${icon(l.cls?"alert":"clock")}<span>${esc(l.txt)}</span></li>`).join("") : `<li>${icon("check")}<span>${t("nochange")}</span></li>`;
+  };
+  sh.querySelectorAll("input").forEach(i=>i.addEventListener("change",upd)); upd();
+  sh.showModal();
+}
+function applyDelay(){
+  const sh=$("#sheet"); const n=+sh.querySelector("input:checked").value;
+  sh.close(); pushUndo(); state.delay=n; render({focus:"#vh"}); toast(t("tReplanned"),true);
+}
+/* time at a place: 15-180 min, applies to the day plan immediately */
+function setDur(id,v){
+  const p=P[id]; if(!p) return;
+  v=Math.max(15,Math.min(180,Math.round(v/5)*5));
+  if(v===durOf(p)) return;
+  pushUndo(); state.durs[id]=v;
+  render(); say(t("tStay",{name:nm(p),n:t("dur",{n:v})}));
+}
+/* place photo: a geotagged Wikimedia Commons photo within 60 m (credited), else the Wikipedia photo, else a Mapbox aerial view of the exact spot */
+const commonsCache=new Map();
+function plainText(html){ return new DOMParser().parseFromString(html||"","text/html").body.textContent.trim(); }
+async function commonsPhoto(p){
+  if(commonsCache.has(p.id)) return commonsCache.get(p.id);
+  let out=null;
+  try{
+    const u="https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+p.lat+"%7C"+p.lng+"&ggsradius=60&ggslimit=10&ggsnamespace=6&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime&iiurlwidth=800&iiextmetadatafilter=Artist%7CLicenseShortName&format=json&origin=*";
+    const r=await fetch(u); if(!r.ok) throw new Error("commons");
+    const j=await r.json();
+    const pg=Object.values((j.query&&j.query.pages)||{}).filter(x=>x.imageinfo&&x.imageinfo[0]&&x.imageinfo[0].mime==="image/jpeg").sort((a,b)=>a.index-b.index)[0];
+    if(pg){ const ii=pg.imageinfo[0], m=ii.extmetadata||{};
+      out={kind:"commons", src:ii.thumburl||ii.url, credit:plainText(m.Artist&&m.Artist.value)||"Wikimedia Commons", lic:plainText(m.LicenseShortName&&m.LicenseShortName.value), href:ii.descriptionurl}; }
+  }catch(e){}
+  commonsCache.set(p.id,out); return out;
+}
+const aerialOf = p => MAP_KEY ? {kind:"aerial", src:`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/pin-l+C93520(${p.lng},${p.lat})/${p.lng},${p.lat},17,0/800x450@2x?access_token=${MAP_KEY}`} : null;
+function paintPhoto(sh,p,ph){
+  const fig=sh.querySelector("#photo"); if(!fig||sh.dataset.pid!==p.id) return;
+  if(!ph){ fig.innerHTML=`<div class="hero-img tone-${p.tone}" aria-hidden="true">${icon(p.icon)}</div><figcaption>${t("photoNone")}</figcaption>`; return; }
+  const cap = ph.kind==="commons" ? `${t("photoNear")} · ${esc(ph.credit)}${ph.lic?" · "+esc(ph.lic):""} · <a href="${esc(ph.href)}" target="_blank" rel="noopener">Wikimedia Commons</a>`
+            : ph.kind==="wiki" ? t("photoWiki") : `${t("aerial")} · © Mapbox · © OpenStreetMap contributors`;
+  fig.innerHTML=`<div class="hero-img"><img src="${esc(ph.src)}" alt="${esc(nm(p))}" data-kind="${ph.kind}" referrerpolicy="no-referrer"></div><figcaption>${cap}</figcaption>`;
+  if(ph.kind==="aerial") fig.querySelector("img").addEventListener("error",()=>{ if(fig.querySelector('img[data-kind="aerial"]')) paintPhoto(sh,p,null); },{once:true});
+}
+/* the aerial view appears at once; a real photo replaces it as soon as it has finished loading */
+async function loadDetailPhoto(sh,p){
+  const aerial=aerialOf(p);
+  if(aerial) paintPhoto(sh,p,aerial);
+  let better=await commonsPhoto(p);
+  if(!better && state.photos[p.id]) better={kind:"wiki",src:state.photos[p.id]};
+  if(!better){ if(!aerial) paintPhoto(sh,p,null); return; }
+  const probe=new Image(); probe.referrerPolicy="no-referrer";
+  probe.onload=()=>paintPhoto(sh,p,better);
+  probe.onerror=()=>{ if(!aerial) paintPhoto(sh,p,null); };
+  probe.src=better.src;
+}
+
+/* venue detail: photo, every axis score (demo estimate), real OSM facts, adjustable time here */
+function openDetail(id){
+  const p=P[id], inDay=state.tray.includes(id), sh=$("#sheet");
+  sh.dataset.pid=id;
+  const axes=allTags.map(tag=>{
+    const sc=p.tags[tag]; let s=""; for(let i=0;i<5;i++) s+=`<i class="${i<sc?"on":""}"></i>`;
+    return `<li><span>${TAGNAME[state.lang][tag]}</span><span class="slats" role="img" aria-label="${TAGNAME[state.lang][tag]} ${sc}/5">${s}</span><span class="mn">${sc}/5</span></li>`;
+  }).join("");
+  const status = p.status==="unknown" ? `<span class="st warn">${icon("alert")}${t("hoursUnknown")}</span>` : p.status==="closed" ? `<span class="st warn">${icon("alert")}${t("closedToday")}</span>` : `<span class="note" style="margin:0">${icon("clock")}${hoursText(p)}</span>`;
+  const d=durOf(p);
+  sh.innerHTML=`<div class="sheet">
+    <figure class="hero" id="photo"><div class="hero-img tone-${p.tone}" aria-hidden="true">${icon(p.icon)}</div><figcaption>${t("photoLoading")}</figcaption></figure>
+    <div><h2 id="sheet-title">${esc(nm(p))}</h2>
+    <p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)} · ${esc(p.cat)}</p></div>
+    <div class="chiprow" style="align-items:center">${status}</div>
+    <p class="meta">${icon("walk")} ${t("fromHere",{n:walkMin(ME,p),name:t("walkOrigin")})}</p>
+    <div class="slider"><div class="top"><label for="stayR">${t("stay")}</label><output id="stayR-o" for="stayR">${t("dur",{n:d})}</output></div>
+      <input type="range" id="stayR" min="15" max="180" step="5" value="${d}" style="--p:${(d-15)/(180-15)*100}%" data-fk="stayR"></div>
+    <div><h3>${t("axes")}</h3><ul class="axes">${axes}</ul></div>
+    <p class="srcline">${icon("info")}<span>${t("sigScore")}. ${t("priceEst")}. ${t("srcLine")} <a href="https://www.openstreetmap.org/${p.osm}" target="_blank" rel="noopener">OSM ${esc(p.osm)}</a></span></p>
+    <div class="sheet-actions"><button type="button" class="btn ghost" data-act="cancel">${t("closeBtn")}</button>
+      <button type="button" class="btn primary" data-act="sheetAdd" data-id="${id}">${icon(inDay?"check":"plus")}${t(inDay?"remove":"add",{name:nm(p)})}</button></div>
+  </div>`;
+  sh.showModal();
+  loadDetailPhoto(sh,p);
+}
+/* shared trip: sample friend votes, planner re-solves with the group's picks */
+function tally(id){ let u=0,d=0; FRIENDS.forEach(f=>{ const v=VOTES[f.id][id]||0; if(v>0) u++; else if(v<0) d++; }); return {u,d}; }
+function groupChanges(){
+  const drop=state.tray.filter(id=>!visited(id) && state.pins[id]==null && tally(id).d>tally(id).u);
+  const add=SUGGESTS.map(s=>s.id).filter(id=>!state.tray.includes(id) && !state.skipped.includes(id) && tally(id).u>tally(id).d);
+  return {drop,add};
+}
+function voteRow(id,by){
+  const tl=tally(id), p=P[id];
+  return `<li><div><strong>${esc(nm(p))}</strong>${by?`<p class="meta">${t("sugBy",{name:esc(by)})}</p>`:""}</div>
+    <div class="vt"><span class="vbar" aria-hidden="true"><i class="up" style="width:${tl.u*33.3}%"></i><i class="dn" style="width:${tl.d*33.3}%"></i></span><span class="vs">${t("tally",tl)}</span></div></li>`;
+}
+function openShare(){
+  const sh=$("#sheet"), names=FRIENDS.map(f=>f[state.lang]).join(", "), g=groupChanges();
+  const rows=state.tray.map(id=>voteRow(id)).join("");
+  const sugs=SUGGESTS.filter(s=>!state.tray.includes(s.id)).map(s=>voteRow(s.id,FRIENDS.find(f=>f.id===s.by)[state.lang])).join("");
+  const lines=[...g.drop.map(id=>({cls:"bad",icon:"alert",txt:t("groupDrop",{name:nm(P[id]),...tally(id)})})), ...g.add.map(id=>({cls:"",icon:"plus",txt:t("groupAdd",{name:nm(P[id]),...tally(id)})}))];
+  sh.innerHTML=`<div class="sheet">
+    <h2 id="sheet-title">${t("shareTitle")}</h2>
+    <div class="linkrow"><code id="shareLink">dayoff.example/t/k7Qm-2xPz-91Lw</code><button type="button" class="btn small ghost" data-act="copy" data-fk="copy">${icon("copy")}${t("copy")}</button></div>
+    <p class="hint" style="margin-top:-8px">${t("shareNote")}</p>
+    <div><h3>${t("votesH")}</h3><p class="hint" style="margin:0 0 8px">${t("votesSub",{names})}</p><ul class="votes" data-testid="votes">${rows}${sugs}</ul></div>
+    <div><h3>${t("groupChanges")}</h3><ul class="diff" data-testid="group-diff" aria-live="polite">${lines.length?lines.map(l=>`<li class="${l.cls}">${icon(l.icon)}<span>${esc(l.txt)}</span></li>`).join(""):`<li>${icon("check")}<span>${t("groupNone")}</span></li>`}</ul></div>
+    <div class="sheet-actions"><button type="button" class="btn ghost" data-act="cancel">${t("closeBtn")}</button>
+      <button type="button" class="btn primary" data-act="regroup" data-testid="regroup" ${lines.length?"":"disabled"}>${t("regroup")}</button></div>
+  </div>`;
+  sh.showModal();
+}
+function applyGroup(){
+  const g=groupChanges(); $("#sheet").close(); pushUndo();
+  state.tray=state.tray.filter(id=>!g.drop.includes(id));
+  g.add.forEach(id=>{ if(state.tray.length<MAX_STOPS) state.tray.push(id); });
+  g.drop.forEach(id=>delete state.pins[id]);
+  render({focus:"#vh"}); toast(t("tGroup"),true);
+}
+/* ---------- manual order: drag a stop by its handle, or focus the handle and press ↑ / ↓ ---------- */
+const reducedMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function commitOrder(order,focusId){
+  const doneIds=state.visits.filter(v=>state.tray.includes(v.id)).map(v=>v.id);
+  const moved=order.filter(id=>!doneIds.includes(id));
+  const current=plan().items.filter(i=>!i.done).map(i=>i.id);
+  if(moved.join()===current.join()) return false;                         /* dropped back where it was: nothing changed */
+  const rest=state.tray.filter(id=>!doneIds.includes(id)&&!moved.includes(id));   /* unscheduled stops stay at the end */
+  pushUndo(); state.tray=[...doneIds,...moved,...rest]; state.manual=true;
+  render({focus:`[data-fk="grip-${focusId}"]`});
+  const pl=plan();
+  say(t("tMoved",{name:nm(P[focusId]),n:pl.items.findIndex(i=>i.id===focusId)+1,m:pl.items.length}));
+  return true;
+}
+function moveStop(id,dir){
+  const ids=plan().items.filter(i=>!i.done).map(i=>i.id), i=ids.indexOf(id), j=i+dir;
+  if(i<0) return;
+  if(j<0||j>=ids.length){ say(t("moveEdge",{name:nm(P[id])})); return; }
+  [ids[i],ids[j]]=[ids[j],ids[i]]; commitOrder(ids,id);
+}
+let rd=null;
+function renumber(ol){
+  [...ol.children].forEach((li,i)=>{ const d=li.querySelector(".dot:not(.done)"); if(d) d.textContent=i+1; const w=li.querySelector(".walkin"); if(w) w.hidden=(i===0); });
+}
+function rdPlace(y){ const base=rd.ol.getBoundingClientRect().top+rd.li.offsetTop; rd.li.style.transform=`translateY(${y-rd.grabY-base}px)`; }
+function rdReorder(y){
+  const {li,ol}=rd, centre=y-rd.grabY+li.offsetHeight/2, others=[...ol.children].filter(x=>x!==li);
+  let idx=0; others.forEach(x=>{ const r=x.getBoundingClientRect(); if(centre>r.top+r.height/2) idx++; });
+  idx=Math.max(idx,rd.locked);                                            /* visited stops stay on top */
+  if(idx===[...ol.children].indexOf(li)) return;
+  const before=new Map(others.map(x=>[x,x.getBoundingClientRect().top]));
+  ol.insertBefore(li,others[idx]||null); renumber(ol);
+  if(!reducedMotion()) others.forEach(x=>{                                /* neighbours glide into place (transform only) */
+    const d=before.get(x)-x.getBoundingClientRect().top;
+    if(d){ x.style.transition="none"; x.style.transform=`translateY(${d}px)`; x.getBoundingClientRect(); x.style.transition="transform 180ms var(--ease)"; x.style.transform=""; }
+  });
+}
+function rdFollow(){
+  if(!rd||!rd.active) return;
+  const sc=$("#dayview"), r=sc.getBoundingClientRect();
+  if(rd.y<r.top+48) sc.scrollTop-=10; else if(rd.y>r.bottom-48) sc.scrollTop+=10;   /* scroll while dragging near an edge */
+  rdPlace(rd.y); rdReorder(rd.y); rdPlace(rd.y);
+  rd.raf=requestAnimationFrame(rdFollow);
+}
+function rdEnd(commit){
+  if(!rd) return;
+  const d=rd; rd=null; cancelAnimationFrame(d.raf);
+  try{ d.grip.releasePointerCapture(d.pointer); }catch(e){}
+  if(!d.active) return;
+  const order=[...d.ol.children].map(x=>x.dataset.pid);
+  [...d.ol.children].forEach(x=>{ x.style.transform=""; x.style.transition=""; });
+  d.li.classList.remove("lifting"); d.ol.classList.remove("reordering");
+  if(!(commit && order.join()!==d.order0 && commitOrder(order,d.pid))) render({focus:`[data-fk="grip-${d.pid}"]`});
+}
+document.addEventListener("pointerdown",e=>{
+  const grip=e.target.closest&&e.target.closest(".grip"); if(!grip||e.button>0) return;
+  const li=grip.closest(".stop"), ol=li.parentElement;
+  rd={li,ol,grip,pid:li.dataset.pid,pointer:e.pointerId,y:e.clientY,y0:e.clientY,grabY:e.clientY-li.getBoundingClientRect().top,
+      locked:[...ol.children].filter(x=>x.classList.contains("done")).length,active:false,raf:0,order0:[...ol.children].map(x=>x.dataset.pid).join()};
+  grip.setPointerCapture(e.pointerId);
+});
+document.addEventListener("pointermove",e=>{
+  if(!rd||e.pointerId!==rd.pointer) return;
+  rd.y=e.clientY;
+  if(!rd.active){
+    if(Math.abs(e.clientY-rd.y0)<4) return;
+    rd.active=true; rd.li.classList.add("lifting"); rd.ol.classList.add("reordering"); rd.raf=requestAnimationFrame(rdFollow);
+  }
+  rdPlace(rd.y); rdReorder(rd.y); rdPlace(rd.y);
+});
+document.addEventListener("pointerup",e=>{ if(rd&&e.pointerId===rd.pointer) rdEnd(true); });
+document.addEventListener("pointercancel",e=>{ if(rd&&e.pointerId===rd.pointer) rdEnd(false); });
+document.addEventListener("keydown",e=>{
+  if(rd&&rd.active&&e.key==="Escape"){ e.preventDefault(); rdEnd(false); return; }
+  const g=e.target.closest&&e.target.closest(".grip");
+  if(g&&(e.key==="ArrowUp"||e.key==="ArrowDown")){ e.preventDefault(); moveStop(g.dataset.id,e.key==="ArrowUp"?-1:1); }
+});
+
+/* ---------- chat: messages are data, text is rendered from keys so the language switch re-translates the whole conversation ---------- */
+let mid=0;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const pushMsg=m=>{ m.id=++mid; state.msgs.push(m); return m; };
+const msgVars=m=>typeof m.v==="function" ? m.v() : (m.v||{});
+const liveResults=()=>[...state.msgs].reverse().find(m=>m.kind==="results")||null;
+const snapshotResults=()=>visibleResults().map(r=>({id:r.id, m:matchPct(r), weak:isWeak(r)}));
+function filterSummary(){
+  const f=state.filters, a=[];
+  if(f.price<3) a.push(priceTxt3(f.price));
+  if(f.dist<DIST_MAX) a.push(distTxt(f.dist));
+  if(f.open) a.push(t("fOpen"));
+  return a.join(" · ");
+}
+const isPhone=()=>matchMedia("(max-width: 899px)").matches;
+const mapState=()=>isPhone() ? state.map : "strip";
+
+/* intents: plain regexes over the lower-cased text, Thai and English */
+const RX={
+  undo:/\bundo\b|ย้อนกลับ/, reset:/\breset\b|clear (the )?filters?|รีเซ็ต|ล้างตัวกรอง/,
+  help:/what can you|\bhelp\b|ทำอะไรได้|ใช้ยังไง/, hello:/^(hi|hello|hey|สวัสดี|หวัดดี)[\s!.]*$/,
+  sample:/sample|ตัวอย่าง/, share:/\bshare\b|แชร์/,
+  late:/\blate\b(?! night)|running behind|\bdelay|ไปช้า|มาช้า|ช้ากว่า|ช้า\s*\d|สาย\s*\d/,
+  done:/\bdone\b|finished|เสร็จแล้ว|ไปแล้ว/, skip:/\bskip\b|ข้าม/,
+  plan:/\bplan\b|itinerary|whole day|full day|จัดวัน|ทั้งวัน|จัดทริป/,
+  next:/\bnext\b|ไปไหนต่อ|ต่อไป|where (should|do) i go|ไปไหนดี/,
+  filters:/\bfilters?\b|ตัวกรอง|กรอง/,
+  cheaper:/cheaper|ถูกกว่า/, cheap:/cheap|budget|ถูก|ประหยัด/, free:/\bfree\b|ฟรี/,
+  closer:/closer|nearer|nearby|\bnear\b|ใกล้/, open:/open (right )?now|open today|เปิดอยู่|เปิดตอนนี้/
+};
+const clampDelay=n=>Math.max(15,Math.min(240,Math.round(n/15)*15));
+function parseDelay(s){
+  let m=s.match(/(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h\b|ชม|ชั่วโมง)/);
+  if(m) return clampDelay(+m[1]*60);
+  m=s.match(/(\d+)\s*(?:minutes?|mins?|m\b|นาที)/);
+  if(m) return clampDelay(+m[1]);
+  if(/an hour|หนึ่งชั่วโมง/.test(s)) return 60;
+  return 30;
+}
+function applyMods(s){
+  const f=state.filters; let changed=false;
+  if(RX.cheaper.test(s)){ f.price=f.price>=3?1:Math.max(0,f.price-1); changed=true; }
+  else if(RX.free.test(s)){ f.price=0; changed=true; }
+  else if(RX.cheap.test(s)){ f.price=Math.min(f.price,1); changed=true; }
+  if(RX.closer.test(s)){ f.dist=f.dist>=DIST_MAX?10:Math.max(3,f.dist-3); changed=true; }
+  if(RX.open.test(s)){ f.open=true; changed=true; }
+  if(changed) state.msgs.filter(m=>m.kind==="filters").forEach(m=>m.dirty=true);
+  return changed;
+}
+
+/* the bot "types" for a moment, then each message lands in order */
+let chain=Promise.resolve();
+function reply(...ms){
+  chain=chain.then(async()=>{
+    for(const m of ms){
+      state.typing=true; render(); await sleep(reducedMotion()?120:520);
+      state.typing=false; pushMsg({role:"bot",fresh:true,...m}); render();
+      if(m.k) say(t(m.k,msgVars(m)));
+    }
+  }).catch(e=>{ state.typing=false; console.error(e); });
+  return chain;
+}
+
+function runSearch(q){
+  state.parsed=parseQuery(q);
+  const r=rank(q,state.parsed);
+  state.results=r.list; state.mode=r.mode; state.searched=true;
+  if(state.mode==="none" && state.parsed.cafe) state.mode="match";   /* "cafe" alone is a real request */
+}
+function doSearch(q,lead){
+  state.query=q; runSearch(q);
+  const items=snapshotResults(), msg={kind:"results",items,tags:[...baseTags()],shown:3,filt:filterSummary(),mode:state.mode,q};
+  if(!items.length){ msg.k="rNoPass"; msg.chips=["reset"]; }
+  else if(state.mode==="none"){ msg.k="rNone"; msg.v={q}; msg.chips=["cafe","street","art","old"]; }
+  else if(state.mode==="empty"){ msg.k=lead||"rFoundAll"; msg.v=function(){ return {n:this.items.length}; }; }
+  else { msg.k="rFound"; msg.v=function(){ return {n:this.items.length,q:this.q}; }; }
+  reply(msg);
+}
+function refreshLive(){
+  const m=liveResults();
+  if(m){ m.items=snapshotResults(); m.filt=filterSummary(); }
+  render();
+}
+function showFilters(){ state.msgs=state.msgs.filter(m=>m.kind!=="filters"); reply({kind:"filters",k:"rFilters"}); }
+function resetFilters(){
+  state.filters={price:3,dist:DIST_MAX,open:false};
+  state.msgs.filter(m=>m.kind==="filters").forEach(m=>m.dirty=true);
+  refreshLive(); reply({k:"rReset"});
+}
+
+/* a whole day from the current ranking: different types first, each stop must really fit */
+function planIntent(){
+  const dayV=()=>{ const p=plan(); return {n:p.items.length,t:fmt(p.finish)}; };
+  if(state.tray.length){ reply({kind:"plan",k:"rDay",v:dayV}); return; }
+  if(!state.results.length){ const r=rank("",{tags:[],cafe:false}); state.results=r.list; state.mode="empty"; }
+  const picked=[], types=new Set();
+  for(const pass of [0,1]){
+    for(const r of visibleResults()){
+      if(picked.length>=4) break;
+      const p=P[r.id];
+      if(picked.includes(p.id)||p.status!=="ok"||(pass===0&&types.has(p.type))) continue;
+      const next=[...picked,p.id], pl=plan(next);
+      if(next.every(id=>fitsIn(pl,id))){ picked.push(p.id); types.add(p.type); }
+    }
+  }
+  if(!picked.length){ reply({k:"rPlanFail",chips:["reset"]}); return; }
+  state.tray=picked; state.skipped=[]; state.visits=[]; state.pins={}; state.manual=false; state.delay=0; state.prev=null; state.rejected=[]; state.suggest=false;
+  reply({kind:"plan",k:"rPlan",v:dayV});
+}
+function suggestReply(){
+  const c=nextCandidates()[0], pl=plan();
+  const ref=[...pl.items].reverse().find(i=>i.done)||pl.items[pl.items.length-1];
+  if(!c){
+    reply(state.tray.length>=MAX_STOPS ? {k:"full"} : {k:"sugNone",v:()=>({t:fmt(state.endMin),name:ref?nm(P[ref.id]):""})});
+    return;
+  }
+  reply({kind:"suggest",k:"rNext",cid:c.p.id,w:c.w,left:c.left,refType:ref?P[ref.id].type:null,
+    v:()=>({name:nm(c.p),w:t(state.routeDown?"walkApprox":"sugWalk",{n:c.w}),left:durText(Math.max(0,c.left))})});
+}
+function lateIntent(s){
+  if(!state.tray.length){ reply({k:"rLateNeed"}); return; }
+  const n=parseDelay(s), oldPl=plan();
+  pushUndo(); state.delay=n;
+  const newPl=plan();
+  render();
+  reply({kind:"lines",k:"rLate",v:()=>({d:n%60===0?t("hrs",{n:n/60}):t("dur",{n})}),linesFn:()=>diffLines(oldPl,newPl),undo:true});
+}
+function doneIntent(){
+  const cur=plan().items.find(i=>!i.done);
+  if(!cur){ reply({k:"rDoneNone"}); return; }
+  markDone(cur.id);
+  reply({k:"rDone",v:()=>({name:nm(P[cur.id])})}); suggestReply();
+}
+function skipIntent(){
+  const cur=plan().items.find(i=>!i.done);
+  if(!cur){ reply({k:"rSkipNone"}); return; }
+  skipStop(cur.id);
+  reply({k:"rSkip",v:()=>({name:nm(P[cur.id])})}); suggestReply();
+}
+function loadSample(){
+  state.query=EXAMPLES[0][state.lang]; runSearch(state.query);
+  state.filters={price:3,dist:DIST_MAX,open:false};
+  /* stops that are open every day, so the sample works on any weekday */
+  state.tray=["soheng","eiahsae","gulongbao","yoofish"]; state.skipped=[]; state.visits=[]; state.rejected=[];
+  state.delay=0; state.startMin=600; state.endMin=1080; state.prev=null; state.routeDown=false; state.manual=false; state.pins={}; state.suggest=false;
+  const first=plan().items[0];
+  state.visits=[{id:first.id,start:first.start,end:first.end}];
+  render();
+  reply({kind:"plan",k:"rSample"}); suggestReply();
+}
+function handleText(raw){
+  const text=String(raw).trim(); if(!text) return;
+  pushMsg({role:"user",text,fresh:true}); render();
+  const s=text.toLowerCase();
+  if(RX.undo.test(s)){ if(state.prev){ undoLast(); reply({k:"rUndo"}); } else reply({k:"rUndoNone"}); return; }
+  if(RX.reset.test(s)){ resetFilters(); return; }
+  if(RX.help.test(s)){ reply({k:"rHelp",chips:["cafe","street","plan","next","late","share"]}); return; }
+  if(RX.hello.test(s)){ reply({k:"rHello",chips:["cafe","street","open","plan"]}); return; }
+  if(RX.sample.test(s)){ loadSample(); return; }
+  if(RX.share.test(s)){
+    if(!state.tray.length) reply({k:"rShareNeed"}); else reply({k:"rShare"}).then(openShare);
+    return;
+  }
+  if(RX.late.test(s)){ lateIntent(s); return; }
+  if(RX.done.test(s)){ doneIntent(); return; }
+  if(RX.skip.test(s)){ skipIntent(); return; }
+  if(RX.plan.test(s)){ planIntent(); return; }
+  if(RX.next.test(s)){ if(state.tray.length) suggestReply(); else doSearch("","rStart"); return; }
+  if(RX.filters.test(s)){ showFilters(); return; }
+  const changed=applyMods(s), parsed=parseQuery(text);
+  if(parsed.tags.length||parsed.cafe||!changed) doSearch(text);
+  else doSearch(state.searched?state.query:"");     /* only a filter word: re-run the last search with it */
+}
+
+/* ---------- chat views ---------- */
+const chipHTML=(k,fk,cls="chip")=>`<button type="button" class="${cls}" data-act="chip" data-c="${k}" data-fk="${fk}">${esc(t("c_"+k))}</button>`;
+const chipsHTML=(keys,id)=>`<div class="chiprow">${keys.map(k=>chipHTML(k,`c-${k}-${id}`)).join("")}</div>`;
+function pcardHTML(it,idx,m){
+  const p=P[it.id], inDay=state.tray.includes(p.id);
+  const badge=it.weak ? `<span class="best alt">${t("close")}</span>` : idx===0 ? `<span class="best">${t("best")}</span>` : "";
+  const stat=p.status==="unknown" ? `<span class="st warn">${icon("alert")}${t("hoursUnknown")}</span>` : p.status==="closed" ? `<span class="st warn">${icon("alert")}${t("closedToday")}</span>` : "";
+  const shown=[...m.tags].sort((a,b)=>p.tags[b]-p.tags[a]).slice(0,2);
+  const addLbl=t(inDay?"remove":"add",{name:nm(p)});
+  return `<li class="card pcard" data-id="${p.id}" data-testid="pcard">
+    <button type="button" class="thumbbtn" data-act="locate" data-id="${p.id}" data-fk="loc-${p.id}-${m.id}" aria-label="${esc(t("showOnMap",{name:nm(p)}))}">${thumbHTML(p)}</button>
+    <div class="pc-main"><div class="name-line"><h3>${esc(nm(p))}</h3>${badge}${stat}</div>
+      <p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)}${p.status==="ok"?` · ${untilText(p)}`:""} · ${t("matchPct",{n:it.m})}</p>
+      <div class="vibes">${shown.map((tag,i)=>slatsHTML(tag,p.tags[tag],i)).join("")}</div></div>
+    <div class="pc-acts">
+      <button type="button" class="btn small ${inDay?"dark":"primary"}" data-act="add" data-id="${p.id}" data-fk="add-${p.id}-${m.id}" aria-pressed="${inDay}" aria-label="${esc(addLbl)}">${icon(inDay?"check":"plus")}${t(inDay?"inDay":"addToDay")}</button>
+      <button type="button" class="btn small ghost" data-act="detail" data-id="${p.id}" data-fk="detail-${p.id}-${m.id}" aria-label="${esc(t("detailsFor",{name:nm(p)}))}">${t("details")}</button>
+    </div></li>`;
+}
+function resultsBody(m){
+  const list=m.items.slice(0,m.shown), few=m.mode==="match" && m.items.length && m.items.filter(i=>!i.weak).length<3;
+  const left=m.items.length-m.shown;
+  return `${m.filt?`<p class="fnote">${esc(t("rFilterNow",{s:m.filt}))}</p>`:""}${few?`<p class="fnote">${esc(t("rFew"))}</p>`:""}
+    ${list.length?`<ul class="cards" data-testid="results">${list.map((it,i)=>pcardHTML(it,i,m)).join("")}</ul>`:""}
+    ${left>0?`<button type="button" class="btn small ghost" data-act="more" data-mid="${m.id}" data-fk="more-${m.id}">${t("showMore",{n:Math.min(3,left)})}</button>`:""}`;
+}
+function planBody(m){
+  if(!state.tray.length) return "";
+  const pl=plan();
+  return `<div class="card miniday" data-testid="miniday"><ol>${pl.items.map(i=>`<li><span class="time">${fmt(i.start)}</span><span>${esc(nm(P[i.id]))}</span></li>`).join("")}</ol>
+    ${pl.dropped.length?`<p class="note warn">${icon("alert")}<span>${t("notfit")}: ${pl.dropped.map(d=>esc(nm(P[d.id]))).join(", ")}</span></p>`:""}
+    <button type="button" class="btn small primary" data-act="openDay" data-fk="openDay-${m.id}">${icon("route")}${t("openDay")}</button></div>`;
+}
+function suggestBody(m){
+  const p=P[m.cid], inDay=state.tray.includes(p.id);
+  const acts = m.resolved ? `<span class="resolved">${icon(m.resolved==="added"?"check":"x")}${t(m.resolved==="added"?"resAdded":"resSkipped")}</span>`
+    : inDay ? `<span class="resolved">${icon("check")}${t("inDay")}</span>`
+    : `<div class="sug-acts"><button type="button" class="btn small primary" data-act="sugAdd" data-id="${p.id}" data-mid="${m.id}" data-fk="sugadd-${m.id}">${icon("plus")}${t("sugAdd")}</button>
+       <button type="button" class="btn small ghost" data-act="sugReject" data-id="${p.id}" data-mid="${m.id}" data-fk="sugrej-${m.id}">${t("sugReject")}</button></div>`;
+  return `<div class="card sugcard" data-testid="suggest"><div><h3>${esc(nm(p))}</h3><p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${untilText(p)}</p></div>
+    <p class="rank">${t("sugRank",{type:m.refType?TYPENAME[state.lang][m.refType]:"—"})}</p>${acts}</div>`;
+}
+function msgInner(m){
+  if(m.role==="user") return `<div class="stack"><div class="bubble"><span class="sr">${t("you")}: </span>${esc(m.text)}</div></div>`;
+  let h=`<span class="avatar" aria-hidden="true">${icon("brand")}</span><div class="stack">`;
+  if(m.k) h+=`<div class="bubble"><span class="sr">Day-Off: </span><p>${esc(t(m.k,msgVars(m)))}</p>${m.kind==="greet"?`<p class="fnote">${esc(t("demoNote"))}</p>`:""}</div>`;
+  if(m.kind==="greet") h+=chipsHTML(["cafe","street","open","plan"],m.id)+`<button type="button" class="linkbtn" data-act="chip" data-c="sample" data-fk="c-sample-${m.id}">${icon("route")}${t("c_sample")}</button>`;
+  else if(m.kind==="results") h+=resultsBody(m);
+  else if(m.kind==="plan") h+=planBody(m);
+  else if(m.kind==="suggest") h+=suggestBody(m);
+  else if(m.kind==="filters") h+=filtersHTML();
+  else if(m.kind==="lines"){
+    const lines=m.linesFn();
+    h+=`<ul class="diff">${lines.length?lines.map(l=>`<li class="${l.cls}">${icon(l.cls?"alert":"clock")}<span>${esc(l.txt)}</span></li>`).join(""):`<li>${icon("check")}<span>${t("rLateNone")}</span></li>`}</ul>`;
+    if(m.undo&&state.prev) h+=`<button type="button" class="btn small ghost" data-act="undoChange" data-fk="undo-${m.id}">${icon("undo")}${t("undoChange")}</button>`;
+  }
+  if(m.chips) h+=chipsHTML(m.chips,m.id);
+  return h+`</div>`;
+}
+function renderChat(){
+  const log=$("#log"), atBottom=log.scrollHeight-log.scrollTop-log.clientHeight<80;
+  const keep=new Set(state.msgs.map(m=>String(m.id)));
+  log.querySelectorAll(":scope > .msg[data-mid]").forEach(el=>{ if(!keep.has(el.dataset.mid)) el.remove(); });
+  document.getElementById("typing")?.remove();
+  let created=null;
+  state.msgs.forEach(m=>{
+    let el=log.querySelector(`:scope > .msg[data-mid="${m.id}"]`);
+    if(!el){ el=document.createElement("div"); el.dataset.mid=m.id; el.className=`msg ${m.role}${m.fresh?" fresh":""}`; log.appendChild(el); if(m.fresh) created=el; }
+    if(m.kind==="filters" && el.__html && !m.dirty) return;      /* a slider being dragged must never be rebuilt */
+    const html=msgInner(m);
+    if(el.__html!==html||m.dirty){ el.innerHTML=html; el.__html=html; }   /* dirty: the DOM was changed by hand (slider drag), so rewrite even if the markup matches */
+    m.dirty=false;
+  });
+  if(state.typing) log.insertAdjacentHTML("beforeend",`<div class="msg bot typing" id="typing" role="status"><span class="avatar" aria-hidden="true">${icon("brand")}</span><div class="bubble"><span class="sr">${t("typing")}</span><i></i><i></i><i></i></div></div>`);
+  if(created) log.scrollTo({top:Math.min(log.scrollHeight-log.clientHeight, Math.max(0,created.offsetTop-8)), behavior:reducedMotion()?"auto":"smooth"});
+  else if(state.typing && atBottom) log.scrollTop=log.scrollHeight;
+}
+function quickKeys(){
+  if(!state.msgs.some(m=>m.role==="user")) return [];      /* the greeting carries the starters */
+  const dflt=state.filters.price<3||state.filters.dist<DIST_MAX||state.filters.open, k=[];
+  if(state.tray.length){ k.push("next","late","share"); if(state.searched) k.push("cheaper","closer"); }
+  else if(state.searched){ k.push("cheaper","closer","openNow","filters","planDay"); }
+  else k.push("cafe","street","open","plan","sample");
+  if(dflt) k.push("reset");
+  k.push("help");
+  return [...new Set(k)].slice(0,7);
+}
+function renderQuick(){
+  const el=$("#quick"), keys=quickKeys(), html=keys.map(k=>chipHTML(k,"q-"+k)).join("");
+  el.hidden=!keys.length; el.setAttribute("aria-label",t("quick"));
+  if(el.__html!==html){ el.innerHTML=html; el.__html=html; }
+}
+function renderEmbedBar(){
+  const el=$("#embedbar"); el.hidden=!EMBED; if(!EMBED) return;
+  const html=`<button type="button" class="btn ghost" data-act="pickSelf" data-fk="pickSelf" data-testid="pick-self">${icon("search")}${t("embedPick")}</button><button type="button" class="btn primary" data-act="usePlan" data-fk="usePlan" data-testid="use-plan" ${state.tray.length?"":"disabled"}>${icon("check")}${t("embedUse")}</button>`;
+  if(el.__html!==html){ el.innerHTML=html; el.__html=html; }
+  $("#embedClose").setAttribute("aria-label",t("embedClose")); $("#embedClose").title=t("embedClose");
+}
+const toHome=type=>parent.postMessage({dayoff:type,tray:state.tray,startMin:state.startMin,endMin:state.endMin,delay:state.delay,query:state.query},location.origin);
+function renderDayBar(){
+  const el=$("#daybar");
+  if(!state.tray.length){ el.hidden=true; el.innerHTML=""; el.__html=""; return; }
+  const pl=plan(), sub=t("trayN",{n:state.tray.length})+(pl.items.length?" · "+t("ends",{t:fmt(pl.finish)}):"");
+  const html=`<button type="button" class="daybtn" data-act="openDay" data-fk="daybar" data-testid="daybar" aria-label="${esc(t("openDay")+". "+sub)}"><span class="db-ico">${icon("route")}</span><span class="db-txt"><strong>${t("dayTitle")}</strong><span>${esc(sub)}</span></span><span class="db-go">${icon("chev")}</span></button>`;
+  el.hidden=false; if(el.__html!==html){ el.innerHTML=html; el.__html=html; }
+}
+function renderDayPanel(){
+  const p=$("#daypanel"), main=$("#chatmain");
+  p.hidden=!state.dayOpen; main.inert=state.dayOpen;
+  $("#dpBack").innerHTML=`${icon("back")}${t("backToChat")}`;
+  p.setAttribute("aria-label",t("dayTitle"));
+  if(!state.dayOpen){ $("#daydock").hidden=true; return; }
+  $("#dayview").innerHTML=viewDay();
+  const d=$("#daydock");
+  if(state.tray.length){
+    const pl=plan(); d.hidden=false;
+    d.innerHTML=`<div class="dock-in"><div class="dock-txt"><strong>${pl.items.length?t("ends",{t:fmt(pl.finish)}):t("dayTitle")}</strong></div>
+      <button type="button" class="btn primary" data-act="late" data-fk="late">${icon("clock")}${t("late")}</button></div>`;
+  } else { d.hidden=true; d.innerHTML=""; }
+}
+function renderMapBar(){
+  const ms=mapState(), app=$("#app"); app.dataset.map=state.map;
+  const b=$("#mapbar");
+  b.innerHTML = ms==="full" ? `<button type="button" class="btn small dark" data-act="mapStrip" data-fk="mb-back">${icon("chat")}${t("mapBack")}</button>`
+    : ms==="off" ? `<button type="button" class="btn small ghost" data-act="mapStrip" data-fk="mb-show">${icon("map")}${t("mapShow")}</button>`
+    : `<button type="button" class="btn small ghost iconbtn" data-act="mapFull" data-fk="mb-full" aria-label="${esc(t("mapExpand"))}" title="${esc(t("mapExpand"))}">${icon("expand")}</button><button type="button" class="btn small ghost iconbtn" data-act="mapOff" data-fk="mb-off" aria-label="${esc(t("mapHide"))}" title="${esc(t("mapHide"))}">${icon("minimize")}</button>`;
+  $("#chatcol").inert = ms==="full";
+}
+function syncStack(){
+  const el=state.dayOpen&&!$("#daydock").hidden ? $("#daydock") : $("#bottom");
+  document.documentElement.style.setProperty("--stack",(el.offsetHeight||84)+"px");
+}
+function openDay(){
+  if(!state.tray.length) return;
+  state.dayOpen=true; if(state.map==="full") state.map="strip";
+  render({focus:"#vh"});
+}
+function closeDay(){ state.dayOpen=false; render({focus:"[data-fk='daybar']"}); }
+function locate(id){
+  const p=P[id]; if(!LMAP) return;
+  if(isPhone()&&state.map!=="strip"){ state.map="strip"; render(); }
+  LMAP.invalidateSize(); LMAP.setView([p.lat,p.lng],17,{animate:!reducedMotion()});
+  LMARKERS[id]?.openTooltip();
+}
+
+/* ---------- render ---------- */
+function render(opts={}){
+  const fk=document.activeElement?.dataset?.fk;
+  document.documentElement.lang=state.lang;
+  document.querySelectorAll(".hctl > .seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===state.lang)));
+  $("#liveClock").textContent=clockText();
+  const ta=$("#msg");
+  ta.placeholder=t("composerPh"); ta.setAttribute("aria-label",t("composerLbl"));
+  { const l=t("toClassic"), a=$("#toClassic"), q=new URLSearchParams({lang:state.lang}); if(params.get("at")) q.set("at",params.get("at"));
+    a.href="day-off-demo.html?"+q; a.setAttribute("aria-label",l); a.title=l;
+    const h=$("#toHub"), hl=state.lang==="th"?"เปรียบเทียบทุกเวอร์ชัน":"Compare all versions"; h.href="versions.html?"+q; h.setAttribute("aria-label",hl); h.title=hl; }
+  renderMic();
+  $("#send").setAttribute("aria-label",t("send")); $("#log").setAttribute("aria-label",t("logLabel"));
+  renderTheme(); renderChat(); renderQuick(); renderEmbedBar(); renderDayBar(); renderDayPanel(); renderMapBar(); renderMap(); syncStack();
+  let el=opts.focus ? document.querySelector(opts.focus) : null;
+  if(el){ if(!el.matches("button,input,select,textarea,a[href]")) el.setAttribute("tabindex","-1"); el.focus({preventScroll:false}); }
+  else if(fk){ document.querySelector(`[data-fk="${fk}"]`)?.focus({preventScroll:true}); }
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const a=b.dataset.act, id=b.dataset.id, msgOf=()=>state.msgs.find(m=>String(m.id)===b.dataset.mid);
+  if(a==="lang"){ state.lang=b.dataset.lang; state.msgs.filter(m=>m.kind==="filters").forEach(m=>m.dirty=true); clearToast(); render(); }
+  else if(a==="theme"||a==="theme-cycle"){
+    const next = a==="theme" ? b.dataset.theme : THEME_ORDER[(THEME_ORDER.indexOf(state.theme)+1)%THEME_ORDER.length];
+    applyTheme(next,true); render(); say(t("tTheme",{cur:themeLabel(next)}));
+  }
+  else if(a==="chip"){ handleText(t("c_"+b.dataset.c)); }
+  else if(a==="more"){ const m=msgOf(); if(m){ m.shown+=3; render(); } }
+  else if(a==="locate"){ locate(id); }
+  else if(a==="add"){ addToggle(id); }
+  else if(a==="detail"){ openDetail(id); }
+  else if(a==="sheetAdd"){ const ok=addToggle(id); $("#sheet").close(); if(ok) toast(t(state.tray.includes(id)?"tAdded":"tRemoved",{name:nm(P[id])})); }
+  else if(a==="usePlan"){ toHome("plan"); }
+  else if(a==="pickSelf"){ toHome("pick"); }
+  else if(a==="embedClose"){ toHome("close"); }
+  else if(a==="openDay"){ openDay(); }
+  else if(a==="closeDay"){ closeDay(); }
+  else if(a==="mapFull"){ state.map="full"; render({focus:"[data-fk='mb-back']"}); }
+  else if(a==="mapOff"){ state.map="off"; render({focus:"[data-fk='mb-show']"}); }
+  else if(a==="mapStrip"){ state.map="strip"; render({focus:"[data-fk='mb-full']"}); }
+  else if(a==="filterOpen"){ state.filters.open=!state.filters.open; state.msgs.filter(m=>m.kind==="filters").forEach(m=>m.dirty=true); refreshLive(); }
+  else if(a==="clearF"){ resetFilters(); }
+  else if(a==="sample"){ loadSample(); }
+  else if(a==="rm"){ removeStop(id); }
+  else if(a==="swap"){ swapStop(id); }
+  else if(a==="done"){ markDone(id); }
+  else if(a==="skip"){ skipStop(id); }
+  else if(a==="pin"){ togglePin(id); }
+  else if(a==="suggest"){ state.suggest=true; render({focus:"[data-fk='sug-add'],[data-fk='sug-hide']"}); }
+  else if(a==="sugAdd"){
+    const m=msgOf(); acceptSuggestion(id);
+    if(m){ m.resolved="added"; render(); reply({k:"rAdded",v:()=>({name:nm(P[id]),n:state.tray.indexOf(id)+1})}); }
+  }
+  else if(a==="sugReject"){
+    const m=msgOf();
+    if(m){ state.rejected.push(id); m.resolved="skipped"; render(); suggestReply(); }
+    else { const c=nextCandidates()[0]; if(c) state.rejected.push(c.p.id); render(); }
+  }
+  else if(a==="sugHide"){ state.suggest=false; render({focus:"[data-fk='suggest']"}); }
+  else if(a==="routing"){ state.routeDown=!state.routeDown; render(); toast(t(state.routeDown?"tRouteDown":"tRouteUp")); }
+  else if(a==="late"){ openSheet(); }
+  else if(a==="dur"){ setDur(id,durOf(P[id])+ +b.dataset.d); }
+  else if(a==="autoOrder"){ pushUndo(); state.manual=false; render({focus:"#vh"}); toast(t("tAuto"),true); }
+  else if(a==="apply"){ applyDelay(); }
+  else if(a==="share"){ openShare(); }
+  else if(a==="copy"){
+    try{ navigator.clipboard?.writeText($("#shareLink").textContent).catch(()=>{}); }catch(err){}
+    b.innerHTML=`${icon("check")}${t("tCopied")}`; say(t("tCopied"));
+    setTimeout(()=>{ if(b.isConnected) b.innerHTML=`${icon("copy")}${t("copy")}`; },2000);
+  }
+  else if(a==="regroup"){ applyGroup(); }
+  else if(a==="cancel"){ $("#sheet").close(); }
+  else if(a==="undo"||a==="undoChange"){ undoLast(); }
+});
+/* composer */
+const msgBox=$("#msg");
+function fitBox(){ msgBox.style.height="auto"; msgBox.style.height=Math.min(msgBox.scrollHeight+2,120)+"px"; $("#send").disabled=!msgBox.value.trim(); }
+$("#composer").addEventListener("submit",e=>{ e.preventDefault(); const v=msgBox.value; if(!v.trim()) return; msgBox.value=""; fitBox(); handleText(v); });
+msgBox.addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); $("#composer").requestSubmit(); } });
+msgBox.addEventListener("input",fitBox);
+/* voice input: browser speech recognition (Thai or English to match the page language); the recognised text is sent like typed text */
+/* ?voice=demo swaps the browser's speech service for a pretend one that "hears" a sample phrase, so the voice flow can be tried without Google's service */
+const DEMO_SAY={en:["quiet cafe, old walls","street food at night","art alleys and murals"],th:["คาเฟ่เงียบ ๆ ตึกเก่า","ของกินริมทางยามค่ำ","ซอยอาร์ต ภาพมูรัล"]};
+class DemoRec{
+  start(){ toast(t("tMicDemo")); setTimeout(()=>{ const a=DEMO_SAY[state.lang]; const txt=a[Math.floor(Math.random()*a.length)]; this.onresult&&this.onresult({results:[Object.assign([{transcript:txt}],{isFinal:true})]}); this.onend&&this.onend(); },1100); }
+  stop(){}
+}
+const SR=params.get("voice")==="demo"?DemoRec:(window.SpeechRecognition||window.webkitSpeechRecognition);
+let rec=null, listening=false;
+function renderMic(){
+  const b=$("#mic"), vl=$("#vlang"); if(!SR){ b.hidden=true; vl.hidden=true; return; }
+  vl.hidden=false; vl.textContent=voiceShort(); { const l=t("voiceLang",{v:voiceDesc()}); vl.setAttribute("aria-label",l); vl.title=l; }
+  b.hidden=false; b.setAttribute("aria-pressed",String(listening));
+  const l=t(listening?"micOff":"micOn"); b.setAttribute("aria-label",l); b.title=l;
+  if(listening) msgBox.placeholder=t("listening");
+}
+function stopListening(){ try{ rec&&rec.stop(); }catch(e){} }
+/* Voice hears both languages, whatever the page language is: the page language goes first, and when the result is empty or unsure the other language is tried once (the browser can only listen in one language at a time) */
+const VOICE_PREFS=["auto","th","en"];
+let voicePref="auto"; try{ const v=localStorage.getItem("dayoff-voice"); if(VOICE_PREFS.includes(v)) voicePref=v; }catch(e){}
+const voiceShort=()=>voicePref==="auto"?"Auto":voicePref==="th"?"ไทย":"EN";
+const voiceDesc=()=>t(voicePref==="auto"?"voiceAuto":voicePref==="th"?"voiceTh":"voiceEn");
+function cycleVoicePref(){
+  voicePref=VOICE_PREFS[(VOICE_PREFS.indexOf(voicePref)+1)%VOICE_PREFS.length];
+  try{ localStorage.setItem("dayoff-voice",voicePref); }catch(e){}
+  const b=$("#vlang"); if(b){ b.textContent=voiceShort(); const l=t("voiceLang",{v:voiceDesc()}); b.setAttribute("aria-label",l); b.title=l; }
+  toast(t("voiceLang",{v:voiceDesc()}));
+}
+const VOICE_CONF=0.9;
+const voiceLangs=()=>voicePref==="th"?["th-TH"]:voicePref==="en"?["en-US"]:state.lang==="th"?["th-TH","en-US"]:["en-US","th-TH"];
+const voiceName=code=>code==="th-TH"?(state.lang==="th"?"ภาษาไทย":"Thai"):(state.lang==="th"?"ภาษาอังกฤษ":"English");
+function startListening(){
+  if(!SR||listening) return;
+  let best=null;
+  const attempt=i=>{
+    const code=voiceLangs()[i], last=i===voiceLangs().length-1;
+    rec=new SR(); rec.lang=code; rec.interimResults=true; rec.continuous=false; rec.maxAlternatives=1;
+    let finalText="", interim="", conf=1, failed=false;
+    rec.onresult=e=>{
+      let txt="", c=[];
+      for(let k=0;k<e.results.length;k++){ txt+=e.results[k][0].transcript; if(e.results[k].isFinal){ finalText=txt; const v=e.results[k][0].confidence; if(typeof v==="number"&&v>0) c.push(v); } }
+      interim=txt; if(c.length) conf=Math.min(...c);
+      msgBox.value=txt; fitBox();
+    };
+    rec.onerror=e=>{
+      if(e.error==="no-speech"||e.error==="aborted") return;       /* handled in onend: try the other language, or say nothing was heard */
+      failed=true;
+      if(e.error==="not-allowed"||e.error==="service-not-allowed") toast(t("tMicBlocked")); else if(e.error==="network") toast(t(navigator.brave?"tMicBrave":"tMicNet"));
+    };
+    rec.onend=()=>{
+      rec=null; const v=(finalText||interim).trim();
+      if(failed){ listening=false; fitBox(); render(); return; }
+      if(v&&(!best||conf>best.conf)) best={txt:v,conf};
+      if(!last&&(!v||conf<VOICE_CONF)){
+        toast(t("tMicRetry",{lang:voiceName(voiceLangs()[i+1])}));
+        setTimeout(()=>{ try{ attempt(i+1); }catch(err){ listening=false; fitBox(); render(); } },900);
+        return;
+      }
+      listening=false;
+      if(best){ msgBox.value=""; fitBox(); handleText(best.txt); render(); } else { toast(t("tMicNone")); fitBox(); render(); }
+    };
+    try{ rec.start(); listening=true; msgBox.value=""; fitBox(); renderMic(); }catch(err){ listening=false; rec=null; fitBox(); render(); }
+  };
+  attempt(0);
+}
+$("#vlang").addEventListener("click",cycleVoicePref);
+$("#mic").addEventListener("click",()=>{ listening?stopListening():startListening(); });
+document.addEventListener("input",e=>{
+  if(e.target.id==="fPrice"||e.target.id==="fDist"){
+    const el=e.target, v=+el.value, min=+el.min, max=+el.max;
+    el.style.setProperty("--p",((v-min)/(max-min)*100)+"%");
+    if(el.id==="fPrice"){ state.filters.price=v; $("#fPrice-o").textContent=priceTxt3(v); }
+    else { state.filters.dist=v; $("#fDist-o").textContent=distTxt(v); }
+    refreshLive();                                      /* live: the latest list re-ranks while you drag */
+  }
+  else if(e.target.id==="stayR"){
+    const el=e.target; el.style.setProperty("--p",((+el.value-15)/(180-15)*100)+"%"); $("#stayR-o").textContent=t("dur",{n:+el.value});
+  }
+});
+document.addEventListener("change",e=>{
+  if(e.target.id==="startSel"){ pushUndo(); state.startMin=+e.target.value; render(); toast(t("tStart"),true); }
+  else if(e.target.id==="endSel"){ pushUndo(); state.endMin=+e.target.value; render(); toast(t("tEnd"),true); }
+  else if(e.target.id==="stayR"){ setDur($("#sheet").dataset.pid,+e.target.value); }
+});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape"||e.defaultPrevented||$("#sheet").open) return;
+  if(mapState()==="full"){ state.map="strip"; render({focus:"[data-fk='mb-full']"}); }
+  else if(state.dayOpen) closeDay();
+});
+$("#sheet").addEventListener("click",e=>{ if(e.target===$("#sheet")) $("#sheet").close(); });
+matchMedia("(max-width: 899px)").addEventListener("change",()=>{ lastFit=""; render(); });
+new ResizeObserver(syncStack).observe($("#bottom"));
+/* keep the live clock honest without re-rendering the page */
+setInterval(()=>{ if(!params.get("at")){ const n=bangkokNow(); if(n.dow!==state.now.dow){ state.now=n; applyHours(); render(); } else { state.now=n; } $("#liveClock").textContent=clockText(); } },30000);
+
+applyTheme(state.theme,false);
+initMap();
+pushMsg({role:"bot",kind:"greet",k:"greet"});
+render();
+loadPhotos();
+</script>
+</body>
+</html>

@@ -442,10 +442,11 @@ test.describe('switching versions and voice', () => {
     await back.click();
     await expect(page).toHaveURL(/day-off-chat\.html\?lang=en/);
   });
-  test('the site root opens the classic version first', async ({ page }) => {
+  test('the site root opens the new Home page first', async ({ page }) => {
     await page.route(/tile\.openstreetmap|basemaps\.cartocdn|api\.mapbox|ms\.longdo|wikipedia|wikimedia|routing\.openstreetmap/, r => r.fulfill({ status: 404, body: '' }));
     await page.goto('/?lang=en');
-    await expect(page.getByTestId('to-chat')).toBeVisible();
+    await expect(page).toHaveTitle(/Home/);
+    await expect(page.getByTestId('plan-day')).toBeVisible();
     await expect(page.getByTestId('chat-log')).toHaveCount(0);
   });
   test('voice button is hidden when the browser has no speech recognition', async ({ page }) => {

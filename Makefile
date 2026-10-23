@@ -4,7 +4,7 @@
 PORT ?= 4173
 
 .DEFAULT_GOAL := help
-.PHONY: help env start dev test test-install docker-build docker-up docker-down docker-logs clean
+.PHONY: help env start dev test test-install places-template docker-build docker-up docker-down docker-logs clean
 
 help:
 	@node scripts/help.mjs
@@ -16,6 +16,9 @@ start: env
 	node server.mjs
 
 dev: start
+
+places-template:
+	node scripts/export-places.mjs
 
 test-install:
 	npm install

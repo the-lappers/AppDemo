@@ -7,4 +7,6 @@ services:
     env_file:
       - path: .env
         required: false
+    volumes:
+      - ./data:/app/data:ro
     restart: unless-stopped

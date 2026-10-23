@@ -34,14 +34,18 @@ The demo works without keys, using free map tiles. To use Mapbox or Longdo maps:
 
 Never commit `.env`. It is already in `.gitignore`, and the server only serves the `public/` folder. The only values sent to the browser are those two public keys, through `/env.js`. Restrict the Mapbox token to your site URLs in the Mapbox dashboard.
 
+## Your own place data
+
+Drop a `data/places.json` next to the example file and restart. The pages use it instead of the bundled places, with no code change. See `data/README.md` for the fields (common names like `name_en`, `latitude`, `opening_hours` are accepted). With no file, the bundled OpenStreetMap places are used. In Docker, `./data` is mounted into the container.
+
 ## Pages
 
 | Page | What it is |
 | --- | --- |
-| `/day-off-home.html` | New main page: Now and My day merged, chat is the only planner, Places is a modal, bottom day bar, travel modes |
+| `/` or `/day-off-home.html` | New main page (the default): Now and My day merged, chat is the only planner, Places is a modal, bottom day bar, travel modes |
 | `/day-off-trips.html` | My trips: current, past, share and join |
 | `/versions-compare.html` | Before and after the flow redesign |
-| `/day-off-demo.html` | Classic main page (also opens at `/`) |
+| `/day-off-demo.html` | Old main page, before the redesign |
 | `/day-off-chat.html` | Chat version |
 | `/day-off-swipe.html`, `-mixer`, `-line`, `-room`, `-gonow` | Five experimental concepts |
 | `/versions.html` | Compare all eight versions |
@@ -65,6 +69,7 @@ public/            everything the browser loads (the only folder the server serv
   shared/            shared CSS, JS, icons and preview images
 server.mjs         the static server (also writes /env.js)
 tests/e2e/         Playwright tests
+data/              place data (places.json) and the format
 docs/              PRODUCT.md (decisions), VERSIONS.md, research files
 scripts/           helper scripts used by the Makefile
 Makefile  Dockerfile  docker-compose.yml  .env.example

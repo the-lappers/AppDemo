@@ -56,6 +56,7 @@ dialog textarea{min-height:84px;resize:none;word-break:break-all}
 <dialog id="sheet" aria-labelledby="sheet-title"></dialog>
 <div class="toasts" id="toasts"></div>
 <div class="sr" id="live" role="status" aria-live="polite"></div>
+<script src="places.js"></script>
 <script src="shared/core.js"></script>
 <script src="shared/sprite.js"></script>
 <script src="shared/ui.js"></script>
@@ -88,6 +89,8 @@ if(!trips){   /* two sample past trips so the page is not empty in the demo */
   wr(KT,trips);
 }
 const valid=ids=>(ids||[]).filter(id=>P[id]);
+/* with other place data the sample trips use whatever places exist; trips that point at unknown places drop those stops */
+trips=trips.map((tr,i)=>{ let tray=valid(tr.tray); if(tr.src==="sample"&&tray.length<2) tray=PLACES.slice(i?4:0,(i?4:0)+(i?3:4)).map(p=>p.id).filter(id=>P[id]); return {...tr,tray}; }).filter(tr=>tr.tray.length);
 const newId=()=>"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
 const tripName=tr=>tr.name||(tr.tray.length>1?t("trDefName",{first:nm(P[tr.tray[0]]),n:tr.tray.length-1}):nm(P[tr.tray[0]]));
 const cur=()=>{ const c=rd(KC,null); return c&&valid(c.tray).length?{...c,tray:valid(c.tray)}:null; };

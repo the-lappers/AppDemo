@@ -537,6 +537,7 @@ dialog[open]::backdrop{animation:fade 200ms ease-out}
 <div class="sr" id="live" aria-live="polite" role="status"></div>
 <dialog id="sheet" aria-labelledby="sheet-title"></dialog>
 
+<script src="places.js"></script>
 <script src="env.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -764,7 +765,7 @@ const SUGGESTS = [{by:"beam", id:"yoofish"},{by:"mint", id:"hoytod"}];
 
 /* ---------- real places: names, coordinates and opening_hours are copied from OpenStreetMap (osm = element id).
    Vibe scores (tags) are demo estimates, NOT measured; there are no review quotes, mention counts or prices for real venues. ---------- */
-const PLACES = [
+const PLACES_BUNDLED = [
   {id:"hongsieng", osm:"node/9329112618", en:"Hong Sieng Kong", th:"ฮงเซียงกง", area:"talatnoi", type:"cafe", cat:"cafe · coffee_shop", icon:"coffee", tone:"ink", lat:13.73474, lng:100.51159, h:"Tu-Su 10:00-18:00", dur:50, tags:{calm:4,oldtown:5,street:1,art:4,river:3,lively:2}},
   {id:"soheng", osm:"node/4411212890", en:"So Heng Tai Café", th:"โซวเฮงไถ่", area:"talatnoi", type:"cafe", cat:"cafe · coffee_shop", icon:"coffee", tone:"ink", lat:13.73363, lng:100.51198, h:"Mo-Su 09:00-18:00", dur:50, tags:{calm:4,oldtown:5,street:0,art:3,river:3,lively:2}},
   {id:"eiahsae", osm:"node/3096836173", en:"Eiah Sae", th:"Eiah Sae", area:"yaowarat", type:"cafe", cat:"cafe · coffee_shop", icon:"coffee", tone:"slate", lat:13.73931, lng:100.51063, h:"Mo-Su 09:00-18:00", dur:40, tags:{calm:3,oldtown:5,street:2,art:1,river:0,lively:3}},
@@ -781,10 +782,13 @@ const PLACES = [
   {id:"chowsue", osm:"node/3265832103", en:"Chow Sue Kong Shrine", th:"ศาลเจ้าโจวซือกง", area:"talatnoi", type:"shrine", cat:"place_of_worship", icon:"shrine", tone:"slate", lat:13.73442, lng:100.51171, h:null, dur:20, tags:{calm:4,oldtown:5,street:0,art:2,river:3,lively:1}},
   {id:"sampeng", osm:"relation/20440796", en:"Sampeng Lane Market", th:"ตลาดสำเพ็ง", area:"yaowarat", type:"market", cat:"marketplace", icon:"market", tone:"gold", lat:13.7412, lng:100.50605, h:null, dur:45, tags:{calm:0,oldtown:4,street:4,art:1,river:0,lively:5}}
 ];
+/* places: the friend's data (data/places.json, served as /places.js) when present, else the bundled OpenStreetMap places */
+const PLACES = (typeof window!=="undefined"&&Array.isArray(window.DAYOFF_PLACES)&&window.DAYOFF_PLACES.length)?window.DAYOFF_PLACES:PLACES_BUNDLED;
 const P = Object.fromEntries(PLACES.map(p=>[p.id,p]));
+if(typeof SUGGESTS!=="undefined") SUGGESTS.splice(0,SUGGESTS.length,...SUGGESTS.filter(s=>P[s.id]));
 /* price bands are category-level ESTIMATES (OpenStreetMap carries no prices): 0 free, 1 ฿ street/market, 2 ฿฿ café, 3 ฿฿฿ sit-down */
 const PRICE={hongsieng:2,soheng:2,eiahsae:1,gulongbao:1,naam:3,hoytod:1,yoofish:1,fishball:1,tk:3,walkst:1,influence:1,traimit:1,mangkon:0,chowsue:0,sampeng:1};
-PLACES.forEach(p=>{ p.price=PRICE[p.id]; });
+PLACES.forEach(p=>{ if(p.price==null) p.price=PRICE[p.id]??1; });
 const DIST_MAX = 25;   /* distance slider is in 100 m steps: 25 = "any" */
 const MAX_STOPS = 6, ME = {lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
 

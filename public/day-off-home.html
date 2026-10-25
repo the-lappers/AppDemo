@@ -616,6 +616,7 @@ a.btn{text-decoration:none}
 
 <script src="places.js"></script>
 <script src="env.js"></script>
+<script src="shared/search.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 "use strict";
@@ -638,7 +639,7 @@ const STR = {
     nowAway:"{m} m away", nowNear:"You're close. Tap I've arrived when you're there.", nowProg:"{d} of {n} stops done", geoNone:"This browser can't share your location.", geoDenied:"Location is blocked. Allow it in your browser settings, or tap I've arrived yourself.", geoFail:"Couldn't get your location.",
     askFab:"Need an idea? Ask or speak", askDay:"Your day: {n} stops · ends {t} · {fit}", askNow:"Now: {name}", askReplace:"Replace {name}", askMore:"More ideas",
     ideaLead_hungry:"Hungry? These fit your day", ideaLead_hot:"Too hot? Cafés and galleries that fit", ideaLead_tired:"Tired? Places to sit down that fit", ideaLead_next:"Good next stops that fit your day",
-    nowOpenMaps:"Open in Maps", navStop:"Stop", navDemo:"Demo walk, sped up. Real walking is about 25 times slower.", navLabel:"Walking navigation", navLabelCar:"Driving navigation", navLabelBts:"BTS navigation", navLabelMrt:"MRT navigation", modesLabel:"How are you travelling?", mWalk:"Walk", mCar:"Car", mBts:"BTS", mMrt:"MRT", mMin:"{n} min", mNone:"n/a", nowGoingTo:"Going to", navDemoTrip:"Demo trip, sped up. Times, stops and stations are estimates.", navDepartCar:"Start driving", navDepartOnCar:"Start driving on {road}", navRide:"Take the {sys} from {a} to {b} ({n} stops)", navExit:"Get off at {a} and walk to the exit", navBoard:"Walk to {a} station", routeCar:"About {km} km by car, about {n} min in city traffic (estimate)", routeTransit:"Walk {w1} min to {a}, ride {n} stops to {b}, walk {w2} min. Total about {tot} min (estimate)", routeWalkFaster:"Walking is about as fast here.", noRide:"No station is closer than the place itself, so walking is better.", navIn:"In {d} m · {txt}", navLeft:"left", navRight:"right", navSlightLeft:"slightly left", navSlightRight:"slightly right", navSharpLeft:"sharp left", navSharpRight:"sharp right", navUturn:"around",
+    nowOpenMaps:"Open in Maps", navStop:"Stop", navDemo:"Demo walk, sped up. Real walking is about 25 times slower.", navLabel:"Walking navigation", navLabelCar:"Driving navigation", navLabelBts:"BTS navigation", navLabelMrt:"MRT navigation", modesLabel:"How are you travelling?", mWalk:"Walk", mCar:"Car", mBts:"BTS", mMrt:"MRT", mTransit:"Public transport", mTransitShort:"Transit", navLabelTransit:"Public transport navigation", navRideLine:"Ride {line} from {a} to {b}", navDemoLive:"Demo trip, sped up. The route and times are live from Longdo.", partWalk:"walk {n} min", routeLongdo:"{parts}. About {tot} min door to door, waiting included (live from Longdo).", routeLongdoWalk:"Longdo found no train or boat that helps here, so walking is better.", routeEstimate:"Longdo did not answer, so this is an estimate.", routeChecking:"Checking live public transport with Longdo…", mChecking:"checking", mMin:"{n} min", mNone:"n/a", nowGoingTo:"Going to", navDemoTrip:"Demo trip, sped up. Times, stops and stations are estimates.", navDepartCar:"Start driving", navDepartOnCar:"Start driving on {road}", navRide:"Take the {sys} from {a} to {b} ({n} stops)", navExit:"Get off at {a} and walk to the exit", navBoard:"Walk to {a} station", routeCar:"About {km} km by car, about {n} min in city traffic (estimate)", routeTransit:"Walk {w1} min to {a}, ride {n} stops to {b}, walk {w2} min. Total about {tot} min (estimate)", routeWalkFaster:"Walking is about as fast here.", noRide:"No station is closer than the place itself, so walking is better.", navIn:"In {d} m · {txt}", navLeft:"left", navRight:"right", navSlightLeft:"slightly left", navSlightRight:"slightly right", navSharpLeft:"sharp left", navSharpRight:"sharp right", navUturn:"around",
     navDepart:"Start walking", navDepartOn:"Start walking on {road}", navContinue:"Continue straight", navContinueOn:"Continue on {road}", navTurn:"Turn {dir}", navTurnOn:"Turn {dir} onto {road}", navArrive:"You've arrived at {name}", navLeft2:"{m} m · about {n} min left",
     askCold:"No plan yet. Starting from {origin}.", askColdGeo:"your location", ideaLeadStyle:"{style} near you that is open now", ideaNoStyle:"No {style} place found in our data for this area. Nearest alternatives:", ideaNoneNow:"Nothing open near you fits right now. Try again later or search the Vibe tab.",
     askGo:"Go now", askNewDay:"Add to a new day", tStarted:"Trip started with {name}", ideaWhyNow:"{n} min walk · {until}",
@@ -667,7 +668,7 @@ const STR = {
     sumStops:"Stops", sumLen:"Day length", sumWalk:"Walking", durH:"{h} h {m} min", durHo:"{h} h", kmTxt:"{km} km",
     walk:"{n} min walk", walkApprox:"~{n} min walk", wait:"Opens {t}, wait {n} min", soon:"Closes {t}, don't linger", dur:"{n} min", hrs:"{n} hr", rm:"Remove {name}",
     late:"Running late? Re-plan", notfit:"Doesn't fit today", swap:"Swap for another place",
-    reasonLate:"Opens {t}, too late to fit", reasonEarly:"Closes {t}, you'd arrive too late", reasonWindow:"Would end after {t}, past your day window", reasonUnknown:"Hours unknown, so it can't be scheduled", reasonClosed:"Closed today, so it can't be scheduled",
+    reasonLate:"Opens {t}, too late to fit", reasonEarly:"Closes {t}, you'd arrive too late", reasonWindow:"Would end after {t}, past your day window", reasonUnknown:"Hours unknown, so it can't be scheduled", hoursCheck:"Opening hours unknown. Check before you go", srMatch:"Reviews call it {a}", srNoMatch:"No review calls it {a}", srReviews:"{n} reviews", srReview1:"1 review", srAxes:"What reviews say about the searched vibes", srNoAxes:"Vibes here come from reviews. Search for a vibe to see what reviewers say about this place.", srCat:"Google Maps category: {c}", srHours:"Opening hours from Google Maps", srNoHours:"Google Maps has no opening hours for this place", srSource:"Ranked by the Day-Off search from Google Maps reviews (local test data, not for publishing)", srNoReviews:"Too few reviews to judge its vibe", srDown:"The search service isn't answering, so places are listed nearest first.", srDegraded:"Few places here are described that way, so the nearest ones come first.", srEmpty:"No vibe typed. Showing places nearest {name}. Try one of these:", srNone:"No vibe found in “{q}”. Showing the closest matches.", reasonClosed:"Closed today, so it can't be scheduled",
     warnWindow:"Not everything fits before {t}. Remove a stop or move the end time later.",
     dayEmpty:"No stops yet", dayEmptyBody:"Find places that match your vibe, then add them here.",
     stDone:"Done", stLate:"Late", stPinned:"Pinned", visited:"Visited {a}–{b}", skippedH:"Skipped",
@@ -717,7 +718,7 @@ const STR = {
     nowAway:"อีก {m} ม.", nowNear:"ใกล้แล้ว ถึงที่หมายแล้วกด ถึงแล้ว", nowProg:"เสร็จแล้ว {d} จาก {n} จุด", geoNone:"เบราว์เซอร์นี้แชร์ตำแหน่งไม่ได้", geoDenied:"ตำแหน่งถูกบล็อก เปิดอนุญาตในการตั้งค่าเบราว์เซอร์ หรือกด ถึงแล้ว เอง", geoFail:"หาตำแหน่งของคุณไม่ได้",
     askFab:"อยากได้ไอเดีย? พิมพ์หรือพูดได้เลย", askDay:"วันของคุณ: {n} จุด · จบ {t} · {fit}", askNow:"ตอนนี้: {name}", askReplace:"แทนที่ {name}", askMore:"ไอเดียเพิ่มเติม",
     ideaLead_hungry:"หิวแล้วเหรอ ที่เหล่านี้ทันในวันนี้", ideaLead_hot:"ร้อนจัง คาเฟ่และแกลเลอรีที่ทัน", ideaLead_tired:"เหนื่อยแล้ว ที่นั่งพักที่ทัน", ideaLead_next:"จุดต่อไปที่ทันในวันนี้",
-    nowOpenMaps:"เปิดในแอปแผนที่", navStop:"หยุด", navDemo:"เดินจำลอง เร็วขึ้นประมาณ 25 เท่า ของจริงช้ากว่านี้", navLabel:"นำทางเดินเท้า", navLabelCar:"นำทางขับรถ", navLabelBts:"นำทางรถไฟฟ้า BTS", navLabelMrt:"นำทางรถไฟฟ้า MRT", modesLabel:"เดินทางด้วยอะไร?", mWalk:"เดิน", mCar:"รถ", mBts:"BTS", mMrt:"MRT", mMin:"{n} นาที", mNone:"ไม่มี", nowGoingTo:"กำลังไป", navDemoTrip:"เดินทางจำลอง เร็วขึ้น เวลา จำนวนป้าย และสถานีเป็นค่าประมาณ", navDepartCar:"เริ่มขับรถ", navDepartOnCar:"เริ่มขับบน {road}", navRide:"ขึ้น{sys}จาก {a} ไป {b} ({n} สถานี)", navExit:"ลงที่ {a} แล้วเดินออกจากสถานี", navBoard:"เดินไปสถานี {a}", routeCar:"ประมาณ {km} กม. ขับรถราว {n} นาที ช่วงรถติดในเมือง (ค่าประมาณ)", routeTransit:"เดิน {w1} นาทีไป {a} นั่ง {n} สถานีไป {b} แล้วเดิน {w2} นาที รวมประมาณ {tot} นาที (ค่าประมาณ)", routeWalkFaster:"ตรงนี้เดินเร็วพอกัน", noRide:"ไม่มีสถานีที่ใกล้กว่าตัวสถานที่ เดินดีกว่า", navIn:"อีก {d} ม. · {txt}", navLeft:"ซ้าย", navRight:"ขวา", navSlightLeft:"ซ้ายเล็กน้อย", navSlightRight:"ขวาเล็กน้อย", navSharpLeft:"ซ้ายหักศอก", navSharpRight:"ขวาหักศอก", navUturn:"กลับรถ",
+    nowOpenMaps:"เปิดในแอปแผนที่", navStop:"หยุด", navDemo:"เดินจำลอง เร็วขึ้นประมาณ 25 เท่า ของจริงช้ากว่านี้", navLabel:"นำทางเดินเท้า", navLabelCar:"นำทางขับรถ", navLabelBts:"นำทางรถไฟฟ้า BTS", navLabelMrt:"นำทางรถไฟฟ้า MRT", modesLabel:"เดินทางด้วยอะไร?", mWalk:"เดิน", mCar:"รถ", mBts:"BTS", mMrt:"MRT", mTransit:"ขนส่งสาธารณะ", mTransitShort:"ขนส่ง", navLabelTransit:"นำทางขนส่งสาธารณะ", navRideLine:"นั่ง {line} จาก {a} ไป {b}", navDemoLive:"เดินทางจำลอง เร็วขึ้น เส้นทางและเวลาเป็นข้อมูลสดจาก Longdo", partWalk:"เดิน {n} นาที", routeLongdo:"{parts} รวมประมาณ {tot} นาทีจากต้นทางถึงปลายทาง รวมเวลารอ (ข้อมูลสดจาก Longdo)", routeLongdoWalk:"Longdo ไม่พบรถไฟฟ้าหรือเรือที่ช่วยได้ตรงนี้ เดินดีกว่า", routeEstimate:"Longdo ไม่ตอบ จึงเป็นค่าประมาณ", routeChecking:"กำลังเช็กขนส่งสาธารณะแบบสดกับ Longdo…", mChecking:"กำลังเช็ก", mMin:"{n} นาที", mNone:"ไม่มี", nowGoingTo:"กำลังไป", navDemoTrip:"เดินทางจำลอง เร็วขึ้น เวลา จำนวนป้าย และสถานีเป็นค่าประมาณ", navDepartCar:"เริ่มขับรถ", navDepartOnCar:"เริ่มขับบน {road}", navRide:"ขึ้น{sys}จาก {a} ไป {b} ({n} สถานี)", navExit:"ลงที่ {a} แล้วเดินออกจากสถานี", navBoard:"เดินไปสถานี {a}", routeCar:"ประมาณ {km} กม. ขับรถราว {n} นาที ช่วงรถติดในเมือง (ค่าประมาณ)", routeTransit:"เดิน {w1} นาทีไป {a} นั่ง {n} สถานีไป {b} แล้วเดิน {w2} นาที รวมประมาณ {tot} นาที (ค่าประมาณ)", routeWalkFaster:"ตรงนี้เดินเร็วพอกัน", noRide:"ไม่มีสถานีที่ใกล้กว่าตัวสถานที่ เดินดีกว่า", navIn:"อีก {d} ม. · {txt}", navLeft:"ซ้าย", navRight:"ขวา", navSlightLeft:"ซ้ายเล็กน้อย", navSlightRight:"ขวาเล็กน้อย", navSharpLeft:"ซ้ายหักศอก", navSharpRight:"ขวาหักศอก", navUturn:"กลับรถ",
     navDepart:"เริ่มเดิน", navDepartOn:"เริ่มเดินบน {road}", navContinue:"เดินตรงไป", navContinueOn:"เดินต่อบน {road}", navTurn:"เลี้ยว{dir}", navTurnOn:"เลี้ยว{dir}เข้า {road}", navArrive:"ถึง {name} แล้ว", navLeft2:"อีก {m} ม. ประมาณ {n} นาที",
     askCold:"ยังไม่มีแผน เริ่มจาก{origin}", askColdGeo:"ตำแหน่งของคุณ", ideaLeadStyle:"{style}ใกล้คุณที่เปิดอยู่ตอนนี้", ideaNoStyle:"ไม่พบร้าน{style}ในข้อมูลของย่านนี้ ที่ใกล้ที่สุดแทน:", ideaNoneNow:"ตอนนี้ไม่มีที่ไหนใกล้คุณที่เปิดและทัน ลองใหม่ภายหลังหรือค้นหาในแท็บบรรยากาศ",
     askGo:"ไปเลย", askNewDay:"เพิ่มเป็นวันใหม่", tStarted:"เริ่มทริปที่ {name} แล้ว", ideaWhyNow:"เดิน {n} นาที · {until}",
@@ -746,7 +747,7 @@ const STR = {
     sumStops:"จุดแวะ", sumLen:"ความยาววัน", sumWalk:"การเดิน", durH:"{h} ชม. {m} นาที", durHo:"{h} ชม.", kmTxt:"{km} กม.",
     walk:"เดิน {n} นาที", walkApprox:"เดินประมาณ {n} นาที", wait:"เปิด {t} รอ {n} นาที", soon:"ปิด {t} อย่าอยู่นาน", dur:"{n} นาที", hrs:"{n} ชม.", rm:"เอา {name} ออก",
     late:"ไปช้า? จัดวันใหม่", notfit:"วันนี้ไม่ทัน", swap:"เปลี่ยนเป็นที่อื่น",
-    reasonLate:"เปิด {t} ไม่ทันแล้ว", reasonEarly:"ปิด {t} ไปถึงไม่ทัน", reasonWindow:"จะจบหลัง {t} เกินเวลาของวัน", reasonUnknown:"ไม่ทราบเวลาเปิด จึงจัดเวลาไม่ได้", reasonClosed:"วันนี้ปิด จึงจัดเวลาไม่ได้",
+    reasonLate:"เปิด {t} ไม่ทันแล้ว", reasonEarly:"ปิด {t} ไปถึงไม่ทัน", reasonWindow:"จะจบหลัง {t} เกินเวลาของวัน", reasonUnknown:"ไม่ทราบเวลาเปิด จึงจัดเวลาไม่ได้", hoursCheck:"ไม่ทราบเวลาเปิด เช็กก่อนไป", srMatch:"รีวิวบอกว่า{a}", srNoMatch:"ยังไม่มีรีวิวที่บอกว่า{a}", srReviews:"{n} รีวิว", srReview1:"1 รีวิว", srAxes:"รีวิวพูดถึงบรรยากาศที่ค้นอย่างไร", srNoAxes:"บรรยากาศของที่นี่มาจากรีวิว ลองค้นหาบรรยากาศเพื่อดูว่ารีวิวพูดถึงที่นี่อย่างไร", srCat:"ประเภทใน Google Maps: {c}", srHours:"เวลาเปิดจาก Google Maps", srNoHours:"Google Maps ไม่มีเวลาเปิดของที่นี่", srSource:"จัดอันดับโดยระบบค้นหา Day-Off จากรีวิว Google Maps (ข้อมูลทดสอบในเครื่อง ห้ามเผยแพร่)", srNoReviews:"รีวิวยังน้อยเกินกว่าจะบอกบรรยากาศ", srDown:"ระบบค้นหาไม่ตอบ จึงเรียงจากที่ใกล้ที่สุดแทน", srDegraded:"มีไม่กี่ที่ที่รีวิวพูดถึงแบบนี้ จึงเรียงที่ใกล้ที่สุดก่อน", srEmpty:"ยังไม่ได้พิมพ์บรรยากาศ จึงแสดงที่ใกล้ {name} ก่อน ลองคำค้นเหล่านี้:", srNone:"ไม่พบบรรยากาศในคำว่า “{q}” จึงแสดงที่ใกล้เคียงที่สุด", reasonClosed:"วันนี้ปิด จึงจัดเวลาไม่ได้",
     warnWindow:"บางจุดไม่ทันก่อน {t} เอาจุดออก หรือเลื่อนเวลาจบวันให้ช้าลง",
     dayEmpty:"ยังไม่มีจุดแวะ", dayEmptyBody:"หาที่ที่เข้ากับบรรยากาศ แล้วเพิ่มมาไว้ที่นี่",
     stDone:"เสร็จแล้ว", stLate:"ช้า", stPinned:"ปักหมุด", visited:"แวะ {a}–{b}", skippedH:"จุดที่ข้าม",
@@ -788,7 +789,7 @@ const TYPENAME = {
   en:{cafe:"Café", food:"Food", art:"Gallery", shrine:"Shrine", temple:"Temple", market:"Market"},
   th:{cafe:"คาเฟ่", food:"อาหาร", art:"แกลเลอรี", shrine:"ศาลเจ้า", temple:"วัด", market:"ตลาด"}
 };
-const AREA = {en:{songwat:"Song Wat", yaowarat:"Yaowarat", talatnoi:"Talat Noi"}, th:{songwat:"ซองวัด", yaowarat:"เยาวราช", talatnoi:"ตลาดน้อย"}};
+const AREA = {en:{songwat:"Song Wat", yaowarat:"Yaowarat", talatnoi:"Talat Noi", rattanakosin:"Rattanakosin", samyan:"Sam Yan", ratchayothin:"Ratchayothin"}, th:{songwat:"ซองวัด", yaowarat:"เยาวราช", talatnoi:"ตลาดน้อย", rattanakosin:"เกาะรัตนโกสินทร์", samyan:"สามย่าน", ratchayothin:"รัชโยธิน"}};
 const DAYS = {en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], th:["จ.","อ.","พ.","พฤ.","ศ.","ส.","อา."]};
 const CHIPS = [
   {tag:"calm",   en:"quiet and slow",  th:"เงียบ ๆ ชิล ๆ"},
@@ -850,7 +851,12 @@ if(typeof SUGGESTS!=="undefined") SUGGESTS.splice(0,SUGGESTS.length,...SUGGESTS.
 const PRICE={hongsieng:2,soheng:2,eiahsae:1,gulongbao:1,naam:3,hoytod:1,yoofish:1,fishball:1,tk:3,walkst:1,influence:1,traimit:1,mangkon:0,chowsue:0,sampeng:1};
 PLACES.forEach(p=>{ if(p.price==null) p.price=PRICE[p.id]??1; });
 const DIST_MAX = 25;   /* distance slider is in 100 m steps: 25 = "any" */
-const MAX_STOPS = 6, ME = {lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
+const MAX_STOPS = 6, ME = (window.DAYOFF_AREA&&window.DAYOFF_AREA.start)||{lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
+if(window.DAYOFF_AREA){ STR.en.walkOrigin=DAYOFF_AREA.startName.en; STR.th.walkOrigin=DAYOFF_AREA.startName.th; }   /* the search area starts the day elsewhere */
+/* vibe search: the dayoff-search service ranks its places from reviews (shared/search.js); examples follow its vocabulary */
+const SEARCH_ON=!!(window.DAYOFF_SEARCH&&DAYOFF_SEARCH.on);
+if(SEARCH_ON) EXAMPLES.splice(0,EXAMPLES.length,{en:"bright minimal cafe",th:"คาเฟ่มินิมอล สว่างๆ"},{en:"cozy cafe with plants",th:"คาเฟ่อบอุ่น ต้นไม้เยอะ"},
+  {en:"vintage wooden cafe",th:"คาเฟ่วินเทจ โทนไม้"},{en:"spacious restaurant",th:"ร้านอาหารกว้างๆ"});
 
 /* ---------- live clock (Bangkok). ?at=Sat-11:00 pins it for demos and tests ---------- */
 const params = new URLSearchParams(location.search);
@@ -865,6 +871,12 @@ const DAYIDX = {Mo:0,Tu:1,We:2,Th:3,Fr:4,Sa:5,Su:6};
 /* minimal opening_hours reader for the shapes used above: "Mo-Su 09:00-18:00", "Tu-Su ...", "10:00-19:00" */
 function hoursFor(h,dow){
   if(!h) return {status:"unknown"};
+  if(typeof h==="object"){                 /* the search service's {"mon": [["08:00","18:00"]], ...}; a missing day = closed */
+    const iv=h[["mon","tue","wed","thu","fri","sat","sun"][dow]]; if(!iv||!iv.length) return {status:"closed"};
+    const mm=s=>+s.slice(0,2)*60+ +s.slice(3,5), o=Math.min(...iv.map(x=>mm(x[0])));
+    const c=Math.max(...iv.map(x=>mm(x[1])<=mm(x[0])?mm(x[1])+1440:mm(x[1])));   /* split hours plan as one span: first open to last close */
+    return {status:"ok", open:o, close:c};
+  }
   const m=h.match(/^(?:(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))? )?(\d\d):(\d\d)-(\d\d):(\d\d)$/);
   if(!m) return {status:"unknown"};
   const a=m[1]?DAYIDX[m[1]]:0, b=m[1]?(m[2]?DAYIDX[m[2]]:a):6;
@@ -936,6 +948,7 @@ function parseQuery(q){
 }
 const baseTags = () => state.parsed.tags.length ? state.parsed.tags : allTags;
 function rank(q,parsed){
+  if(SEARCH_ON) return {mode:"empty", list:[...PLACES].sort((a,b)=>meters(ME,a)-meters(ME,b)).map(p=>({id:p.id,m:null}))};
   const base=parsed.tags.length?parsed.tags:allTags;
   const mode = !q ? "empty" : !parsed.tags.length ? "none" : "match";
   const list = PLACES.map(p=>{
@@ -955,19 +968,39 @@ function visibleResults(){
     return true;
   }).slice(0,10);
 }
-const isWeak = r => state.mode==="match" && r.m<.6;
+const isWeak = r => state.mode==="match" && (r.weak ?? r.m<.6);   /* search results: weak = no review mentions a searched vibe */
+/* the sample day in the search area: the nearest places open 10:00-18:00 every day, two cafés and two food stops */
+function sampleTray(){
+  const allWeek=p=>[0,1,2,3,4,5,6].every(d=>{ const r=hoursFor(p.h,d); return r.status==="ok"&&r.open<=600&&r.close>=1080; });
+  const ok=PLACES.filter(p=>p.reviews!==false&&allWeek(p)).sort((a,b)=>meters(ME,a)-meters(ME,b));
+  return [...ok.filter(p=>p.type==="cafe").slice(0,2),...ok.filter(p=>p.type==="food").slice(0,2)].map(p=>p.id);
+}
+/* where a place's facts and scores come from: OpenStreetMap + demo estimates, or Google Maps + the review search */
+const vibeNames=ids=>ids.map(x=>DAYOFF_SEARCH.label(x,state.lang)).join(", ");
+const srcFacts=p=>p.src==="search"?`${t("srCat",{c:p.cat})}. ${p.h?t("srHours"):t("srNoHours")}.`:`${t("sigCat",{c:p.cat})}. ${p.h?t("sigHours"):t("sigNoHours")}.`;
+function scoreNote(r,p){
+  if(p.src!=="search") return `${t("sigScore")}. ${t("priceEst")}.`;
+  const ev=r&&r.mentions?Object.entries(r.mentions).map(([v,n])=>`${DAYOFF_SEARCH.label(v,state.lang)}: ${(n===1?t("srReview1"):t("srReviews",{n}))}`).join(" · "):"";
+  return `${ev?ev+". ":""}${p.reviews===false?t("srNoReviews")+". ":""}${t("srSource")}.${p.priceEst?" "+t("priceEst")+".":""}`;
+}
+function searchWhy(r,p){
+  if(!r.vibe) return "";
+  if(r.vibe.matched.length) return t("srMatch",{a:vibeNames(r.vibe.matched)});
+  return p.reviews===false?t("srNoReviews"):t("srNoMatch",{a:vibeNames(r.vibe.not_matched)});
+}
 
 /* ---------- route solver (mock of the OR-Tools step) ---------- */
 function simulate(order,start,prevPlace,endMin,manual=false){
   let now=start, prev=prevPlace||null, walk=0; const items=[], dropped=[];
   for(const id of order){
     const p=P[id];
-    if(p.status==="unknown"){ dropped.push({id, reason:"unknown"}); continue; }
     if(p.status==="closed"){ dropped.push({id, reason:"closedday"}); continue; }
-    const w=prev?walkMin(prev,p):0, arr=now+w, s=Math.max(arr,p.open), end=s+durOf(p);
+    /* hours unknown: plan it as open all day; the stop tells people to check before they go */
+    const unknown=p.status==="unknown", open=unknown?0:p.open, close=unknown?Infinity:p.close;
+    const w=prev?walkMin(prev,p):0, arr=now+w, s=Math.max(arr,open), end=s+durOf(p);
     let conflict=null;
     /* automatic mode drops what cannot fit; manual mode keeps the user's order and flags the conflict instead */
-    if(end>p.close){ if(!manual){ dropped.push({id, reason: arr<p.open ? "late" : "early"}); continue; } conflict="close"; }
+    if(end>close){ if(!manual){ dropped.push({id, reason: arr<open ? "late" : "early"}); continue; } conflict="close"; }
     else if(end>endMin){ if(!manual){ dropped.push({id, reason:"window"}); continue; } conflict="window"; }
     items.push({id, walk:w, wait:s-arr, start:s, end, conflict});
     walk+=w; now=end; prev=p;
@@ -1066,7 +1099,8 @@ function heroHTML(){
   return words.map((w,i)=>play?`<span class="w" style="--i:${i}">${esc(w)}</span>`:esc(w)).join("");
 }
 /* ?voice=demo swaps the browser's speech service for a pretend one that "hears" a sample phrase, so the voice flow can be tried without Google's service */
-const DEMO_SAY={en:["quiet cafe, old walls","street food at night","art alleys and murals"],th:["คาเฟ่เงียบ ๆ ตึกเก่า","ของกินริมทางยามค่ำ","ซอยอาร์ต ภาพมูรัล"]};
+const DEMO_SAY=SEARCH_ON?{en:["bright minimal cafe","cozy cafe with plants"],th:["คาเฟ่มินิมอล สว่างๆ","คาเฟ่อบอุ่น ต้นไม้เยอะ"]}
+  :{en:["quiet cafe, old walls","street food at night","art alleys and murals"],th:["คาเฟ่เงียบ ๆ ตึกเก่า","ของกินริมทางยามค่ำ","ซอยอาร์ต ภาพมูรัล"]};
 class DemoRec{
   start(){ toast(t("tMicDemo")); setTimeout(()=>{ const a=DEMO_SAY[state.lang]; const txt=a[Math.floor(Math.random()*a.length)]; this.onresult&&this.onresult({results:[Object.assign([{transcript:txt}],{isFinal:true})]}); this.onend&&this.onend(); },1100); }
   stop(){}
@@ -1132,6 +1166,7 @@ function startListening(mode="search"){
 }
 /* Home mic: say what you want, then land on Places with the best matches first (hungry, a food style, or a vibe) */
 function voiceToPlaces(text){
+  if(SEARCH_ON){ state.query=text; runSearch(text).then(()=>go("places")); return; }
   const parsed=parseQuery(text), r=rank(text,parsed), style=parseStyle(text), intent=parseIdea(text);
   const types=!style&&intent?IDEA_TYPES[intent]:null;
   const hit=style?styleMatch(style):types?(p=>types.includes(p.type)):null;
@@ -1212,7 +1247,7 @@ function rowsHTML(){
     const shown=[...base].sort((a,b)=>p.tags[b]-p.tags[a]).slice(0,3);
     const badge = isWeak(r) ? `<span class="best alt">${t("close")}</span>` : idx===0 ? `<span class="best">${t("best")}</span>` : "";
     const stat = p.status==="unknown" ? `<span class="st warn">${icon("alert")}${t("hoursUnknown")}</span>` : p.status==="closed" ? `<span class="st warn">${icon("alert")}${t("closedToday")}</span>` : "";
-    const w1=t("matchTags",{a:shown.slice(0,2).map(x=>TAGNAME[state.lang][x]).join(", ")});
+    const w1=SEARCH_ON?searchWhy(r,p):t("matchTags",{a:shown.slice(0,2).map(x=>TAGNAME[state.lang][x]).join(", ")});
     return `<li class="card row" data-id="${p.id}" data-in="${inDay}">
       <button type="button" class="add" data-act="add" data-id="${p.id}" data-fk="add-${p.id}" aria-pressed="${inDay}" aria-label="${esc(t(inDay?"remove":"add",{name:nm(p)}))}"></button>
       <span class="sel" aria-hidden="true">${icon("check")}</span>
@@ -1220,8 +1255,8 @@ function rowsHTML(){
         ${thumbHTML(p,badge)}
         <div class="rc">
           <div class="name-line"><h3>${esc(nm(p))}</h3>${stat}</div>
-          <p class="why1">${w1}</p>
-          <p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)}${p.status==="ok"?` · ${untilText(p)}`:""} · ${t("matchPct",{n:matchPct(r)})}</p>
+          ${w1?`<p class="why1">${w1}</p>`:""}
+          <p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)}${p.status==="ok"?` · ${untilText(p)}`:""}${r.m==null?"":` · ${t("matchPct",{n:matchPct(r)})}`}</p>
         </div>
       </div>
       <div class="row-acts">
@@ -1229,9 +1264,9 @@ function rowsHTML(){
         <button type="button" class="why" data-act="detail" data-id="${p.id}" data-fk="detail-${p.id}" aria-label="${esc(t("detailsFor",{name:nm(p)}))}">${t("details")}</button>
       </div>
       <div class="more ${open?"open":""}" id="more-${p.id}"><div><div class="body">
-        <p>${icon("info")}<span>${t("sigCat",{c:p.cat})}. ${p.h?t("sigHours"):t("sigNoHours")}.</span></p>
+        <p>${icon("info")}<span>${srcFacts(p)}</span></p>
         <p>${icon("walk")}<span>${t("fromHere",{n:walkMin(ME,p),name:t("walkOrigin")})} · ${t("visit",{n:durOf(p)})}</span></p>
-        <p>${icon("alert")}<span>${t("sigScore")}. ${t("priceEst")}.</span></p>
+        <p>${icon("alert")}<span>${scoreNote(r,p)}</span></p>
       </div></div></div>
     </li>`;
   }).join("");
@@ -1239,6 +1274,13 @@ function rowsHTML(){
 }
 function noteHTML(list){
   const q=esc(state.query.trim());
+  if(SEARCH_ON){
+    const note=txt=>`<div class="notice" role="status">${icon("info")}<p>${txt}</p></div>`;
+    if(state.mode==="down") return note(t("srDown"));
+    if(state.mode==="empty") return `<div class="notice" role="status">${icon("info")}<div><p>${t("srEmpty",{name:t("walkOrigin")})}</p>${exampleChips()}</div></div>`;
+    if(state.mode==="none") return note(t("srNone",{q}));
+    if(state.searchNote==="degraded") return note(t("srDegraded"));
+  }
   if(state.mode==="none") return `<div class="notice" role="status">${icon("info")}<p>${t("noteNone",{q})}</p></div>`;
   if(state.mode==="empty") return `<div class="notice" role="status">${icon("info")}<div><p>${t("noteEmpty")}</p>${exampleChips()}</div></div>`;
   if(state.mode==="match" && list.filter(r=>!isWeak(r)).length<3 && list.length) return `<div class="notice" role="status">${icon("info")}<p>${t("noteFew")}</p></div>`;
@@ -1246,7 +1288,7 @@ function noteHTML(list){
 }
 function viewPlaces(){
   const q=esc(state.query.trim()), list=visibleResults();
-  const tags=state.parsed.tags.map(x=>`<span class="pill">${TAGNAME[state.lang][x]}</span>`).join("");
+  const tags=(SEARCH_ON?(state.parsed.vibes||[]).map(x=>DAYOFF_SEARCH.label(x,state.lang)):state.parsed.tags.map(x=>TAGNAME[state.lang][x])).map(x=>`<span class="pill">${esc(x)}</span>`).join("");
   return `<section class="inner ${state.animate?"scored":""}">
     <div class="res-head"><h2 id="pvh" tabindex="-1">${t("resTitle",{n:list.length})}</h2><p class="sub" id="resFor">${q?t("resFor",{q}):t("resForEmpty")}</p></div>
     ${tags?`<div class="matched" aria-label="${t("matching")}"><span class="sr">${t("matching")}:</span>${tags}</div>`:""}
@@ -1413,7 +1455,7 @@ window.addEventListener("message",e=>{
   if(m.dayoff==="close"){ closePlanner(); return; }
   applyPlan(m); closePlanner();
   if(m.dayoff==="plan"){ state.view="now"; render({focus:"#vh"}); if(state.tray.length) toast(t("tPlanSet",{n:state.tray.length})); }
-  else if(m.dayoff==="pick"){ state.searched=false; state.query=m.query||""; if(state.query){ runSearch(state.query); } openPicker(); toast(t("tPickBack")); }
+  else if(m.dayoff==="pick"){ state.searched=false; state.query=m.query||""; (state.query?runSearch(state.query):Promise.resolve()).then(()=>{ openPicker(); toast(t("tPickBack")); }); }
 });
 function replaceStop(oldId,newId){
   const next=state.tray.map(x=>x===oldId?newId:x);
@@ -1475,7 +1517,49 @@ const STATIONS=[
   {sys:"bts",en:"Wongwian Yai",th:"วงเวียนใหญ่",lat:13.7219,lng:100.4953},
   {sys:"bts",en:"National Stadium",th:"สนามกีฬาแห่งชาติ",lat:13.7466,lng:100.5290}
 ];
-const NAVMODES=["walk","car","bts","mrt"], SYSNAME={bts:"BTS",mrt:"MRT"};
+/* Live public transport (walk + BTS/MRT/ARL + ferry) from Longdo through server.mjs (/api/transit), when the server has a key.
+   Longdo picks the lines itself, so BTS and MRT become one "Transit" button. Without a key, the two estimate buttons stay. */
+const TRANSIT_ON=!!(window.DAYOFF_ENV&&window.DAYOFF_ENV.TRANSIT);
+const NAVMODES=TRANSIT_ON?["walk","car","transit"]:["walk","car","bts","mrt"], SYSNAME={bts:"BTS",mrt:"MRT"};
+const transitAsked=new Map(), transitGot=new Map();
+const transitKey=(a,b)=>[a.lat,a.lng,b.lat,b.lng].map(x=>x.toFixed(4)).join(",")+"|"+state.lang;
+function transitRoute(a,b){            /* resolves to {s, m, steps} or null; one request per leg and language */
+  const k=transitKey(a,b); if(transitAsked.has(k)) return transitAsked.get(k);
+  const pt=p=>p.lat.toFixed(5)+","+p.lng.toFixed(5);
+  const pr=(async()=>{
+    try{
+      const r=await fetch(`api/transit?from=${pt(a)}&to=${pt(b)}&lang=${state.lang}`,{signal:AbortSignal.timeout(10000)});
+      const j=r.ok?await r.json():null; return j&&Array.isArray(j.steps)&&j.steps.length?j:null;
+    }catch(e){ return null; }
+  })();
+  transitAsked.set(k,pr);
+  pr.then(v=>{ transitGot.set(k,v); if(!v) setTimeout(()=>{ transitAsked.delete(k); transitGot.delete(k); },60000); });
+  return pr;
+}
+const transitNow=(a,b)=>transitGot.get(transitKey(a,b));   /* undefined: not answered yet, null: failed */
+const rideStop=(r,end)=>r[end]||r.line;
+const TURNMOD={0:"left",1:"right",2:"slight left",3:"slight right",5:"straight"};
+function longdoRoute(lt){              /* Longdo steps -> the same {coords, steps, dist} shape as the OSM routes */
+  const coords=[], steps=[]; let prevRide=null;
+  lt.steps.forEach((s,i)=>{
+    s.coords.forEach(c=>{ const l=coords[coords.length-1]; if(!l||l[0]!==c[0]||l[1]!==c[1]) coords.push(c); });
+    if(s.kind==="walk"){
+      const st={maneuver:{type:i===0?"depart":"turn",modifier:TURNMOD[s.turn]},name:s.name,distance:s.m};
+      if(prevRide) st.text=t("navExit",{a:esc(rideStop(prevRide,"to"))});
+      steps.push(st); prevRide=null;
+    } else { steps.push({maneuver:{type:"ride"},name:"",distance:s.m,text:t("navRideLine",{line:esc(s.line),a:esc(rideStop(s,"from")),b:esc(rideStop(s,"to"))})}); prevRide=s; }
+  });
+  steps.push({maneuver:{type:"arrive"},name:"",distance:0});
+  return {coords,steps,dist:lt.m,totalMin:Math.max(1,Math.round(lt.s/60)),live:true};
+}
+function transitSummary(lt){
+  const parts=lt.steps.reduce((out,s)=>{
+    if(s.kind==="walk"){ const l=out[out.length-1]; if(l&&l.walk) l.s+=s.s; else out.push({walk:true,s:s.s}); }
+    else out.push({ride:s}); return out;
+  },[]).map(p=>p.walk?t("partWalk",{n:Math.max(1,Math.round(p.s/60))}):`${esc(rideStop(p.ride,"from"))} → ${esc(rideStop(p.ride,"to"))}`);
+  return parts.join(" · ");
+}
+const bestEstimate=(a,b)=>["bts","mrt"].map(sys=>({sys,tp:transitPlan(a,b,sys)})).filter(x=>x.tp).sort((x,y)=>x.tp.total-y.tp.total)[0]||null;
 function transitPlan(a,b,sys){
   const st=STATIONS.filter(x=>x.sys===sys), near=(pt)=>st.reduce((m,x)=>meters(pt,x)<meters(pt,m)?x:m);
   const board=near(a), alight=near(b);
@@ -1487,9 +1571,15 @@ function transitPlan(a,b,sys){
 function modeEst(a,b,mode){
   if(mode==="walk") return {min:walkMin(a,b)};
   if(mode==="car"){ const m=meters(a,b)*1.35; return {min:Math.max(4,3+Math.round(m/260)),km:(m/1000).toFixed(1)}; }
+  if(mode==="transit"){                /* Longdo's answer; "…" while it is on its way; the BTS/MRT estimate if it fails */
+    const lt=transitNow(a,b);
+    if(lt) return lt.steps.some(s=>s.kind!=="walk")?{min:Math.max(1,Math.round(lt.s/60)),lt}:{min:null,lt,walkOnly:true};
+    if(lt===undefined){ transitRoute(a,b).then(()=>{ if(state.view==="now"&&!state.nav) render(); }); return {min:null,pending:true}; }
+    const e=bestEstimate(a,b); return e?{min:e.tp.total,tp:e.tp,sys:e.sys,failed:true}:null;
+  }
   const tp=transitPlan(a,b,mode); return tp?{min:tp.total,tp}:null;
 }
-const navFrom=(pl,cur)=>{ const ci=pl.items.indexOf(cur), prev=ci>0?P[pl.items[ci-1].id]:null; return state.geo?{lat:state.geo.lat,lng:state.geo.lng}:(prev||ME); };
+const navFrom=(pl,cur)=>{ const ci=pl.items.findIndex(i=>i.id===cur.id), prev=   /* by id: callers may pass a stop from another plan() call */ci>0?P[pl.items[ci-1].id]:null; return state.geo?{lat:state.geo.lat,lng:state.geo.lng}:(prev||ME); };
 async function walkSteps(a,b,prof){
   prof=prof||"foot";
   const key=`${prof}|${a.lng.toFixed(5)},${a.lat.toFixed(5)};${b.lng.toFixed(5)},${b.lat.toFixed(5)}`, co=`${a.lng.toFixed(5)},${a.lat.toFixed(5)};${b.lng.toFixed(5)},${b.lat.toFixed(5)}`;
@@ -1510,6 +1600,10 @@ const straightRoute=(a,b)=>({coords:[[a.lat,a.lng],[b.lat,b.lng]],steps:[{maneuv
 async function buildRoute(from,to,mode){
   if(mode==="walk") return (await walkSteps(from,to))||straightRoute(from,to);
   if(mode==="car") return (await walkSteps(from,to,"car"))||straightRoute(from,to);
+  if(mode==="transit"){
+    const lt=await transitRoute(from,to); if(lt) return longdoRoute(lt);
+    const e=bestEstimate(from,to); return buildRoute(from,to,e?e.sys:"walk");
+  }
   const tp=transitPlan(from,to,mode); if(!tp) return (await walkSteps(from,to))||straightRoute(from,to);
   const L1=(await walkSteps(from,tp.board))||straightRoute(from,tp.board), L2=(await walkSteps(tp.alight,to))||straightRoute(tp.alight,to);
   const sn=x=>x[state.lang], ride={maneuver:{type:"ride"},name:"",distance:Math.round(tp.rideM),text:t("navRide",{sys:SYSNAME[mode],a:esc(sn(tp.board)),b:esc(sn(tp.alight)),n:tp.stops})};
@@ -1534,7 +1628,7 @@ function pointAt(nv,d){
   const a=nv.pts[i-1], b=nv.pts[i], seg=(nv.cum[i]-nv.cum[i-1])||1, f=Math.max(0,Math.min(1,(d-nv.cum[i-1])/seg));
   return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
 }
-const NAVLABEL={walk:"navLabel",car:"navLabelCar",bts:"navLabelBts",mrt:"navLabelMrt"};
+const NAVLABEL={walk:"navLabel",car:"navLabelCar",bts:"navLabelBts",mrt:"navLabelMrt",transit:"navLabelTransit"};
 function renderNav(){
   const nv=state.nav, bar=$("#navbar"); if(!nv||!bar) return;
   const p=P[nv.id], frac=nv.len?nv.at/nv.len:1, rd=nv.rd*frac;
@@ -1548,7 +1642,7 @@ function renderNav(){
   const rem=Math.max(0,Math.round(nv.len-nv.at)), min=Math.max(1,Math.ceil(rem/nv.mpm));
   bar.setAttribute("aria-label",t(NAVLABEL[nv.mode]));
   $("#navIc").textContent=ic; $("#navTxt").innerHTML=txt; $("#navMeta").textContent=nv.done?"":t("navLeft2",{m:rem,n:min});
-  $("#navFill").style.width=Math.round(frac*100)+"%"; $("#navDemo").textContent=t(nv.mode==="walk"?"navDemo":"navDemoTrip");
+  $("#navFill").style.width=Math.round(frac*100)+"%"; $("#navDemo").textContent=t(nv.mode==="walk"?"navDemo":nv.live?"navDemoLive":"navDemoTrip");
   $("#navStop").textContent=t("navStop"); const ar=$("#navArrive"); ar.hidden=!nv.done; ar.textContent=t("nowArrived");
   if(nv.last!==txt){ nv.last=txt; say(plainText(txt)); }
 }
@@ -1573,7 +1667,7 @@ async function startNav(){
   const cum=[0]; for(let i=1;i<r.coords.length;i++) cum.push(cum[i-1]+meters({lat:r.coords[i-1][0],lng:r.coords[i-1][1]},{lat:r.coords[i][0],lng:r.coords[i][1]}));
   const len=cum[cum.length-1]||1;
   const est=mode==="walk"?null:(r.totalMin||modeEst(from,to,mode)?.min||Math.ceil(len/250));
-  state.nav={id:cur.id,pts:r.coords,cum,len,steps:r.steps,rd:r.dist||len,at:0,done:false,last:"",mode,mpm:est?len/est:WALK_M_PER_MIN};
+  state.nav={id:cur.id,pts:r.coords,cum,len,steps:r.steps,rd:r.dist||len,at:0,done:false,last:"",mode,live:!!r.live,mpm:est?len/est:WALK_M_PER_MIN};
   if(isPhone()) applySheet("peek");
   if(LMAP){ navDot=L.circleMarker(r.coords[0],{radius:9,color:"#ffffff",weight:3,fillColor:"#C93520",fillOpacity:1,interactive:false}).addTo(LMAP); LMAP.panTo(r.coords[0],{animate:false}); }
   $("#navbar").hidden=false; renderNav();
@@ -1588,14 +1682,21 @@ const MODEICON={
   bts:MI('<rect x="6" y="3" width="12" height="12" rx="2.5"/><path d="M6 9h12M9 18l-2 3M15 18l2 3M3 21h18"/><circle cx="9.5" cy="12" r=".6"/><circle cx="14.5" cy="12" r=".6"/>'),
   mrt:MI('<rect x="6" y="3" width="12" height="12" rx="2.5"/><path d="M6 9h12"/><circle cx="9.5" cy="12" r=".6"/><circle cx="14.5" cy="12" r=".6"/><path d="M3 20a9 9 0 0 1 18 0"/>')
 };
+MODEICON.transit=MODEICON.bts;
 function modesHTML(p,cur){
-  const from=navFrom(plan(),cur), M={walk:"mWalk",car:"mCar",bts:"mBts",mrt:"mMrt"};
+  const from=navFrom(plan(),cur), M={walk:"mWalk",car:"mCar",bts:"mBts",mrt:"mMrt",transit:"mTransit"};
+  if(!NAVMODES.includes(state.navMode)) state.navMode="walk";
   const est=Object.fromEntries(NAVMODES.map(m=>[m,modeEst(from,p,m)]));
-  const btns=NAVMODES.map(m=>{ const e=est[m], on=state.navMode===m;
-    return `<button type="button" data-act="navMode" data-m="${m}" data-fk="mode-${m}" data-testid="mode-${m}" aria-pressed="${on}" aria-label="${esc(t(M[m])+(e?", "+t("mMin",{n:e.min}):", "+t("mNone")))}"${e?"":" disabled"}>${MODEICON[m]}<b>${e?t("mMin",{n:e.min}):"–"}</b>${m==="bts"||m==="mrt"?`<small aria-hidden="true">${SYSNAME[m]}</small>`:""}</button>`; }).join("");
+  const small=m=>m==="bts"||m==="mrt"?SYSNAME[m]:m==="transit"?t("mTransitShort"):"";
+  const btns=NAVMODES.map(m=>{ const e=est[m], on=state.navMode===m, has=e&&e.min!=null;
+    const val=has?t("mMin",{n:e.min}):e&&e.pending?t("mChecking"):t("mNone");
+    return `<button type="button" data-act="navMode" data-m="${m}" data-fk="mode-${m}" data-testid="mode-${m}" aria-pressed="${on}" aria-label="${esc(t(M[m])+", "+val)}"${has||(e&&e.pending)?"":" disabled"}>${MODEICON[m]}<b>${has?t("mMin",{n:e.min}):e&&e.pending?"…":"–"}</b>${small(m)?`<small aria-hidden="true">${small(m)}</small>`:""}</button>`; }).join("");
   const cur_=est[state.navMode]; let line="";
   if(state.navMode==="car"&&cur_) line=t("routeCar",{km:cur_.km,n:cur_.min});
-  else if(cur_&&cur_.tp){ const tp=cur_.tp; line=t("routeTransit",{w1:tp.w1,a:`${SYSNAME[state.navMode]} ${tp.board[state.lang]}`,n:tp.stops,b:`${SYSNAME[state.navMode]} ${tp.alight[state.lang]}`,w2:tp.w2,tot:tp.total}); if(tp.total>=est.walk.min) line+=" "+t("routeWalkFaster"); }
+  else if(cur_&&cur_.pending) line=t("routeChecking");
+  else if(cur_&&cur_.walkOnly) line=t("routeLongdoWalk");
+  else if(cur_&&cur_.lt) line=t("routeLongdo",{parts:transitSummary(cur_.lt),tot:cur_.min})+(cur_.min>=est.walk.min?" "+t("routeWalkFaster"):"");
+  else if(cur_&&cur_.tp){ const tp=cur_.tp, sys=SYSNAME[cur_.sys||state.navMode]; line=t("routeTransit",{w1:tp.w1,a:`${sys} ${tp.board[state.lang]}`,n:tp.stops,b:`${sys} ${tp.alight[state.lang]}`,w2:tp.w2,tot:tp.total}); if(tp.total>=est.walk.min) line+=" "+t("routeWalkFaster"); if(cur_.failed) line+=" "+t("routeEstimate"); }
   else if(!cur_) line=t("noRide");
   return `<div class="modes" role="group" aria-label="${esc(t("modesLabel"))}" data-testid="modes">${btns}</div>${line?`<p class="routeline" data-testid="route-line">${line}</p>`:""}`;
 }
@@ -1624,7 +1725,7 @@ function locate(){
   },err=>{ state.watch=null; toast(t(err.code===1?"geoDenied":"geoFail")); },{enableHighAccuracy:true,maximumAge:10000,timeout:20000});
 }
 function homeLoc(){
-  const where=t("homeWhere",{area:AREA[state.lang].yaowarat,time:clockText()});
+  const where=t("homeWhere",{area:AREA[state.lang][(window.DAYOFF_AREA&&DAYOFF_AREA.id)||"yaowarat"],time:clockText()});
   return `<section class="homeloc" data-testid="home-loc" aria-label="${esc(t("homeHere"))}"><h2 id="vh" tabindex="-1">${icon("pin")} ${t("homeHere")}</h2><p class="sub">${where}</p>${state.tray.length?`<div class="homeacts"><button type="button" class="btn small primary" data-act="plan" data-fk="plan" data-testid="chat-trip">${icon("chat")}${t("chatTrip")}</button><button type="button" class="btn small ghost" data-act="browse" data-fk="browse" data-testid="browse-places">${icon("search")}${t("browsePlaces")}</button></div>`:""}</section>`;
 }
 function viewHome(){
@@ -1693,6 +1794,7 @@ function viewDay(home){
     let note;
     if(it.done) note=`<p class="note">${icon("lock")}<span>${t("visited",{a:fmt(it.start),b:fmt(it.end)})}</span></p>`;
     else if(it.conflict) note=`<p class="note warn">${icon("alert")}<span>${it.conflict==="close"?t("conflictClose",{t:fmt(p.close)}):t("conflictWindow",{t:fmt(state.endMin)})}</span></p>`;
+    else if(p.status==="unknown") note=`<p class="note warn" data-testid="hours-check">${icon("alert")}<span>${t("hoursCheck")}</span></p>`;
     else if(it.wait>0) note=`<p class="note">${icon("clock")}<span>${t("wait",{t:fmt(p.open),n:it.wait})}</span></p>`;
     else if(p.close<1440 && it.end>p.close-30) note=`<p class="note warn">${icon("alert")}<span>${t("soon",{t:fmt(p.close)})}</span></p>`;
     else note=`<p class="note">${icon("clock")}<span>${untilText(p)}</span></p>`;
@@ -1872,11 +1974,19 @@ function renderMap(){
   if(route.length>1){
     const pts=route.map(p=>[p.lat,p.lng]), token=routeToken;
     LROUTE=L.polyline(pts,{color:"#C93520",weight:4,opacity:.85,dashArray:"2 8",lineCap:"round"}).addTo(LMAP);
-    if(!state.routeDown) walkGeometry(route).then(g=>{
+    const walkLine=()=>{ if(!state.routeDown) walkGeometry(route).then(g=>{
       if(!g||token!==routeToken||!LMAP) return;
       LMAP.removeLayer(LROUTE); LROUTE=L.polyline(g,{color:"#C93520",weight:4,opacity:.9}).addTo(LMAP);
       LROUTE.getElement()?.setAttribute("data-route","osm");
+    }); };
+    if(state.view==="now"&&state.navMode==="transit") transitRoute(route[0],route[1]).then(lt=>{   /* walking in red, rides in blue */
+      if(token!==routeToken||!LMAP) return;
+      if(!lt) return walkLine();
+      LMAP.removeLayer(LROUTE);
+      LROUTE=L.layerGroup(lt.steps.filter(s=>s.coords.length>1).map(s=>L.polyline(s.coords,s.kind==="walk"?{color:"#C93520",weight:4,opacity:.9}:{color:"#2557A7",weight:6,opacity:.9}))).addTo(LMAP);
+      LROUTE.eachLayer(l=>l.getElement()?.setAttribute("data-route","longdo"));
     });
+    else walkLine();
   }
   if(col.offsetWidth===0){ lastFit=""; return; }     /* hidden on phones while describing */
   const bottom = (isPhone() && state.view!=="describe") ? Math.min(snapPx(state.sheet)+16, col.clientHeight*0.6) : 0;   /* keep pins above the sheet */
@@ -1931,18 +2041,28 @@ function go(view,focus=true){
 
 /* ---------- actions ---------- */
 function runSearch(q){
+  if(SEARCH_ON) return searchService(q);
   state.parsed=parseQuery(q);
   const r=rank(q,state.parsed);
   state.results=r.list; state.mode=r.mode; state.searched=true;
   state.animate=true; state.expanded=new Set();
+  return Promise.resolve();
+}
+/* the review-based search (dayoff-search through /api/search); when it does not answer, nearest first and the page says so */
+async function searchService(q){
+  const r=await DAYOFF_SEARCH.search(q,{lat:ME.lat,lng:ME.lng});
+  state.parsed={tags:[],cafe:false,vibes:r?r.vibes:[]};
+  if(r){ state.results=r.list.filter(x=>P[x.id]); state.mode=r.mode; state.searchNote=r.degraded?"degraded":null; }
+  else { state.results=rank("",state.parsed).list; state.mode="down"; state.searchNote=null; }
+  state.searched=true; state.animate=true; state.expanded=new Set();
 }
 function search(){
   const q=state.query.trim();
   state.loading=true; render({focus:"[data-fk='find']"});
-  setTimeout(()=>{
-    state.loading=false; runSearch(q);
+  setTimeout(()=>runSearch(q).then(()=>{
+    state.loading=false;
     render({focus:"#vh"}); window.scrollTo(0,0);
-  },500);
+  }),500);
 }
 function addToggle(id){
   const i=state.tray.indexOf(id);
@@ -1992,10 +2112,11 @@ function acceptSuggestion(id){
   pushUndo(); state.tray.push(id); state.rejected=[]; render({focus:"#vh"}); toast(t("tSugAdded",{name:nm(P[id])}),true);
 }
 function loadSample(){
-  state.query=EXAMPLES[0][state.lang]; state.parsed=parseQuery(state.query);
-  const r=rank(state.query,state.parsed); state.results=r.list; state.mode=r.mode; state.searched=true;
+  if(SEARCH_ON){ state.query=""; state.searched=false; }
+  else { state.query=EXAMPLES[0][state.lang]; state.parsed=parseQuery(state.query);
+    const r=rank(state.query,state.parsed); state.results=r.list; state.mode=r.mode; state.searched=true; }
   /* stops that are open every day, so the sample works on any weekday */
-  state.tray=["soheng","eiahsae","gulongbao","yoofish"]; state.skipped=[]; state.visits=[]; state.rejected=[];
+  state.tray=SEARCH_ON?sampleTray():["soheng","eiahsae","gulongbao","yoofish"]; state.skipped=[]; state.visits=[]; state.rejected=[];
   state.delay=0; state.startMin=600; state.endMin=1080; state.prev=null; state.routeDown=false; state.manual=false; state.pins={};
   const first=plan().items[0];
   state.visits=[{id:first.id,start:first.start,end:first.end}];
@@ -2100,7 +2221,9 @@ async function loadDetailPhoto(sh,p){
 function openDetail(id){
   const p=P[id], inDay=state.tray.includes(id), sh=$("#sheet");
   sh.dataset.pid=id;
-  const axes=allTags.map(tag=>{
+  const sr=p.src==="search", hit=sr&&state.results.find(r=>r.id===id&&r.mentions);
+  const axes=sr?(hit?Object.entries(hit.mentions).map(([v,n])=>`<li><span>${esc(DAYOFF_SEARCH.label(v,state.lang))}</span><span class="mn">${(n===1?t("srReview1"):t("srReviews",{n}))}</span></li>`).join(""):"")
+    :allTags.map(tag=>{
     const sc=p.tags[tag]; let s=""; for(let i=0;i<5;i++) s+=`<i class="${i<sc?"on":""}"></i>`;
     return `<li><span>${TAGNAME[state.lang][tag]}</span><span class="slats" role="img" aria-label="${TAGNAME[state.lang][tag]} ${sc}/5">${s}</span><span class="mn">${sc}/5</span></li>`;
   }).join("");
@@ -2114,8 +2237,8 @@ function openDetail(id){
     <p class="meta">${icon("walk")} ${t("fromHere",{n:walkMin(ME,p),name:t("walkOrigin")})}</p>
     <div class="slider"><div class="top"><label for="stayR">${t("stay")}</label><output id="stayR-o" for="stayR">${t("dur",{n:d})}</output></div>
       <input type="range" id="stayR" min="15" max="180" step="5" value="${d}" style="--p:${(d-15)/(180-15)*100}%" data-fk="stayR"></div>
-    <div><h3>${t("axes")}</h3><ul class="axes">${axes}</ul></div>
-    <p class="srcline">${icon("info")}<span>${t("sigScore")}. ${t("priceEst")}. ${t("srcLine")} <a href="https://www.openstreetmap.org/${p.osm}" target="_blank" rel="noopener">OSM ${esc(p.osm)}</a></span></p>
+    ${sr?(axes?`<div><h3>${t("srAxes")}</h3><ul class="axes">${axes}</ul></div>`:`<p class="meta">${t("srNoAxes")}</p>`):`<div><h3>${t("axes")}</h3><ul class="axes">${axes}</ul></div>`}
+    <p class="srcline">${icon("info")}<span>${sr?`${srcFacts(p)} ${scoreNote(null,p)}`:`${t("sigScore")}. ${t("priceEst")}. ${t("srcLine")} <a href="https://www.openstreetmap.org/${p.osm}" target="_blank" rel="noopener">OSM ${esc(p.osm)}</a>`}</span></p>
     <div class="sheet-actions"><button type="button" class="btn ghost" data-act="cancel">${t("closeBtn")}</button>
       <button type="button" class="btn primary" data-act="sheetAdd" data-id="${id}">${icon(inDay?"check":"plus")}${t(inDay?"remove":"add",{name:nm(p)})}</button></div>
   </div>`;

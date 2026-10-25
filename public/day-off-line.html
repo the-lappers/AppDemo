@@ -168,11 +168,12 @@ function gapBox(it,idx){
 function fitOf(id,at){
   const base=sim(), arr=[...S.tray]; arr.splice(at,0,id);
   const r=simulate(arr,state.startMin+S.late,ME_P,state.endMin,true), it=r.items[at], p=P[id];
-  if(p.status==="closed") return {ok:false,msg:t("noDay")}; if(p.status==="unknown") return {ok:false,msg:t("noUnknown")};
+  if(p.status==="closed") return {ok:false,msg:t("noDay")};
   if(it.conflict) return {ok:false,msg:it.conflict==="close"?t("noClose",{t:fmt(p.close),f:fmt(it.end)}):t("pastEnd",{f:fmt(it.end),e:fmt(state.endMin)})};
   const before=base.items.filter(x=>x.conflict).length, after=r.items.filter(x=>x.conflict).length, push=after-before;
   const walk=it.walk;
   if(push>0) return {ok:true,msg:t("pushes",{n:push,s:push===1?t("stopWord"):t("stopsWord")}),it,walk,warn:true};
+  if(p.status==="unknown") return {ok:true,msg:t("fits",{a:fmt(it.start),b:fmt(it.end)})+" · "+t("noUnknown"),it,walk,warn:true};   /* planned as open all day */
   return {ok:true,msg:t("fits",{a:fmt(it.start),b:fmt(it.end)}),it,walk};
 }
 function render(){

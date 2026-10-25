@@ -202,10 +202,10 @@ test.describe('compare hub and the way between versions', () => {
     await page.getByRole('link', { name: /Go now/ }).click();
     await expect(page).toHaveURL(/day-off-gonow\.html\?lang=en/);
   });
-  test('shared files are served, and env.js still exposes only the two map keys', async ({ request }) => {
+  test('shared files are served, and env.js still exposes only the two map keys and the transit flag', async ({ request }) => {
     for (const f of ['shared/core.js', 'shared/ui.js', 'shared/map.js', 'shared/base.css', 'shared/sprite.js', 'shared/previews/swipe.png']) expect((await request.get('/' + f)).status(), f).toBe(200);
     const env = await (await request.get('/env.js')).text();
-    expect(Object.keys(JSON.parse(env.replace(/^window\.DAYOFF_ENV=/, '').replace(/;$/, '')))).toEqual(['MAP_BLOCK_KEY', 'LONGDO_MAP_KEY']);
+    expect(Object.keys(JSON.parse(env.replace(/^window\.DAYOFF_ENV=/, '').replace(/;$/, '')))).toEqual(['MAP_BLOCK_KEY', 'LONGDO_MAP_KEY', 'TRANSIT']);
   });
   test('every new page keeps a visible keyboard focus ring', async ({ page }) => {
     for (const f of ['day-off-swipe.html', 'day-off-mixer.html', 'day-off-line.html', 'day-off-room.html', 'day-off-gonow.html', 'versions.html']) {

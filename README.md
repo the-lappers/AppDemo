@@ -32,7 +32,33 @@ The demo works without keys, using free map tiles. To use Mapbox or Longdo maps:
 1. `make env` creates a `.env` file from `.env.example`.
 2. Open `.env` and paste your keys: `MAP_BLOCK_KEY` (a public Mapbox token starting with `pk.`) and `LONGDO_MAP_KEY`.
 
+## Live public transport (optional)
+
+Add `LONGDO_KEY` to `.env` (a Longdo Map key, from map.longdo.com) and restart. The home page's Navigate card then shows one **Transit** button instead of the BTS and MRT estimates. It asks Longdo for a real door-to-door route: walking plus BTS, MRT, Airport Rail Link and ferry, with station names, waiting time and the route on the map. Longdo chooses the lines itself, which is why BTS and MRT become one button.
+
+- The key stays on the server. The page calls `/api/transit` on our own server, and `/env.js` only says `TRANSIT: true`.
+- Nothing is stored on disk. Answers are kept in memory for 6 hours, so redrawing the page does not spend your quota. The server also stops at 40 Longdo calls a minute and 2,000 a day (`LONGDO_DAILY_MAX`); Longdo's free plan allows 60 and 5,000.
+- Longdo keys are locked to a domain through the Referer header. The server sends `http://localhost`; set `LONGDO_REFERER` if your key is registered for another domain.
+- Without a key, or when Longdo does not answer, the page falls back to the old BTS/MRT estimates and says so.
+
 Never commit `.env`. It is already in `.gitignore`, and the server only serves the `public/` folder. The only values sent to the browser are those two public keys, through `/env.js`. Restrict the Mapbox token to your site URLs in the Mapbox dashboard.
+
+## Vibe search (optional)
+
+The real search lives in the `dayoff-search` repo, next to this one. When it is running, the demo uses it:
+
+```
+# in ../dayoff-search (see its README; needs local/ data and config/local_ratchayothin.yaml)
+.venv/bin/python -m dayoff.api --config config/local_ratchayothin.yaml      # http://127.0.0.1:8000
+# here: put SEARCH_API_URL=http://127.0.0.1:8000 in .env, then
+make start
+```
+
+- The demo moves to the search service's area (Ratchayothin): its venues become the places on the map, in the planner and in the chat, and a day starts at BTS Ratchayothin.
+- Typed searches (chat), the mic and Places use the service: results are its ranking, and each card says what reviews say ("Reviews call it bright, leafy", review counts in Why this match and Details). Without a vibe in the query, the nearest places come first.
+- Opening hours and price come from the service (Google Maps); places with too few reviews say so.
+- The browser only talks to this server (`/api/search`), which forwards to `SEARCH_API_URL`. If the service is not running, the demo uses its own Chinatown places; if it stops later, the page says so and lists places nearest first.
+- The Ratchayothin data is a local-only Google Maps scrape: never publish it or screenshots of it.
 
 ## Your own place data
 
@@ -80,7 +106,7 @@ Makefile  Dockerfile  docker-compose.yml  .env.example
 - Not tested on a physical phone or with a real microphone.
 - Trips are stored only in the browser (`localStorage`). A share code carries the whole trip, so joining needs no server.
 - The embedded chat inside Home is a page inside a page, so language and theme do not sync back.
-- BTS and MRT times, stops and station positions are demo estimates, not timetables.
+- Without `LONGDO_KEY`, BTS and MRT times, stops and station positions are demo estimates, not timetables. With it, Transit is live from Longdo (home page only; the other pages still use the estimates).
 - Walking routes come from the public OSM routing service. If it is down, the pages fall back to straight-line estimates and say so.
 
 More on the design decisions: `docs/PRODUCT.md`.

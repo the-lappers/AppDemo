@@ -15,7 +15,7 @@ An array of places, or `{ "places": [ ... ] }`.
 | `lat`, `lng` (or `latitude`, `longitude`, `lon`) | yes | Decimal degrees |
 | `id` | no | Unique and stable (used in saved trips and share codes). Made from the name if missing |
 | `type` (or `category`) | no | `cafe`, `food`, `art`, `shrine`, `temple` or `market`. Free text such as "coffee shop" is matched. Default `food` |
-| `area` | no | `songwat`, `yaowarat` or `talatnoi`. Default `yaowarat` |
+| `area` | no | `songwat`, `yaowarat`, `talatnoi`, `rattanakosin` or `samyan`. Default `yaowarat` |
 | `h` (or `opening_hours`, `hours`) | no | OpenStreetMap opening-hours text, for example `Mo-Su 09:00-18:00` or `Tu-Su 10:00-18:00`. Empty means "hours unknown" |
 | `dur` | no | Minutes people usually stay. Default 45 |
 | `price` | no | 0 free, 1 street or market, 2 cafe, 3 sit-down. Default 1 |

@@ -158,6 +158,7 @@ input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--ink);o
 .st.warn{background:var(--gold-soft)}
 .st.done{background:var(--done);color:var(--bg)}
 .meta{font-size:13px;color:var(--ink-2);margin-top:2px}
+.why1{font-size:13px;margin-top:var(--s1)}
 .vibes{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s4);margin-top:var(--s3)}
 .vibe{display:inline-flex;align-items:center;gap:var(--s2);font-size:13px}
 .vibe .vs{color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -539,6 +540,7 @@ dialog[open]::backdrop{animation:fade 200ms ease-out}
 
 <script src="places.js"></script>
 <script src="env.js"></script>
+<script src="shared/search.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 "use strict";
@@ -569,7 +571,7 @@ const STR = {
     sumStops:"Stops", sumLen:"Day length", sumWalk:"Walking", durH:"{h} h {m} min", durHo:"{h} h", kmTxt:"{km} km",
     walk:"{n} min walk", walkApprox:"~{n} min walk", wait:"Opens {t}, wait {n} min", soon:"Closes {t}, don't linger", dur:"{n} min", hrs:"{n} hr", rm:"Remove {name}",
     late:"Running late? Re-plan", notfit:"Doesn't fit today", swap:"Swap for another place",
-    reasonLate:"Opens {t}, too late to fit", reasonEarly:"Closes {t}, you'd arrive too late", reasonWindow:"Would end after {t}, past your day window", reasonUnknown:"Hours unknown, so it can't be scheduled", reasonClosed:"Closed today, so it can't be scheduled",
+    reasonLate:"Opens {t}, too late to fit", reasonEarly:"Closes {t}, you'd arrive too late", reasonWindow:"Would end after {t}, past your day window", reasonUnknown:"Hours unknown, so it can't be scheduled", hoursCheck:"Opening hours unknown. Check before you go", srMatch:"Reviews call it {a}", srNoMatch:"No review calls it {a}", srReviews:"{n} reviews", srReview1:"1 review", srAxes:"What reviews say about the searched vibes", srNoAxes:"Vibes here come from reviews. Search for a vibe to see what reviewers say about this place.", srCat:"Google Maps category: {c}", srHours:"Opening hours from Google Maps", srNoHours:"Google Maps has no opening hours for this place", srSource:"Ranked by the Day-Off search from Google Maps reviews (local test data, not for publishing)", srNoReviews:"Too few reviews to judge its vibe", srDown:"The search service isn't answering, so places are listed nearest first.", srDegraded:"Few places here are described that way, so the nearest ones come first.", srEmpty:"No vibe typed. Showing places nearest {name}. Try one of these:", srNone:"No vibe found in “{q}”. Showing the closest matches.", reasonClosed:"Closed today, so it can't be scheduled",
     warnWindow:"Not everything fits before {t}. Remove a stop or move the end time later.",
     dayEmpty:"No stops yet", dayEmptyBody:"Find places that match your vibe, then add them here.",
     stDone:"Done", stLate:"Late", stPinned:"Pinned", visited:"Visited {a}–{b}", skippedH:"Skipped",
@@ -627,7 +629,7 @@ const STR = {
     sumStops:"จุดแวะ", sumLen:"ความยาววัน", sumWalk:"การเดิน", durH:"{h} ชม. {m} นาที", durHo:"{h} ชม.", kmTxt:"{km} กม.",
     walk:"เดิน {n} นาที", walkApprox:"เดินประมาณ {n} นาที", wait:"เปิด {t} รอ {n} นาที", soon:"ปิด {t} อย่าอยู่นาน", dur:"{n} นาที", hrs:"{n} ชม.", rm:"เอา {name} ออก",
     late:"ไปช้า? จัดวันใหม่", notfit:"วันนี้ไม่ทัน", swap:"เปลี่ยนเป็นที่อื่น",
-    reasonLate:"เปิด {t} ไม่ทันแล้ว", reasonEarly:"ปิด {t} ไปถึงไม่ทัน", reasonWindow:"จะจบหลัง {t} เกินเวลาของวัน", reasonUnknown:"ไม่ทราบเวลาเปิด จึงจัดเวลาไม่ได้", reasonClosed:"วันนี้ปิด จึงจัดเวลาไม่ได้",
+    reasonLate:"เปิด {t} ไม่ทันแล้ว", reasonEarly:"ปิด {t} ไปถึงไม่ทัน", reasonWindow:"จะจบหลัง {t} เกินเวลาของวัน", reasonUnknown:"ไม่ทราบเวลาเปิด จึงจัดเวลาไม่ได้", hoursCheck:"ไม่ทราบเวลาเปิด เช็กก่อนไป", srMatch:"รีวิวบอกว่า{a}", srNoMatch:"ยังไม่มีรีวิวที่บอกว่า{a}", srReviews:"{n} รีวิว", srReview1:"1 รีวิว", srAxes:"รีวิวพูดถึงบรรยากาศที่ค้นอย่างไร", srNoAxes:"บรรยากาศของที่นี่มาจากรีวิว ลองค้นหาบรรยากาศเพื่อดูว่ารีวิวพูดถึงที่นี่อย่างไร", srCat:"ประเภทใน Google Maps: {c}", srHours:"เวลาเปิดจาก Google Maps", srNoHours:"Google Maps ไม่มีเวลาเปิดของที่นี่", srSource:"จัดอันดับโดยระบบค้นหา Day-Off จากรีวิว Google Maps (ข้อมูลทดสอบในเครื่อง ห้ามเผยแพร่)", srNoReviews:"รีวิวยังน้อยเกินกว่าจะบอกบรรยากาศ", srDown:"ระบบค้นหาไม่ตอบ จึงเรียงจากที่ใกล้ที่สุดแทน", srDegraded:"มีไม่กี่ที่ที่รีวิวพูดถึงแบบนี้ จึงเรียงที่ใกล้ที่สุดก่อน", srEmpty:"ยังไม่ได้พิมพ์บรรยากาศ จึงแสดงที่ใกล้ {name} ก่อน ลองคำค้นเหล่านี้:", srNone:"ไม่พบบรรยากาศในคำว่า “{q}” จึงแสดงที่ใกล้เคียงที่สุด", reasonClosed:"วันนี้ปิด จึงจัดเวลาไม่ได้",
     warnWindow:"บางจุดไม่ทันก่อน {t} เอาจุดออก หรือเลื่อนเวลาจบวันให้ช้าลง",
     dayEmpty:"ยังไม่มีจุดแวะ", dayEmptyBody:"หาที่ที่เข้ากับบรรยากาศ แล้วเพิ่มมาไว้ที่นี่",
     stDone:"เสร็จแล้ว", stLate:"ช้า", stPinned:"ปักหมุด", visited:"แวะ {a}–{b}", skippedH:"จุดที่ข้าม",
@@ -728,7 +730,7 @@ const TYPENAME = {
   en:{cafe:"Café", food:"Food", art:"Gallery", shrine:"Shrine", temple:"Temple", market:"Market"},
   th:{cafe:"คาเฟ่", food:"อาหาร", art:"แกลเลอรี", shrine:"ศาลเจ้า", temple:"วัด", market:"ตลาด"}
 };
-const AREA = {en:{songwat:"Song Wat", yaowarat:"Yaowarat", talatnoi:"Talat Noi"}, th:{songwat:"ซองวัด", yaowarat:"เยาวราช", talatnoi:"ตลาดน้อย"}};
+const AREA = {en:{songwat:"Song Wat", yaowarat:"Yaowarat", talatnoi:"Talat Noi", rattanakosin:"Rattanakosin", samyan:"Sam Yan", ratchayothin:"Ratchayothin"}, th:{songwat:"ซองวัด", yaowarat:"เยาวราช", talatnoi:"ตลาดน้อย", rattanakosin:"เกาะรัตนโกสินทร์", samyan:"สามย่าน", ratchayothin:"รัชโยธิน"}};
 const DAYS = {en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], th:["จ.","อ.","พ.","พฤ.","ศ.","ส.","อา."]};
 const CHIPS = [
   {tag:"calm",   en:"quiet and slow",  th:"เงียบ ๆ ชิล ๆ"},
@@ -790,7 +792,12 @@ if(typeof SUGGESTS!=="undefined") SUGGESTS.splice(0,SUGGESTS.length,...SUGGESTS.
 const PRICE={hongsieng:2,soheng:2,eiahsae:1,gulongbao:1,naam:3,hoytod:1,yoofish:1,fishball:1,tk:3,walkst:1,influence:1,traimit:1,mangkon:0,chowsue:0,sampeng:1};
 PLACES.forEach(p=>{ if(p.price==null) p.price=PRICE[p.id]??1; });
 const DIST_MAX = 25;   /* distance slider is in 100 m steps: 25 = "any" */
-const MAX_STOPS = 6, ME = {lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
+const MAX_STOPS = 6, ME = (window.DAYOFF_AREA&&window.DAYOFF_AREA.start)||{lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
+if(window.DAYOFF_AREA){ STR.en.walkOrigin=DAYOFF_AREA.startName.en; STR.th.walkOrigin=DAYOFF_AREA.startName.th; }   /* the search area starts the day elsewhere */
+/* vibe search: the dayoff-search service ranks its places from reviews (shared/search.js); examples follow its vocabulary */
+const SEARCH_ON=!!(window.DAYOFF_SEARCH&&DAYOFF_SEARCH.on);
+if(SEARCH_ON) EXAMPLES.splice(0,EXAMPLES.length,{en:"bright minimal cafe",th:"คาเฟ่มินิมอล สว่างๆ"},{en:"cozy cafe with plants",th:"คาเฟ่อบอุ่น ต้นไม้เยอะ"},
+  {en:"vintage wooden cafe",th:"คาเฟ่วินเทจ โทนไม้"},{en:"spacious restaurant",th:"ร้านอาหารกว้างๆ"});
 
 /* ---------- live clock (Bangkok). ?at=Sat-11:00 pins it for demos and tests ---------- */
 const params = new URLSearchParams(location.search);
@@ -805,6 +812,12 @@ const DAYIDX = {Mo:0,Tu:1,We:2,Th:3,Fr:4,Sa:5,Su:6};
 /* minimal opening_hours reader for the shapes used above: "Mo-Su 09:00-18:00", "Tu-Su ...", "10:00-19:00" */
 function hoursFor(h,dow){
   if(!h) return {status:"unknown"};
+  if(typeof h==="object"){                 /* the search service's {"mon": [["08:00","18:00"]], ...}; a missing day = closed */
+    const iv=h[["mon","tue","wed","thu","fri","sat","sun"][dow]]; if(!iv||!iv.length) return {status:"closed"};
+    const mm=s=>+s.slice(0,2)*60+ +s.slice(3,5), o=Math.min(...iv.map(x=>mm(x[0])));
+    const c=Math.max(...iv.map(x=>mm(x[1])<=mm(x[0])?mm(x[1])+1440:mm(x[1])));   /* split hours plan as one span: first open to last close */
+    return {status:"ok", open:o, close:c};
+  }
   const m=h.match(/^(?:(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))? )?(\d\d):(\d\d)-(\d\d):(\d\d)$/);
   if(!m) return {status:"unknown"};
   const a=m[1]?DAYIDX[m[1]]:0, b=m[1]?(m[2]?DAYIDX[m[2]]:a):6;
@@ -879,6 +892,7 @@ function parseQuery(q){
 }
 const baseTags = () => state.parsed.tags.length ? state.parsed.tags : allTags;
 function rank(q,parsed){
+  if(SEARCH_ON) return {mode:"empty", list:[...PLACES].sort((a,b)=>meters(ME,a)-meters(ME,b)).map(p=>({id:p.id,m:null}))};
   const base=parsed.tags.length?parsed.tags:allTags;
   const mode = !q ? "empty" : !parsed.tags.length ? "none" : "match";
   const list = PLACES.map(p=>{
@@ -898,18 +912,38 @@ function visibleResults(){
     return true;
   }).slice(0,10);
 }
-const isWeak = r => state.mode==="match" && r.m<.6;
+const isWeak = r => state.mode==="match" && (r.weak ?? r.m<.6);   /* search results: weak = no review mentions a searched vibe */
+/* the sample day in the search area: the nearest places open 10:00-18:00 every day, two cafés and two food stops */
+function sampleTray(){
+  const allWeek=p=>[0,1,2,3,4,5,6].every(d=>{ const r=hoursFor(p.h,d); return r.status==="ok"&&r.open<=600&&r.close>=1080; });
+  const ok=PLACES.filter(p=>p.reviews!==false&&allWeek(p)).sort((a,b)=>meters(ME,a)-meters(ME,b));
+  return [...ok.filter(p=>p.type==="cafe").slice(0,2),...ok.filter(p=>p.type==="food").slice(0,2)].map(p=>p.id);
+}
+/* where a place's facts and scores come from: OpenStreetMap + demo estimates, or Google Maps + the review search */
+const vibeNames=ids=>ids.map(x=>DAYOFF_SEARCH.label(x,state.lang)).join(", ");
+const srcFacts=p=>p.src==="search"?`${t("srCat",{c:p.cat})}. ${p.h?t("srHours"):t("srNoHours")}.`:`${t("sigCat",{c:p.cat})}. ${p.h?t("sigHours"):t("sigNoHours")}.`;
+function scoreNote(r,p){
+  if(p.src!=="search") return `${t("sigScore")}. ${t("priceEst")}.`;
+  const ev=r&&r.mentions?Object.entries(r.mentions).map(([v,n])=>`${DAYOFF_SEARCH.label(v,state.lang)}: ${(n===1?t("srReview1"):t("srReviews",{n}))}`).join(" · "):"";
+  return `${ev?ev+". ":""}${p.reviews===false?t("srNoReviews")+". ":""}${t("srSource")}.${p.priceEst?" "+t("priceEst")+".":""}`;
+}
+function searchWhy(r,p){
+  if(!r.vibe) return "";
+  if(r.vibe.matched.length) return t("srMatch",{a:vibeNames(r.vibe.matched)});
+  return p.reviews===false?t("srNoReviews"):t("srNoMatch",{a:vibeNames(r.vibe.not_matched)});
+}
 /* ---------- route solver (mock of the OR-Tools step) ---------- */
 function simulate(order,start,prevPlace,endMin,manual=false){
   let now=start, prev=prevPlace||null, walk=0; const items=[], dropped=[];
   for(const id of order){
     const p=P[id];
-    if(p.status==="unknown"){ dropped.push({id, reason:"unknown"}); continue; }
     if(p.status==="closed"){ dropped.push({id, reason:"closedday"}); continue; }
-    const w=prev?walkMin(prev,p):0, arr=now+w, s=Math.max(arr,p.open), end=s+durOf(p);
+    /* hours unknown: plan it as open all day; the stop tells people to check before they go */
+    const unknown=p.status==="unknown", open=unknown?0:p.open, close=unknown?Infinity:p.close;
+    const w=prev?walkMin(prev,p):0, arr=now+w, s=Math.max(arr,open), end=s+durOf(p);
     let conflict=null;
     /* automatic mode drops what cannot fit; manual mode keeps the user's order and flags the conflict instead */
-    if(end>p.close){ if(!manual){ dropped.push({id, reason: arr<p.open ? "late" : "early"}); continue; } conflict="close"; }
+    if(end>close){ if(!manual){ dropped.push({id, reason: arr<open ? "late" : "early"}); continue; } conflict="close"; }
     else if(end>endMin){ if(!manual){ dropped.push({id, reason:"window"}); continue; } conflict="window"; }
     items.push({id, walk:w, wait:s-arr, start:s, end, conflict});
     walk+=w; now=end; prev=p;
@@ -1064,6 +1098,7 @@ function viewDay(){
     let note;
     if(it.done) note=`<p class="note">${icon("lock")}<span>${t("visited",{a:fmt(it.start),b:fmt(it.end)})}</span></p>`;
     else if(it.conflict) note=`<p class="note warn">${icon("alert")}<span>${it.conflict==="close"?t("conflictClose",{t:fmt(p.close)}):t("conflictWindow",{t:fmt(state.endMin)})}</span></p>`;
+    else if(p.status==="unknown") note=`<p class="note warn" data-testid="hours-check">${icon("alert")}<span>${t("hoursCheck")}</span></p>`;
     else if(it.wait>0) note=`<p class="note">${icon("clock")}<span>${t("wait",{t:fmt(p.open),n:it.wait})}</span></p>`;
     else if(p.close<1440 && it.end>p.close-30) note=`<p class="note warn">${icon("alert")}<span>${t("soon",{t:fmt(p.close)})}</span></p>`;
     else note=`<p class="note">${icon("clock")}<span>${untilText(p)}</span></p>`;
@@ -1384,7 +1419,9 @@ async function loadDetailPhoto(sh,p){
 function openDetail(id){
   const p=P[id], inDay=state.tray.includes(id), sh=$("#sheet");
   sh.dataset.pid=id;
-  const axes=allTags.map(tag=>{
+  const sr=p.src==="search", hit=sr&&state.results.find(r=>r.id===id&&r.mentions);
+  const axes=sr?(hit?Object.entries(hit.mentions).map(([v,n])=>`<li><span>${esc(DAYOFF_SEARCH.label(v,state.lang))}</span><span class="mn">${(n===1?t("srReview1"):t("srReviews",{n}))}</span></li>`).join(""):"")
+    :allTags.map(tag=>{
     const sc=p.tags[tag]; let s=""; for(let i=0;i<5;i++) s+=`<i class="${i<sc?"on":""}"></i>`;
     return `<li><span>${TAGNAME[state.lang][tag]}</span><span class="slats" role="img" aria-label="${TAGNAME[state.lang][tag]} ${sc}/5">${s}</span><span class="mn">${sc}/5</span></li>`;
   }).join("");
@@ -1398,8 +1435,8 @@ function openDetail(id){
     <p class="meta">${icon("walk")} ${t("fromHere",{n:walkMin(ME,p),name:t("walkOrigin")})}</p>
     <div class="slider"><div class="top"><label for="stayR">${t("stay")}</label><output id="stayR-o" for="stayR">${t("dur",{n:d})}</output></div>
       <input type="range" id="stayR" min="15" max="180" step="5" value="${d}" style="--p:${(d-15)/(180-15)*100}%" data-fk="stayR"></div>
-    <div><h3>${t("axes")}</h3><ul class="axes">${axes}</ul></div>
-    <p class="srcline">${icon("info")}<span>${t("sigScore")}. ${t("priceEst")}. ${t("srcLine")} <a href="https://www.openstreetmap.org/${p.osm}" target="_blank" rel="noopener">OSM ${esc(p.osm)}</a></span></p>
+    ${sr?(axes?`<div><h3>${t("srAxes")}</h3><ul class="axes">${axes}</ul></div>`:`<p class="meta">${t("srNoAxes")}</p>`):`<div><h3>${t("axes")}</h3><ul class="axes">${axes}</ul></div>`}
+    <p class="srcline">${icon("info")}<span>${sr?`${srcFacts(p)} ${scoreNote(null,p)}`:`${t("sigScore")}. ${t("priceEst")}. ${t("srcLine")} <a href="https://www.openstreetmap.org/${p.osm}" target="_blank" rel="noopener">OSM ${esc(p.osm)}</a>`}</span></p>
     <div class="sheet-actions"><button type="button" class="btn ghost" data-act="cancel">${t("closeBtn")}</button>
       <button type="button" class="btn primary" data-act="sheetAdd" data-id="${id}">${icon(inDay?"check":"plus")}${t(inDay?"remove":"add",{name:nm(p)})}</button></div>
   </div>`;
@@ -1525,7 +1562,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const pushMsg=m=>{ m.id=++mid; state.msgs.push(m); return m; };
 const msgVars=m=>typeof m.v==="function" ? m.v() : (m.v||{});
 const liveResults=()=>[...state.msgs].reverse().find(m=>m.kind==="results")||null;
-const snapshotResults=()=>visibleResults().map(r=>({id:r.id, m:matchPct(r), weak:isWeak(r)}));
+const snapshotResults=()=>visibleResults().map(r=>({id:r.id, m:r.m==null?null:matchPct(r), weak:isWeak(r), vibe:r.vibe, mentions:r.mentions}));
 function filterSummary(){
   const f=state.filters, a=[];
   if(f.price<3) a.push(priceTxt3(f.price));
@@ -1583,15 +1620,31 @@ function reply(...ms){
 }
 
 function runSearch(q){
+  if(SEARCH_ON) return searchService(q);
   state.parsed=parseQuery(q);
   const r=rank(q,state.parsed);
   state.results=r.list; state.mode=r.mode; state.searched=true;
   if(state.mode==="none" && state.parsed.cafe) state.mode="match";   /* "cafe" alone is a real request */
+  return Promise.resolve();
 }
-function doSearch(q,lead){
-  state.query=q; runSearch(q);
+/* the review-based search (dayoff-search through /api/search); when it does not answer, nearest first and the bot says so */
+async function searchService(q){
+  const r=await DAYOFF_SEARCH.search(q,{lat:ME.lat,lng:ME.lng});
+  state.parsed={tags:[],cafe:false,vibes:r?r.vibes:[]};
+  if(r){ state.results=r.list.filter(x=>P[x.id]); state.mode=r.mode; state.searchNote=r.degraded?"degraded":null; }
+  else { state.results=rank("",state.parsed).list; state.mode="down"; state.searchNote=null; }
+  state.searched=true;
+}
+async function doSearch(q,lead){
+  state.query=q;
+  if(SEARCH_ON){ state.typing=true; render(); }
+  await runSearch(q);
+  if(SEARCH_ON){ state.typing=false; }
   const items=snapshotResults(), msg={kind:"results",items,tags:[...baseTags()],shown:3,filt:filterSummary(),mode:state.mode,q};
-  if(!items.length){ msg.k="rNoPass"; msg.chips=["reset"]; }
+  if(state.mode==="down"){ msg.k="srDown"; }
+  else if(!items.length){ msg.k="rNoPass"; msg.chips=["reset"]; }
+  else if(SEARCH_ON&&state.mode==="none"){ msg.k="srNone"; msg.v={q}; }
+  else if(SEARCH_ON&&state.mode==="match"&&state.searchNote==="degraded"){ msg.k="srDegraded"; }
   else if(state.mode==="none"){ msg.k="rNone"; msg.v={q}; msg.chips=["cafe","street","art","old"]; }
   else if(state.mode==="empty"){ msg.k=lead||"rFoundAll"; msg.v=function(){ return {n:this.items.length}; }; }
   else { msg.k="rFound"; msg.v=function(){ return {n:this.items.length,q:this.q}; }; }
@@ -1659,10 +1712,11 @@ function skipIntent(){
   reply({k:"rSkip",v:()=>({name:nm(P[cur.id])})}); suggestReply();
 }
 function loadSample(){
-  state.query=EXAMPLES[0][state.lang]; runSearch(state.query);
+  if(SEARCH_ON){ state.query=""; state.searched=false; }
+  else { state.query=EXAMPLES[0][state.lang]; runSearch(state.query); }
   state.filters={price:3,dist:DIST_MAX,open:false};
   /* stops that are open every day, so the sample works on any weekday */
-  state.tray=["soheng","eiahsae","gulongbao","yoofish"]; state.skipped=[]; state.visits=[]; state.rejected=[];
+  state.tray=SEARCH_ON?sampleTray():["soheng","eiahsae","gulongbao","yoofish"]; state.skipped=[]; state.visits=[]; state.rejected=[];
   state.delay=0; state.startMin=600; state.endMin=1080; state.prev=null; state.routeDown=false; state.manual=false; state.pins={}; state.suggest=false;
   const first=plan().items[0];
   state.visits=[{id:first.id,start:first.start,end:first.end}];
@@ -1705,8 +1759,8 @@ function pcardHTML(it,idx,m){
   return `<li class="card pcard" data-id="${p.id}" data-testid="pcard">
     <button type="button" class="thumbbtn" data-act="locate" data-id="${p.id}" data-fk="loc-${p.id}-${m.id}" aria-label="${esc(t("showOnMap",{name:nm(p)}))}">${thumbHTML(p)}</button>
     <div class="pc-main"><div class="name-line"><h3>${esc(nm(p))}</h3>${badge}${stat}</div>
-      <p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)}${p.status==="ok"?` · ${untilText(p)}`:""} · ${t("matchPct",{n:it.m})}</p>
-      <div class="vibes">${shown.map((tag,i)=>slatsHTML(tag,p.tags[tag],i)).join("")}</div></div>
+      <p class="meta">${AREA[state.lang][p.area]} · ${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)}${p.status==="ok"?` · ${untilText(p)}`:""}${it.m==null?"":` · ${t("matchPct",{n:it.m})}`}</p>
+      ${SEARCH_ON?(searchWhy(it,p)?`<p class="why1">${searchWhy(it,p)}</p>`:""):`<div class="vibes">${shown.map((tag,i)=>slatsHTML(tag,p.tags[tag],i)).join("")}</div>`}</div>
     <div class="pc-acts">
       <button type="button" class="btn small ${inDay?"dark":"primary"}" data-act="add" data-id="${p.id}" data-fk="add-${p.id}-${m.id}" aria-pressed="${inDay}" aria-label="${esc(addLbl)}">${icon(inDay?"check":"plus")}${t(inDay?"inDay":"addToDay")}</button>
       <button type="button" class="btn small ghost" data-act="detail" data-id="${p.id}" data-fk="detail-${p.id}-${m.id}" aria-label="${esc(t("detailsFor",{name:nm(p)}))}">${t("details")}</button>
@@ -1922,7 +1976,8 @@ msgBox.addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey && !e.i
 msgBox.addEventListener("input",fitBox);
 /* voice input: browser speech recognition (Thai or English to match the page language); the recognised text is sent like typed text */
 /* ?voice=demo swaps the browser's speech service for a pretend one that "hears" a sample phrase, so the voice flow can be tried without Google's service */
-const DEMO_SAY={en:["quiet cafe, old walls","street food at night","art alleys and murals"],th:["คาเฟ่เงียบ ๆ ตึกเก่า","ของกินริมทางยามค่ำ","ซอยอาร์ต ภาพมูรัล"]};
+const DEMO_SAY=SEARCH_ON?{en:["bright minimal cafe","cozy cafe with plants"],th:["คาเฟ่มินิมอล สว่างๆ","คาเฟ่อบอุ่น ต้นไม้เยอะ"]}
+  :{en:["quiet cafe, old walls","street food at night","art alleys and murals"],th:["คาเฟ่เงียบ ๆ ตึกเก่า","ของกินริมทางยามค่ำ","ซอยอาร์ต ภาพมูรัล"]};
 class DemoRec{
   start(){ toast(t("tMicDemo")); setTimeout(()=>{ const a=DEMO_SAY[state.lang]; const txt=a[Math.floor(Math.random()*a.length)]; this.onresult&&this.onresult({results:[Object.assign([{transcript:txt}],{isFinal:true})]}); this.onend&&this.onend(); },1100); }
   stop(){}

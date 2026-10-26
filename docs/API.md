@@ -68,6 +68,23 @@ A place keeps the shape used in `core.js`: `id, osm, en, th, area, type, cat, la
 2. The base URL is public, not a secret. Adding it to `/env.js` is a small change to `server.mjs`; that file currently exposes only the two map keys on purpose, so it is a decision to make together.
 3. The Trips and Home pages are changed to call the adapter instead of `localStorage` directly.
 
+## Vibe search (exists now, in `server.mjs`)
+
+With `SEARCH_API_URL` set (the dayoff-search service), `/places.js` serves that service's venues (`GET /venues`, converted to the place shape above plus `src: "search"`, per-day `h` like `{"mon": [["08:00","18:00"]]}`, `reviews`, `priceEst`) and `window.DAYOFF_AREA` (`id`, `start`, `startName`, `vibes`). `POST /api/search {query, top_k?, lat?, lng?}` forwards to the service's `POST /search` with `time: "any"` and the area's start point; the response is the service's, unchanged. Errors: 503 `search_off`, 502 `search_down` / `search_failed`, 400 `bad_json`, 413 `too_big`.
+
+## Public transport (exists now, in `server.mjs`)
+
+`GET /api/transit?from=lat,lng&to=lat,lng&lang=en|th` returns a Longdo walk + rapid transit + ferry route, normalised:
+
+```json
+{ "s": 2212, "m": 4252, "steps": [
+  { "kind": "walk", "turn": 1, "name": "Song Wat Rd.", "m": 202, "s": 202, "coords": [[13.7346, 100.5112], ...] },
+  { "kind": "rail", "line": "Blue Bang Wa", "from": "MRT Hua Lamphong", "to": "MRT Sanam Chai", "m": 2824, "s": 851, "wait": 480, "coords": [...] }
+] }
+```
+
+`s` is seconds (a ride's `s` includes `wait`), `m` metres, `coords` `[lat, lng]`. `kind` is `walk`, `rail`, `ferry`, `bus` or `train`; `turn` is Longdo's TurnCode (0 left, 1 right, 2 slight left, 3 slight right, 4 unknown, 5 straight). Errors: 400 `bad_point` (outside Thailand or malformed), 503 `transit_off` (no `LONGDO_KEY`), 429 `busy` (rate cap), 502 `longdo_failed`. A backend that replaces `server.mjs` should keep this path and shape.
+
 ## Questions for the backend
 
 - Language and database? (Only matters for the Docker setup: a second service in `docker-compose.yml`.)

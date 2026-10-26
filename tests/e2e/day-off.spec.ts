@@ -324,7 +324,9 @@ test.describe('Real map and places', () => {
     const env = await (await request.get('/env.js')).text();
     expect(env).toContain('pk.test-token-not-real');
     expect(env).not.toMatch(/PASSWORD|SECRET|SUPABASE/i);
-    expect(Object.keys(JSON.parse(env.replace(/^window\.DAYOFF_ENV=/, '').replace(/;$/, '')))).toEqual(['MAP_BLOCK_KEY', 'LONGDO_MAP_KEY']);
+    const vals = JSON.parse(env.replace(/^window\.DAYOFF_ENV=/, '').replace(/;$/, ''));
+    expect(Object.keys(vals)).toEqual(['MAP_BLOCK_KEY', 'LONGDO_MAP_KEY', 'TRANSIT']);
+    expect(vals.TRANSIT).toBe(false);                                   // only a yes/no; the Longdo routing key never leaves the server
     const html = await (await request.get('/day-off-demo.html')).text();
     expect(html).not.toMatch(/pk\.[A-Za-z0-9_-]{20,}/);                 // no token baked into the page
     for (const f of ['/.env', '/.env.example', '/server.mjs', '/package.json'])
@@ -573,13 +575,16 @@ test.describe('Sliders and filters', () => {
     await expect(page.getByTestId('tray')).toContainText('1 stops');
   });
 
-  test('an unscheduled hours-unknown stop is listed with the failed constraint', async ({ page }) => {
+  test('an hours-unknown stop is still planned, and says to check the hours before going', async ({ page }) => {
     await page.goto(URL);
     await search(page, 'old walls');
     await page.getByRole('button', { name: 'Add Wat Traimit to my day' }).click();
     await page.getByRole('button', { name: 'Add So Heng Tai Café to my day' }).click();
     await page.getByRole('button', { name: 'Build my day' }).click();
-    await expect(page.locator('.nofit')).toContainText("Hours unknown, so it can't be scheduled");
+    await expect(page.getByTestId('stop')).toHaveCount(2);
+    await expect(page.getByTestId('stop').filter({ hasText: 'Wat Traimit' }).getByTestId('hours-check')).toHaveText('Opening hours unknown. Check before you go');
+    await expect(page.getByTestId('stop').filter({ hasText: 'So Heng Tai Café' }).getByTestId('hours-check')).toHaveCount(0);
+    await expect(page.locator('.nofit')).toHaveCount(0);
   });
 
   test('a stop that is closed on this weekday is listed with that reason', async ({ page }) => {

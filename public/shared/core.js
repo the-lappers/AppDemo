@@ -12,7 +12,7 @@ const TYPENAME = {
   en:{cafe:"Café", food:"Food", art:"Gallery", shrine:"Shrine", temple:"Temple", market:"Market"},
   th:{cafe:"คาเฟ่", food:"อาหาร", art:"แกลเลอรี", shrine:"ศาลเจ้า", temple:"วัด", market:"ตลาด"}
 };
-const AREA = {en:{songwat:"Song Wat", yaowarat:"Yaowarat", talatnoi:"Talat Noi"}, th:{songwat:"ซองวัด", yaowarat:"เยาวราช", talatnoi:"ตลาดน้อย"}};
+const AREA = {en:{songwat:"Song Wat", yaowarat:"Yaowarat", talatnoi:"Talat Noi", rattanakosin:"Rattanakosin", samyan:"Sam Yan", ratchayothin:"Ratchayothin"}, th:{songwat:"ซองวัด", yaowarat:"เยาวราช", talatnoi:"ตลาดน้อย", rattanakosin:"เกาะรัตนโกสินทร์", samyan:"สามย่าน", ratchayothin:"รัชโยธิน"}};
 const DAYS = {en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], th:["จ.","อ.","พ.","พฤ.","ศ.","ส.","อา."]};
 const CHIPS = [
   {tag:"calm",   en:"quiet and slow",  th:"เงียบ ๆ ชิล ๆ"},
@@ -74,7 +74,7 @@ if(typeof SUGGESTS!=="undefined") SUGGESTS.splice(0,SUGGESTS.length,...SUGGESTS.
 const PRICE={hongsieng:2,soheng:2,eiahsae:1,gulongbao:1,naam:3,hoytod:1,yoofish:1,fishball:1,tk:3,walkst:1,influence:1,traimit:1,mangkon:0,chowsue:0,sampeng:1};
 PLACES.forEach(p=>{ if(p.price==null) p.price=PRICE[p.id]??1; });
 const DIST_MAX = 25;   /* distance slider is in 100 m steps: 25 = "any" */
-const MAX_STOPS = 6, ME = {lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
+const MAX_STOPS = 6, ME = (window.DAYOFF_AREA&&window.DAYOFF_AREA.start)||{lat:13.7384, lng:100.5170}, DETOUR = 1.25, WALK_M_PER_MIN = 80, WALK_MAX = 30;
 /* ---------- live clock (Bangkok). ?at=Sat-11:00 pins it for demos and tests ---------- */
 const params = new URLSearchParams(location.search);
 function bangkokNow(){
@@ -88,6 +88,12 @@ const DAYIDX = {Mo:0,Tu:1,We:2,Th:3,Fr:4,Sa:5,Su:6};
 /* minimal opening_hours reader for the shapes used above: "Mo-Su 09:00-18:00", "Tu-Su ...", "10:00-19:00" */
 function hoursFor(h,dow){
   if(!h) return {status:"unknown"};
+  if(typeof h==="object"){                 /* the search service's {"mon": [["08:00","18:00"]], ...}; a missing day = closed */
+    const iv=h[["mon","tue","wed","thu","fri","sat","sun"][dow]]; if(!iv||!iv.length) return {status:"closed"};
+    const mm=s=>+s.slice(0,2)*60+ +s.slice(3,5), o=Math.min(...iv.map(x=>mm(x[0])));
+    const c=Math.max(...iv.map(x=>mm(x[1])<=mm(x[0])?mm(x[1])+1440:mm(x[1])));   /* split hours plan as one span: first open to last close */
+    return {status:"ok", open:o, close:c};
+  }
   const m=h.match(/^(?:(Mo|Tu|We|Th|Fr|Sa|Su)(?:-(Mo|Tu|We|Th|Fr|Sa|Su))? )?(\d\d):(\d\d)-(\d\d):(\d\d)$/);
   if(!m) return {status:"unknown"};
   const a=m[1]?DAYIDX[m[1]]:0, b=m[1]?(m[2]?DAYIDX[m[2]]:a):6;
@@ -176,12 +182,13 @@ function simulate(order,start,prevPlace,endMin,manual=false){
   let now=start, prev=prevPlace||null, walk=0; const items=[], dropped=[];
   for(const id of order){
     const p=P[id];
-    if(p.status==="unknown"){ dropped.push({id, reason:"unknown"}); continue; }
     if(p.status==="closed"){ dropped.push({id, reason:"closedday"}); continue; }
-    const w=prev?walkMin(prev,p):0, arr=now+w, s=Math.max(arr,p.open), end=s+durOf(p);
+    /* hours unknown: plan it as open all day; the stop tells people to check before they go */
+    const unknown=p.status==="unknown", open=unknown?0:p.open, close=unknown?Infinity:p.close;
+    const w=prev?walkMin(prev,p):0, arr=now+w, s=Math.max(arr,open), end=s+durOf(p);
     let conflict=null;
     /* automatic mode drops what cannot fit; manual mode keeps the user's order and flags the conflict instead */
-    if(end>p.close){ if(!manual){ dropped.push({id, reason: arr<p.open ? "late" : "early"}); continue; } conflict="close"; }
+    if(end>close){ if(!manual){ dropped.push({id, reason: arr<open ? "late" : "early"}); continue; } conflict="close"; }
     else if(end>endMin){ if(!manual){ dropped.push({id, reason:"window"}); continue; } conflict="window"; }
     items.push({id, walk:w, wait:s-arr, start:s, end, conflict});
     walk+=w; now=end; prev=p;

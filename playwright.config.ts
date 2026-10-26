@@ -9,7 +9,7 @@ export default defineConfig({
   webServer: {
     command: 'node server.mjs',
     url: 'http://localhost:4174/day-off-demo.html',
-    env: { PORT: '4174', MAP_BLOCK_KEY: 'pk.test-token-not-real', LONGDO_MAP_KEY: 'longdo-test-key-not-real' },
+    env: { PORT: '4174', MAP_BLOCK_KEY: 'pk.test-token-not-real', LONGDO_MAP_KEY: 'longdo-test-key-not-real', LONGDO_KEY: '', SEARCH_API_URL: '' },   // no real Longdo calls or search service in tests
     reuseExistingServer: false,
   },
   projects: [

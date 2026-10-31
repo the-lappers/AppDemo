@@ -441,16 +441,33 @@ body.has-daybar .askfab{bottom:calc(var(--s4) + var(--dbh,0px) + env(safe-area-i
 .planner iframe{width:100%;height:100%;border:0;display:block;background:var(--bg)}
 .vlink{justify-self:start;font-size:13px}
 .mapcol{position:relative}
-.navbar{position:absolute;z-index:1100;top:30px;left:56px;right:8px;display:grid;gap:var(--s2);padding:var(--s3) var(--s4);border-radius:14px;background:var(--pill);color:var(--on-pill);box-shadow:0 8px 24px -6px rgba(0,0,0,.45)}
-.navbar[hidden],.nav-acts [hidden]{display:none}
-.nav-main{display:flex;gap:var(--s3);align-items:center}
-.nav-ic{flex:none;width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:20px;line-height:1}
-.nav-txt{font-weight:600;font-size:15px;line-height:1.35}
-.nav-meta{font-size:13px;opacity:.8;font-variant-numeric:tabular-nums}
+.navbar{position:fixed;z-index:1200;top:0;left:0;right:0;display:grid;gap:var(--s3);padding:calc(var(--s4) + env(safe-area-inset-top)) var(--gutter) var(--s3);background:var(--pill);color:var(--on-pill);box-shadow:0 8px 24px -6px rgba(0,0,0,.45);transition:background-color 200ms var(--ease)}
+.navbar.done{background:var(--accent);color:var(--on-accent)}
+.navbar[hidden],.navfoot[hidden],.nav-acts [hidden]{display:none}
+.nav-main{display:flex;gap:var(--s4);align-items:center}
+.nav-ic{flex:none;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:30px;line-height:1}
+.navbar.done .nav-ic{background:var(--on-accent);color:var(--accent)}
+.nav-txt{font-weight:600;font-size:22px;line-height:1.25}
+.nav-meta{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
 .nav-prog{height:4px;border-radius:2px;background:rgba(127,127,127,.35);overflow:hidden}
 .nav-prog i{display:block;height:100%;width:0;background:var(--accent);transition:width 240ms linear}
-.nav-acts{display:flex;gap:var(--s2);flex-wrap:wrap}
-.nav-demo{font-size:12px;opacity:.7}
+.navbar.done .nav-prog i{background:var(--on-accent)}
+.navfoot{position:fixed;z-index:1200;left:0;right:0;bottom:0;display:grid;gap:var(--s3);padding:var(--s4) var(--gutter) calc(var(--s4) + env(safe-area-inset-bottom));background:var(--bg);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -6px 24px -8px rgba(27,34,51,.3)}
+.nf-top{display:flex;justify-content:space-between;align-items:center;gap:var(--s3)}
+.nf-name{font-size:14px;color:var(--ink-2)}
+.nf-mode{display:inline-flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s3);border-radius:999px;background:var(--surface);font-size:13px;font-weight:600}
+.nf-mode .mi{width:20px;height:20px}
+.nav-acts{display:flex;gap:var(--s2)}
+.nav-acts .btn{flex:1;min-height:var(--tap)}
+.navcenter{position:absolute;right:var(--gutter);top:-64px;width:48px;height:48px;border:0;border-radius:50%;background:var(--bg);color:var(--ink);display:grid;place-items:center;box-shadow:0 4px 14px -4px rgba(0,0,0,.4)}
+.navcenter[hidden]{display:none}
+.navcenter:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.navcenter svg{width:24px;height:24px}
+body.navmode .header,body.navmode .panel,body.navmode #daybarFix,body.navmode .askfab{display:none !important}
+body.navmode .app{height:100dvh;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"map"}
+body.navmode .mapcol{display:block;grid-area:map;border-left:0}
+body.navmode .leaflet-top{margin-top:130px}
+.nav-demo{font-size:12px;color:var(--ink-2)}
 .modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s2);margin-top:var(--s3)}
 .modes button{display:grid;gap:2px;justify-items:center;align-content:center;min-height:64px;padding:var(--s2) var(--s1);border:1px solid var(--track);border-radius:12px;background:transparent;font-size:12px;color:var(--ink-2);transition:background-color 160ms var(--ease)}
 .modes button b{font-size:13px;color:var(--ink)}
@@ -599,10 +616,15 @@ a.btn{text-decoration:none}
 <div class="app">
   <nav class="tabs" id="tabs" aria-label="Steps"></nav>
   <aside class="mapcol" id="mapcol"><div id="map" role="region"></div>
-    <div class="navbar" id="navbar" hidden role="region"><div class="nav-main"><span class="nav-ic" id="navIc" aria-hidden="true"></span><div><p class="nav-txt" id="navTxt"></p><p class="nav-meta" id="navMeta"></p></div></div>
-      <div class="nav-prog" aria-hidden="true"><i id="navFill"></i></div>
-      <div class="nav-acts"><button type="button" class="btn small primary" id="navArrive" data-act="navArrive" data-testid="nav-arrive" hidden></button><button type="button" class="btn small ghost" id="navStop" data-act="navStop" data-testid="nav-stop"></button></div>
-      <p class="nav-demo" id="navDemo"></p></div></aside>
+  </aside>
+  <div class="navbar" id="navbar" hidden role="region"><div class="nav-main"><span class="nav-ic" id="navIc" aria-hidden="true"></span><p class="nav-txt" id="navTxt" aria-live="polite"></p></div>
+    <div class="nav-prog" aria-hidden="true"><i id="navFill"></i></div></div>
+  <div class="navfoot" id="navfoot" hidden>
+    <button type="button" class="navcenter" id="navCenter" data-act="navCenter" data-testid="nav-center" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+    <div class="nf-top"><div><p class="nav-meta" id="navMeta"></p><p class="nf-name" id="navName"></p></div><span class="nf-mode" id="navModeIc"></span></div>
+    <p class="nav-demo" id="navDemo"></p>
+    <div class="nav-acts"><button type="button" class="btn ghost" id="navStop" data-act="navStop" data-testid="nav-stop"></button><button type="button" class="btn primary" id="navArrive" data-act="navArrive" data-testid="nav-arrive"></button></div>
+  </div>
   <section class="panel" id="panel" aria-label="Places and plan">
     <button type="button" class="grab" id="grab" aria-label="Resize the list"><span></span></button>
     <main class="view" id="view"></main>
@@ -639,7 +661,7 @@ const STR = {
     nowAway:"{m} m away", nowNear:"You're close. Tap I've arrived when you're there.", nowProg:"{d} of {n} stops done", geoNone:"This browser can't share your location.", geoDenied:"Location is blocked. Allow it in your browser settings, or tap I've arrived yourself.", geoFail:"Couldn't get your location.",
     askFab:"Need an idea? Ask or speak", askDay:"Your day: {n} stops · ends {t} · {fit}", askNow:"Now: {name}", askReplace:"Replace {name}", askMore:"More ideas",
     ideaLead_hungry:"Hungry? These fit your day", ideaLead_hot:"Too hot? Cafés and galleries that fit", ideaLead_tired:"Tired? Places to sit down that fit", ideaLead_next:"Good next stops that fit your day",
-    nowOpenMaps:"Open in Maps", navStop:"Stop", navDemo:"Demo walk, sped up. Real walking is about 25 times slower.", navLabel:"Walking navigation", navLabelCar:"Driving navigation", navLabelBts:"BTS navigation", navLabelMrt:"MRT navigation", modesLabel:"How are you travelling?", mWalk:"Walk", mCar:"Car", mBts:"BTS", mMrt:"MRT", mTransit:"Public transport", mTransitShort:"Transit", navLabelTransit:"Public transport navigation", navRideLine:"Ride {line} from {a} to {b}", navDemoLive:"Demo trip, sped up. The route and times are live from Longdo.", partWalk:"walk {n} min", routeLongdo:"{parts}. About {tot} min door to door, waiting included (live from Longdo).", routeLongdoWalk:"Longdo found no train or boat that helps here, so walking is better.", routeEstimate:"Longdo did not answer, so this is an estimate.", routeChecking:"Checking live public transport with Longdo…", mChecking:"checking", mMin:"{n} min", mNone:"n/a", nowGoingTo:"Going to", navDemoTrip:"Demo trip, sped up. Times, stops and stations are estimates.", navDepartCar:"Start driving", navDepartOnCar:"Start driving on {road}", navRide:"Take the {sys} from {a} to {b} ({n} stops)", navExit:"Get off at {a} and walk to the exit", navBoard:"Walk to {a} station", routeCar:"About {km} km by car, about {n} min in city traffic (estimate)", routeTransit:"Walk {w1} min to {a}, ride {n} stops to {b}, walk {w2} min. Total about {tot} min (estimate)", routeWalkFaster:"Walking is about as fast here.", noRide:"No station is closer than the place itself, so walking is better.", navIn:"In {d} m · {txt}", navLeft:"left", navRight:"right", navSlightLeft:"slightly left", navSlightRight:"slightly right", navSharpLeft:"sharp left", navSharpRight:"sharp right", navUturn:"around",
+    nowOpenMaps:"Open in Maps", navStop:"Stop", navBackDay:"Back to my day", navRecentre:"Centre the map on me", navDemo:"Demo walk, sped up. Real walking is about 25 times slower.", navLabel:"Walking navigation", navLabelCar:"Driving navigation", navLabelBts:"BTS navigation", navLabelMrt:"MRT navigation", modesLabel:"How are you travelling?", mWalk:"Walk", mCar:"Car", mBts:"BTS", mMrt:"MRT", mTransit:"Public transport", mTransitShort:"Transit", navLabelTransit:"Public transport navigation", navRideLine:"Ride {line} from {a} to {b}", navDemoLive:"Demo trip, sped up. The route and times are live from Longdo.", partWalk:"walk {n} min", routeLongdo:"{parts}. About {tot} min door to door, waiting included (live from Longdo).", routeLongdoWalk:"Longdo found no train or boat that helps here, so walking is better.", routeEstimate:"Longdo did not answer, so this is an estimate.", routeChecking:"Checking live public transport with Longdo…", mChecking:"checking", mMin:"{n} min", mNone:"n/a", nowGoingTo:"Going to", navDemoTrip:"Demo trip, sped up. Times, stops and stations are estimates.", navDepartCar:"Start driving", navDepartOnCar:"Start driving on {road}", navRide:"Take the {sys} from {a} to {b} ({n} stops)", navExit:"Get off at {a} and walk to the exit", navBoard:"Walk to {a} station", routeCar:"About {km} km by car, about {n} min in city traffic (estimate)", routeTransit:"Walk {w1} min to {a}, ride {n} stops to {b}, walk {w2} min. Total about {tot} min (estimate)", routeWalkFaster:"Walking is about as fast here.", noRide:"No station is closer than the place itself, so walking is better.", navIn:"In {d} m · {txt}", navLeft:"left", navRight:"right", navSlightLeft:"slightly left", navSlightRight:"slightly right", navSharpLeft:"sharp left", navSharpRight:"sharp right", navUturn:"around",
     navDepart:"Start walking", navDepartOn:"Start walking on {road}", navContinue:"Continue straight", navContinueOn:"Continue on {road}", navTurn:"Turn {dir}", navTurnOn:"Turn {dir} onto {road}", navArrive:"You've arrived at {name}", navLeft2:"{m} m · about {n} min left",
     askCold:"No plan yet. Starting from {origin}.", askColdGeo:"your location", ideaLeadStyle:"{style} near you that is open now", ideaNoStyle:"No {style} place found in our data for this area. Nearest alternatives:", ideaNoneNow:"Nothing open near you fits right now. Try again later or search the Vibe tab.",
     askGo:"Go now", askNewDay:"Add to a new day", tStarted:"Trip started with {name}", ideaWhyNow:"{n} min walk · {until}",
@@ -718,7 +740,7 @@ const STR = {
     nowAway:"อีก {m} ม.", nowNear:"ใกล้แล้ว ถึงที่หมายแล้วกด ถึงแล้ว", nowProg:"เสร็จแล้ว {d} จาก {n} จุด", geoNone:"เบราว์เซอร์นี้แชร์ตำแหน่งไม่ได้", geoDenied:"ตำแหน่งถูกบล็อก เปิดอนุญาตในการตั้งค่าเบราว์เซอร์ หรือกด ถึงแล้ว เอง", geoFail:"หาตำแหน่งของคุณไม่ได้",
     askFab:"อยากได้ไอเดีย? พิมพ์หรือพูดได้เลย", askDay:"วันของคุณ: {n} จุด · จบ {t} · {fit}", askNow:"ตอนนี้: {name}", askReplace:"แทนที่ {name}", askMore:"ไอเดียเพิ่มเติม",
     ideaLead_hungry:"หิวแล้วเหรอ ที่เหล่านี้ทันในวันนี้", ideaLead_hot:"ร้อนจัง คาเฟ่และแกลเลอรีที่ทัน", ideaLead_tired:"เหนื่อยแล้ว ที่นั่งพักที่ทัน", ideaLead_next:"จุดต่อไปที่ทันในวันนี้",
-    nowOpenMaps:"เปิดในแอปแผนที่", navStop:"หยุด", navDemo:"เดินจำลอง เร็วขึ้นประมาณ 25 เท่า ของจริงช้ากว่านี้", navLabel:"นำทางเดินเท้า", navLabelCar:"นำทางขับรถ", navLabelBts:"นำทางรถไฟฟ้า BTS", navLabelMrt:"นำทางรถไฟฟ้า MRT", modesLabel:"เดินทางด้วยอะไร?", mWalk:"เดิน", mCar:"รถ", mBts:"BTS", mMrt:"MRT", mTransit:"ขนส่งสาธารณะ", mTransitShort:"ขนส่ง", navLabelTransit:"นำทางขนส่งสาธารณะ", navRideLine:"นั่ง {line} จาก {a} ไป {b}", navDemoLive:"เดินทางจำลอง เร็วขึ้น เส้นทางและเวลาเป็นข้อมูลสดจาก Longdo", partWalk:"เดิน {n} นาที", routeLongdo:"{parts} รวมประมาณ {tot} นาทีจากต้นทางถึงปลายทาง รวมเวลารอ (ข้อมูลสดจาก Longdo)", routeLongdoWalk:"Longdo ไม่พบรถไฟฟ้าหรือเรือที่ช่วยได้ตรงนี้ เดินดีกว่า", routeEstimate:"Longdo ไม่ตอบ จึงเป็นค่าประมาณ", routeChecking:"กำลังเช็กขนส่งสาธารณะแบบสดกับ Longdo…", mChecking:"กำลังเช็ก", mMin:"{n} นาที", mNone:"ไม่มี", nowGoingTo:"กำลังไป", navDemoTrip:"เดินทางจำลอง เร็วขึ้น เวลา จำนวนป้าย และสถานีเป็นค่าประมาณ", navDepartCar:"เริ่มขับรถ", navDepartOnCar:"เริ่มขับบน {road}", navRide:"ขึ้น{sys}จาก {a} ไป {b} ({n} สถานี)", navExit:"ลงที่ {a} แล้วเดินออกจากสถานี", navBoard:"เดินไปสถานี {a}", routeCar:"ประมาณ {km} กม. ขับรถราว {n} นาที ช่วงรถติดในเมือง (ค่าประมาณ)", routeTransit:"เดิน {w1} นาทีไป {a} นั่ง {n} สถานีไป {b} แล้วเดิน {w2} นาที รวมประมาณ {tot} นาที (ค่าประมาณ)", routeWalkFaster:"ตรงนี้เดินเร็วพอกัน", noRide:"ไม่มีสถานีที่ใกล้กว่าตัวสถานที่ เดินดีกว่า", navIn:"อีก {d} ม. · {txt}", navLeft:"ซ้าย", navRight:"ขวา", navSlightLeft:"ซ้ายเล็กน้อย", navSlightRight:"ขวาเล็กน้อย", navSharpLeft:"ซ้ายหักศอก", navSharpRight:"ขวาหักศอก", navUturn:"กลับรถ",
+    nowOpenMaps:"เปิดในแอปแผนที่", navStop:"หยุด", navBackDay:"กลับไปที่วันของฉัน", navRecentre:"กลับมาที่ตำแหน่งของฉัน", navDemo:"เดินจำลอง เร็วขึ้นประมาณ 25 เท่า ของจริงช้ากว่านี้", navLabel:"นำทางเดินเท้า", navLabelCar:"นำทางขับรถ", navLabelBts:"นำทางรถไฟฟ้า BTS", navLabelMrt:"นำทางรถไฟฟ้า MRT", modesLabel:"เดินทางด้วยอะไร?", mWalk:"เดิน", mCar:"รถ", mBts:"BTS", mMrt:"MRT", mTransit:"ขนส่งสาธารณะ", mTransitShort:"ขนส่ง", navLabelTransit:"นำทางขนส่งสาธารณะ", navRideLine:"นั่ง {line} จาก {a} ไป {b}", navDemoLive:"เดินทางจำลอง เร็วขึ้น เส้นทางและเวลาเป็นข้อมูลสดจาก Longdo", partWalk:"เดิน {n} นาที", routeLongdo:"{parts} รวมประมาณ {tot} นาทีจากต้นทางถึงปลายทาง รวมเวลารอ (ข้อมูลสดจาก Longdo)", routeLongdoWalk:"Longdo ไม่พบรถไฟฟ้าหรือเรือที่ช่วยได้ตรงนี้ เดินดีกว่า", routeEstimate:"Longdo ไม่ตอบ จึงเป็นค่าประมาณ", routeChecking:"กำลังเช็กขนส่งสาธารณะแบบสดกับ Longdo…", mChecking:"กำลังเช็ก", mMin:"{n} นาที", mNone:"ไม่มี", nowGoingTo:"กำลังไป", navDemoTrip:"เดินทางจำลอง เร็วขึ้น เวลา จำนวนป้าย และสถานีเป็นค่าประมาณ", navDepartCar:"เริ่มขับรถ", navDepartOnCar:"เริ่มขับบน {road}", navRide:"ขึ้น{sys}จาก {a} ไป {b} ({n} สถานี)", navExit:"ลงที่ {a} แล้วเดินออกจากสถานี", navBoard:"เดินไปสถานี {a}", routeCar:"ประมาณ {km} กม. ขับรถราว {n} นาที ช่วงรถติดในเมือง (ค่าประมาณ)", routeTransit:"เดิน {w1} นาทีไป {a} นั่ง {n} สถานีไป {b} แล้วเดิน {w2} นาที รวมประมาณ {tot} นาที (ค่าประมาณ)", routeWalkFaster:"ตรงนี้เดินเร็วพอกัน", noRide:"ไม่มีสถานีที่ใกล้กว่าตัวสถานที่ เดินดีกว่า", navIn:"อีก {d} ม. · {txt}", navLeft:"ซ้าย", navRight:"ขวา", navSlightLeft:"ซ้ายเล็กน้อย", navSlightRight:"ขวาเล็กน้อย", navSharpLeft:"ซ้ายหักศอก", navSharpRight:"ขวาหักศอก", navUturn:"กลับรถ",
     navDepart:"เริ่มเดิน", navDepartOn:"เริ่มเดินบน {road}", navContinue:"เดินตรงไป", navContinueOn:"เดินต่อบน {road}", navTurn:"เลี้ยว{dir}", navTurnOn:"เลี้ยว{dir}เข้า {road}", navArrive:"ถึง {name} แล้ว", navLeft2:"อีก {m} ม. ประมาณ {n} นาที",
     askCold:"ยังไม่มีแผน เริ่มจาก{origin}", askColdGeo:"ตำแหน่งของคุณ", ideaLeadStyle:"{style}ใกล้คุณที่เปิดอยู่ตอนนี้", ideaNoStyle:"ไม่พบร้าน{style}ในข้อมูลของย่านนี้ ที่ใกล้ที่สุดแทน:", ideaNoneNow:"ตอนนี้ไม่มีที่ไหนใกล้คุณที่เปิดและทัน ลองใหม่ภายหลังหรือค้นหาในแท็บบรรยากาศ",
     askGo:"ไปเลย", askNewDay:"เพิ่มเป็นวันใหม่", tStarted:"เริ่มทริปที่ {name} แล้ว", ideaWhyNow:"เดิน {n} นาที · {until}",
@@ -1629,6 +1651,7 @@ function pointAt(nv,d){
   return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
 }
 const NAVLABEL={walk:"navLabel",car:"navLabelCar",bts:"navLabelBts",mrt:"navLabelMrt",transit:"navLabelTransit"};
+const MODELABEL={walk:"mWalk",car:"mCar",bts:"mBts",mrt:"mMrt",transit:"mTransit"};
 function renderNav(){
   const nv=state.nav, bar=$("#navbar"); if(!nv||!bar) return;
   const p=P[nv.id], frac=nv.len?nv.at/nv.len:1, rd=nv.rd*frac;
@@ -1643,14 +1666,18 @@ function renderNav(){
   bar.setAttribute("aria-label",t(NAVLABEL[nv.mode]));
   $("#navIc").textContent=ic; $("#navTxt").innerHTML=txt; $("#navMeta").textContent=nv.done?"":t("navLeft2",{m:rem,n:min});
   $("#navFill").style.width=Math.round(frac*100)+"%"; $("#navDemo").textContent=t(nv.mode==="walk"?"navDemo":nv.live?"navDemoLive":"navDemoTrip");
-  $("#navStop").textContent=t("navStop"); const ar=$("#navArrive"); ar.hidden=!nv.done; ar.textContent=t("nowArrived");
+  bar.classList.toggle("done",!!nv.done);
+  $("#navName").textContent=nm(p); $("#navModeIc").innerHTML=`${MODEICON[nv.mode]||""}<span>${esc(t(MODELABEL[nv.mode]||"mWalk"))}</span>`;
+  $("#navStop").textContent=t("navStop"); $("#navStop").hidden=!!nv.done;
+  const ar=$("#navArrive"); ar.textContent=t(nv.done?"navBackDay":"nowArrived");
+  $("#navCenter").hidden=nv.follow!==false; $("#navCenter").setAttribute("aria-label",t("navRecentre"));
   if(nv.last!==txt){ nv.last=txt; say(plainText(txt)); }
 }
 function navTick(){
   const nv=state.nav; if(!nv) return;
   nv.at=Math.min(nv.len,nv.at+Math.max(4,nv.len/(params.get("navfast")?6:48)));
   const pos=pointAt(nv,nv.at); navDot&&navDot.setLatLng(pos);
-  if(LMAP) LMAP.panTo(pos,{animate:!reducedMotion()});
+  if(LMAP&&nv.follow!==false) LMAP.panTo(pos,{animate:!reducedMotion()});
   if(nv.at>=nv.len){ nv.done=true; clearInterval(navTimer); navTimer=null; }
   renderNav();
 }
@@ -1658,7 +1685,12 @@ function stopNav(){
   clearInterval(navTimer); navTimer=null; state.nav=null;
   if(navDot&&LMAP){ LMAP.removeLayer(navDot); } navDot=null;
   const b=$("#navbar"); if(b) b.hidden=true;
+  const f=$("#navfoot"); if(f) f.hidden=true;
+  document.body.classList.remove("navmode");
+  if(LMAP) setTimeout(()=>LMAP.invalidateSize(),0);
+  if(prevSheet&&isPhone()){ applySheet(prevSheet); } prevSheet=null;
 }
+let prevSheet=null;
 async function startNav(){
   const pl=plan(), cur=pl.items.find(i=>!i.done); if(!cur) return;
   const from=navFrom(pl,cur), to=P[cur.id], mode=state.navMode;
@@ -1668,9 +1700,11 @@ async function startNav(){
   const len=cum[cum.length-1]||1;
   const est=mode==="walk"?null:(r.totalMin||modeEst(from,to,mode)?.min||Math.ceil(len/250));
   state.nav={id:cur.id,pts:r.coords,cum,len,steps:r.steps,rd:r.dist||len,at:0,done:false,last:"",mode,live:!!r.live,mpm:est?len/est:WALK_M_PER_MIN};
-  if(isPhone()) applySheet("peek");
-  if(LMAP){ navDot=L.circleMarker(r.coords[0],{radius:9,color:"#ffffff",weight:3,fillColor:"#C93520",fillOpacity:1,interactive:false}).addTo(LMAP); LMAP.panTo(r.coords[0],{animate:false}); }
-  $("#navbar").hidden=false; renderNav();
+  prevSheet=$("#panel")?.dataset.st||null;
+  document.body.classList.add("navmode");
+  if(LMAP){ LMAP.invalidateSize(); navDot=L.circleMarker(r.coords[0],{radius:9,color:"#ffffff",weight:3,fillColor:"#C93520",fillOpacity:1,interactive:false}).addTo(LMAP); LMAP.panTo(r.coords[0],{animate:false}); }
+  $("#navbar").hidden=false; $("#navfoot").hidden=false; renderNav();
+  $("#navStop").focus({preventScroll:true});
   navTimer=setInterval(navTick,250);
 }
 
@@ -1907,6 +1941,7 @@ const routeCache=new Map();
 function initMap(){
   if(!window.L){ $("#map").innerHTML=`<p class="mapfail">${t("mapFail")}</p>`; return; }
   LMAP=L.map("map",{zoomControl:true,attributionControl:false,scrollWheelZoom:true,keyboard:true}).setView([13.7385,100.5105],15);
+  LMAP.on("dragstart",()=>{ if(state.nav&&!state.nav.done){ state.nav.follow=false; renderNav(); } });
   L.control.attribution({position:"topright"}).addTo(LMAP);   /* top-right so the phone bottom sheet never hides it */
   syncTiles();
   LGROUP=L.layerGroup().addTo(LMAP);
@@ -2439,6 +2474,7 @@ document.addEventListener("click",e=>{
   else if(a==="sample"){ loadSample(); }
   else if(a==="navStart"){ startNav(); }
   else if(a==="navStop"){ stopNav(); }
+  else if(a==="navCenter"){ const nv=state.nav; if(nv){ nv.follow=true; if(LMAP&&navDot) LMAP.panTo(navDot.getLatLng()); renderNav(); } }
   else if(a==="navMode"){ stopNav(); state.navMode=b.dataset.m; render(); }
   else if(a==="navArrive"){ stopNav(); state.here=plan().items.find(i=>!i.done)?.id||null; render({focus:"#vh"}); }
   else if(a==="arrive"){ stopNav(); state.here=plan().items.find(i=>!i.done)?.id||null; render({focus:"#vh"}); }

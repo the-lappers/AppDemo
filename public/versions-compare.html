@@ -18,7 +18,10 @@ var r=document.documentElement;r.dataset.theme=d?"dark":"light";r.dataset.themeP
 <style>
 body{min-height:100dvh;background:var(--surface)}
 .wrap{max-width:1040px;margin:0 auto;padding:var(--s5) var(--gutter) var(--s6);display:grid;gap:var(--s5)}
-.bar{display:flex;justify-content:space-between;align-items:center;gap:var(--s3)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.bar h1{flex:1 1 220px;order:2}
+.backhome{order:1}
+.bar .seg{order:3}
 h1{font-size:clamp(24px,5vw,34px);line-height:1.15}
 .lead{color:var(--ink-2);max-width:62ch}
 .cols{display:grid;gap:var(--s5);grid-template-columns:minmax(0,1fr)}
@@ -41,7 +44,7 @@ ul{display:grid;gap:6px;font-size:14px;padding-left:18px;list-style:disc}
 </head>
 <body>
 <main class="wrap">
-  <div class="bar"><h1 id="h1"></h1><div class="seg" role="group" aria-label="Language"><button type="button" data-lang="th" aria-pressed="true">ไทย</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div></div>
+  <div class="bar"><a class="backhome" id="toHome" data-testid="to-home" href="day-off-home.html"><svg class="ico" aria-hidden="true"><use href="#i-chev"/></svg><span id="toHomeL"></span></a><h1 id="h1"></h1><div class="seg" role="group" aria-label="Language"><button type="button" data-lang="th" aria-pressed="true">ไทย</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div></div>
   <p class="lead" id="lead"></p>
   <div class="cols" id="cols"></div>
   <p class="foot" id="foot"></p>
@@ -76,6 +79,7 @@ function q(){ const u=new URLSearchParams({lang:state.lang}); if(params.get("at"
 function render(){
   document.documentElement.lang=state.lang;
   document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===state.lang)));
+  $("#toHome").href="day-off-home.html"+q(); $("#toHomeL").textContent=state.lang==="th"?"หน้าแรก":"Home";
   $("#h1").textContent=L(T.h1); $("#lead").textContent=L(T.lead);
   $("#cols").innerHTML=COL.map(c=>`<section class="col ${c.cls}" id="${c.id}" aria-labelledby="h-${c.id}" data-testid="col-${c.id}">
     <span class="tag">${L(T[c.id])}</span><h2 id="h-${c.id}">${L(c.name)}</h2>

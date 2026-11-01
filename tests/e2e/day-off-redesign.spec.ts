@@ -381,6 +381,56 @@ test('plan: Navigate to the first stop from the day', async ({ page }) => {
   await expect(page.getByTestId('timeline')).toBeVisible();
 });
 
+test('plan: reaching a stop moves Navigate on to the next one, to the end of the day, and Undo steps back', async ({ page }) => {
+  await page.goto(URL + '&s=plan&built=1&tray=soheng,eiahsae,gulongbao&start=10:00&end=18:00&navfast=1');
+  const names = await page.getByTestId('timeline').locator('.shead b').allInnerTexts();
+  expect(names.length).toBe(3);
+  const go = async (name: string) => {
+    await expect(page.getByTestId('plan-nav')).toContainText(name);
+    await page.getByTestId('plan-nav').click();
+    await expect(page.getByRole('dialog')).toContainText(name);
+    await page.getByTestId('nav-start').click();
+    await expect(page.locator('#navbar')).toHaveClass(/done/, { timeout: 15000 });
+    await page.getByTestId('nav-arrive').click();
+  };
+  await go(names[0]);
+  await expect(page.getByTestId('timeline').locator('li').first()).toHaveClass(/done/);
+  await expect(page.getByTestId('plan-nav')).toContainText(names[1]);
+  await page.getByRole('button', { name: 'Undo' }).click();              // a wrong "I've arrived" can be taken back
+  await expect(page.getByTestId('timeline').locator('li.done')).toHaveCount(0);
+  await go(names[0]);
+  await go(names[1]);
+  await go(names[2]);
+  await expect(page.getByTestId('timeline').locator('li.done')).toHaveCount(3);
+  await expect(page.getByTestId('plan-nav')).toHaveCount(0);             // the day is finished
+});
+
+test('plan: stopping navigation early does not count as arriving', async ({ page }) => {
+  await page.goto(URL + '&s=plan&built=1&tray=soheng,eiahsae,gulongbao&start=10:00&end=18:00');
+  const first = await page.getByTestId('timeline').locator('.shead b').first().innerText();
+  await page.getByTestId('plan-nav').click();
+  await page.getByTestId('nav-start').click();
+  await page.getByTestId('nav-stop').click();
+  await expect(page.getByTestId('timeline').locator('li.done')).toHaveCount(0);
+  await expect(page.getByTestId('plan-nav')).toContainText(first);
+});
+
+test('plan: any stop can be navigated to from its card, starting at the stop before it', async ({ page }) => {
+  await page.goto(URL + '&s=plan&built=1&tray=soheng,eiahsae,gulongbao&start=10:00&end=18:00&navfast=1');
+  const stops = page.getByTestId('timeline').locator('li');
+  const names = await page.getByTestId('timeline').locator('.shead b').allInnerTexts();
+  await stops.nth(1).locator('.shead').click();
+  await stops.nth(1).getByTestId('stop-nav').click();
+  await expect(page.getByRole('dialog')).toContainText(names[1]);
+  await page.getByTestId('nav-start').click();
+  await expect(page.locator('#navbar')).toHaveClass(/done/, { timeout: 15000 });
+  await page.getByTestId('nav-arrive').click();
+  await expect(page.getByTestId('timeline').locator('li.done')).toHaveCount(1);
+  await expect(page.getByTestId('timeline').locator('li.done .shead b')).toHaveText(names[1]);
+  await expect(page.getByTestId('timeline').locator('li.done').getByTestId('stop-nav')).toHaveCount(0);   // no way back into a finished stop
+  await expect(page.getByTestId('plan-nav')).toContainText(names[0]);    // the stop you skipped is still ahead
+});
+
 test('keyboard: tabs and the area sheet are reachable, Escape closes the sheet and returns focus', async ({ page }) => {
   await page.goto(URL + '&s=explore&x=places');
   const pill = page.getByTestId('area-pill');

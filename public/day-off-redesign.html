@@ -1172,7 +1172,7 @@ function stopRow(it,idx,pl,fix){
       ${warn}${tightNote}
       <div class="sdet${open?" open":""}" id="det-${it.id}">
         <label class="sr" for="pn-${it.id}">${t("rcNoteLbl",{name:esc(nm(p))})}</label><textarea id="pn-${it.id}" class="pnote" rows="2" data-pnote="${it.id}" placeholder="${esc(t("rcNote"))}">${esc(F.pnotes[it.id]||"")}</textarea>
-        <div class="srow"><button type="button" class="chip" data-act="info" data-id="${it.id}" data-fk="in-${it.id}">${icon("info")}${t("piAbout")}</button></div>
+        <div class="srow"><button type="button" class="chip" data-act="info" data-id="${it.id}" data-fk="in-${it.id}">${icon("info")}${t("piAbout")}</button>${it.done?"":`<button type="button" class="chip" data-act="plan-nav" data-id="${it.id}" data-fk="nv-${it.id}" data-testid="stop-nav">${icon("walk")}${t("nvNavigate")}</button>`}</div>
         <div class="srow"><span class="lbl">${t("fbAsk")}</span><button type="button" class="chip" data-act="stay-fb" data-k="-1" data-id="${it.id}" data-fk="fbs-${it.id}" data-testid="fb-short">${t("fbShort")}</button><button type="button" class="chip" data-act="stay-fb" data-k="1" data-id="${it.id}" data-fk="fbl-${it.id}" data-testid="fb-long">${t("fbLong")}</button></div>
         <div class="times"><div><small>${t("arrive")}</small><b>${fmt(it.arr)}</b></div><div><small>${t("stay")}</small><b>${durOf(p)}′</b></div><div><small>${t("leave")}</small><b>${fmt(it.end)}</b></div></div>
         ${it.wait>0?`<small>${t("wait")} ${it.wait}′ · ${t("hours",{t:hoursText(p)})}</small>`:""}
@@ -1660,6 +1660,8 @@ function openNavSheet(id,ctx){
   NAVCTX={id,ctx,from:navOrigin(id,ctx)};
   openSheet(t("nvTitle",{name:nm(P[id])}),`<div id="navSheetBody">${navSheetBody()}</div>`,"[data-testid=nav-start]");
 }
+/* reaching a stop from the day locks it as visited, so the day moves on to the next stop */
+function planArrive(id){ const it=planF().items.find(x=>x.id===id), msg=t("nvReached",{name:nm(P[id])}); if(!it||it.done){ toast(msg); render(); return; } withUndo(msg,()=>state.visits.push({id,start:it.start,end:it.end})); }
 function nextArrive(){ const p=P[F.next.id]; F.next.t+=walkMin(nextFrom(),p); F.next.arrive=F.next.t; F.next.phase="there"; render(); }
 
 
@@ -1805,7 +1807,7 @@ document.addEventListener("click",e=>{
   else if(a==="nav-start") startNav();
   else if(a==="navStop") stopNav();
   else if(a==="navCenter"){ const nv=state.nav; if(nv){ nv.follow=true; DayMap.panTo(pointAt(nv,nv.at)); renderNav(); } }
-  else if(a==="navArrive"){ const nv=state.nav, id=nv&&nv.id, ctx=nv&&nv.ctx; stopNav(); if(ctx==="next"&&F.next.id===id) nextArrive(); else if(id){ F.exp=id; toast(t("nvReached",{name:nm(P[id])})); render(); } }
+  else if(a==="navArrive"){ const nv=state.nav, id=nv&&nv.id, ctx=nv&&nv.ctx; stopNav(); if(ctx==="next"&&F.next.id===id) nextArrive(); else if(id){ F.exp=id; if(ctx==="plan") planArrive(id); else { toast(t("nvReached",{name:nm(P[id])})); render(); } } }
   else if(a==="n-arrive") nextArrive();
   else if(a==="n-other"){ F.next.id=null; F.next.phase="suggest"; F.next.stage="options"; F.next.arrive=null; mapSig=""; render(); const sc=$("#scroll"); sc.scrollTop=sc.scrollHeight; }
   else if(a==="nx-pick") nextPick(id);

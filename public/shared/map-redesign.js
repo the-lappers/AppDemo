@@ -1,9 +1,9 @@
-/* Leaflet map shared by the experimental versions. Tiles: Mapbox (MAP_BLOCK_KEY) or Longdo (LONGDO_MAP_KEY) with a switch, else OSM/CARTO. */
+/* Leaflet map shared by the experimental versions. Tiles: Longdo (LONGDO_MAP_KEY, the default) or Mapbox (MAP_BLOCK_KEY) with a switch, else OSM/CARTO. */
 const DayMap=(()=>{
   const ENV=window.DAYOFF_ENV||{}, MK=ENV.MAP_BLOCK_KEY||"", LK=ENV.LONGDO_MAP_KEY||"";
   const OSM='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-  let map=null, group=null, routeLayer=null, TL=null, kind="", errs=0, el=null, onPin=()=>{}; const dead=new Set(), markers={}, cache=new Map(); let padB=0; let pref="mapbox", token=0, meLayer=null, pickH=null, shadeLayer=null, pathLayer=null, dotLayer=null;
-  try{ pref=localStorage.getItem("dayoff-map")==="longdo"?"longdo":"mapbox"; }catch(e){}
+  let map=null, group=null, routeLayer=null, TL=null, kind="", errs=0, el=null, onPin=()=>{}; const dead=new Set(), markers={}, cache=new Map(); let padB=0; let pref="longdo", token=0, meLayer=null, pickH=null, shadeLayer=null, pathLayer=null, dotLayer=null;
+  try{ pref=localStorage.getItem("dayoff-map")==="mapbox"?"mapbox":"longdo"; }catch(e){}
   const want=()=>{
     if(LK&&pref==="longdo"&&!dead.has("longdo")) return "longdo";
     if(MK&&!dead.has("mapbox")) return document.documentElement.dataset.theme==="dark"?"mapbox-dark":"mapbox-light";
@@ -26,7 +26,7 @@ const DayMap=(()=>{
     if(!(MK&&LK)){ if(sw) sw.hidden=true; return; }
     if(!sw){ sw=document.createElement("div"); sw.className="mapsw"; sw.setAttribute("role","group"); sw.setAttribute("aria-label","Map provider"); el.parentElement.appendChild(sw);
       sw.addEventListener("click",e=>{ const b=e.target.closest("button[data-prov]"); if(!b) return; pref=b.dataset.prov; try{ localStorage.setItem("dayoff-map",pref); }catch(x){} dead.delete(pref); switcher(); sync(); }); }
-    sw.hidden=false; sw.innerHTML=["mapbox","longdo"].map(k=>`<button type="button" data-prov="${k}" aria-pressed="${k===pref}">${k==="mapbox"?"Mapbox":"Longdo"}</button>`).join("");
+    sw.hidden=false; sw.innerHTML=["longdo","mapbox"].map(k=>`<button type="button" data-prov="${k}" aria-pressed="${k===pref}">${k==="mapbox"?"Mapbox":"Longdo"}</button>`).join("");
   }
   function pinIcon(k,n,best){
     const dot=k==="num"||k==="done"?26:k==="faint"?9:16, size=k==="faint"?14:Math.max(dot,30);

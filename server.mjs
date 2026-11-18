@@ -205,7 +205,7 @@ const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
   '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json', '.md': 'text/markdown; charset=utf-8', '.pdf': 'application/pdf' };
 const blocked = /(^|\/)(\.|node_modules|tests|test-results|server\.mjs|package(-lock)?\.json|playwright\.config)/;
 
-http.createServer((req, res) => {
+export function handler(req, res) {
   let url, rel;
   try { url = new URL(req.url, 'http://x'); rel = decodeURIComponent(url.pathname); }
   catch { res.writeHead(400); return res.end('Bad request'); }   // e.g. "//" or a stray "%": answer, do not crash the server
@@ -220,7 +220,7 @@ http.createServer((req, res) => {
               : `window.DAYOFF_PLACES=${JSON.stringify(placesNow())};`);
   });
   if (rel === '/api/search') return searchProxy(req, res).catch((e) => { console.warn(`search: ${e.message}`); if (!res.headersSent) sendJSON(res, 500, { error: 'server', message: 'Search failed.' }); });
-  if (rel === '/') rel = '/day-off-home.html';
+  if (rel === '/') rel = '/day-off-redesign2.html';
   const file = path.join(pub, rel);
   if (!file.startsWith(pub + path.sep) || blocked.test(rel.slice(1))) { res.writeHead(404); return res.end('Not found'); }
   fs.readFile(file, (err, data) => {
@@ -228,7 +228,10 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': types[path.extname(file)] || 'application/octet-stream' });
     res.end(data);
   });
-}).listen(port, () => {
+}
+
+// Run as a standalone server only when started directly (npm start / Docker); Vercel imports `handler` instead.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) http.createServer(handler).listen(port, () => {
   if (searchUrl()) searchData().then((s) => { if (!s) console.log(`Search: ${searchUrl()} not answering yet; the demo uses its own places until it does`); });
   else { const n = placesNow(); console.log(n ? `Places: ${n.length} from ${process.env.PLACES_FILE || 'data/places.json'}` : 'Places: bundled OpenStreetMap places (no data/places.json)'); }
   console.log(`Day-Off chat:    http://localhost:${port}/day-off-chat.html  (map token ${mapKey() ? 'found' : 'NOT found: using free tiles'})`);

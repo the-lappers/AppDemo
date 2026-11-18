@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "public",
+  "buildCommand": "",
+  "rewrites": [
+    { "source": "/", "destination": "/day-off-redesign2.html" },
+    { "source": "/env.js", "destination": "/api/index" },
+    { "source": "/places.js", "destination": "/api/index" },
+    { "source": "/api/transit", "destination": "/api/index" },
+    { "source": "/api/search", "destination": "/api/index" }
+  ],
+  "functions": {
+    "api/index.mjs": { "includeFiles": "{data/**,server.mjs}" }
+  }
+}

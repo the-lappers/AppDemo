@@ -559,7 +559,10 @@ body.navmode .pinfo{display:none}
 .s-ex{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1*var(--gutter));padding:2px var(--gutter)}
 .s-ex::-webkit-scrollbar{display:none}
 .s-ex .chip{flex:none}
-#sres{display:grid;gap:var(--s3)}
+#sres,#ores{display:grid;gap:var(--s3)}
+.s-card.o{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.s-go{align-self:center}
+.o-not p{margin:0 0 var(--s2)}
 .s-h{font-size:17px}
 .s-got{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2);font-size:14px}
 .s-got .lbl{font-weight:600;color:var(--ink-2)}
@@ -633,6 +636,10 @@ body.navmode .pinfo{display:none}
 .r-open small:first-of-type{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)}
 .r-open .r-wait{display:flex;gap:4px;align-items:center;color:var(--amber,#9A6A0B)}
 .r-open .r-wait .ico{width:13px;height:13px}
+.r-gap{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2);margin-left:15px;padding:var(--s2) 0 var(--s2) 22px;border-left:3px dotted var(--track);font-size:13px;color:var(--amber,#9A6A0B)}
+.r-gap>span:first-of-type{display:flex;gap:4px;align-items:center;font-weight:600}
+.r-gap .ico{width:14px;height:14px}
+.r-gap-acts{display:flex;flex-wrap:wrap;gap:var(--s2)}
 .r-open:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:8px}
 .r-art{grid-area:art;width:52px;height:52px;border-radius:12px}
 .r-art .ico{width:22px;height:22px}
@@ -967,15 +974,15 @@ addStrings({
  sOpen:"Open now",sEvYes:"{a}: reviews say yes",sEvNo:"{a}: reviews say no",sEvUnk:"{a}: no review mentions it",sVibeN:"{a} · {n} reviews",sVibe1:"{a} · 1 review",
  sPicked:"{n} picked",sToPlan:"Plan with these",sAdd:"Add {name}",sAdded:"{name} added",
  pTitle:"Plan your day",pSub:"Your places and a time window. We work out the order and the times.",pPlaces:"Your places",pNone:"No places yet. Find some by vibe, or let us pick a few.",pFind:"Find places",pSurprise:"Pick for me",pMore:"Add more places",pRmX:"Remove {name}",
- pWhen:"When",pMake:"Make my day",pNeed:"Add at least one place first.",pStayN:"{a}–{t} · stay {n} min",pWait:"Opens {t}, so about {n} min wait",pDropped:"Doesn't fit",pNext:"Next",pShare:"Share with friends",pStart:"Start the day",pAgain:"Re-made your day",
+ pWhen:"When",pMake:"Make my day",pNeed:"Add at least one place first.",pStayN:"{a}–{t} · stay {n} min",pWait:"Opens {t}. You'd get there at {a}, {d} early.",durH:"{h} h {m} min",durHo:"{h} h",durM:"{n} min",pGap:"Free time {a}–{b} ({d})",pGapFill:"Find something to do",pGapLater:"Start at {t} instead",pGapT:"Free {a}–{b}: places that fit",pGapNone:"Nothing nearby fits this gap.",pGapFits:"{a}–{b} · then {n} min walk to {next}",pGapAdd:"Add {name}",pGapAdded:"Added {name} at {t}",pLater:"Your day now starts at {t}",pDropped:"Doesn't fit",pNext:"Next",pShare:"Share with friends",pStart:"Start the day",pAgain:"Re-made your day",
  pTapHint:"Drag ⠿ to reorder. Tap a stop to change its stay or remove it.",pGrip:"Reorder {name}: drag, or use the arrow keys",pFirst:"Go here first",pUp:"Move earlier",pDown:"Move later",pMine:"Your order",pAuto:"Let us choose the order",pAutoOn:"We choose the order",pMoved:"Moved {name}",pAbout:"About",
  shTitle:"Share with friends",shSub:"Friends vote on the stops and pick the days they can make. You decide.",shNeed:"Make your day first, then share it.",shToPlan:"Go to Plan",
  shDates:"Days to offer",shDatesHint:"Pick up to three.",shInvite:"Invite",shCopy:"Copy link",shCopied:"Link copied",shOpen:"Open as a friend",shSync:"Demo: votes come back from other tabs on this device.",shSample:"Demo: add two friends' votes",
  shVotes:"Votes",shNoVotes:"No votes yet. Send the link, or add the demo votes.",shN:"{n} friends voted",shN1:"1 friend voted",shCan:"{n} can make it",shKeep:"Keep",shSkip:"Skip",shSuggested:"Suggested by friends",shBy:"by {who}",shAdd:"Add",shAdded:"Added",shBest:"Most votes",
  shApply:"Use the group's picks",shApplied:"Group picks used: {what}",shNothing:"Nothing to change. The group is happy.",shDateTo:"date {d}",shDropped:"removed {n}",shAddedN:"added {n}",
  fvTitle:"You're invited to a day out",fvSub:"{n} stops in {area}. Tell the planner what works for you.",fvName:"Your name",fvNamePh:"e.g. Mint",fvDays:"Which days can you make?",fvStops:"The stops",fvSuggest:"Suggest a place",fvSuggestHint:"Tap any you'd like to add.",fvSend:"Send my votes",fvSent:"Thanks, {name}. Your votes are in.",fvEdit:"Change my votes",fvGone:"This invite isn't on this device. In the demo, open the link in the same browser that made it.",fvFriend:"Friend",fvSuggestBtn:"Suggest",fvSuggestedBtn:"Suggested",
- oOther:"Your plan is for {d}.",oOtherD:"On the day, this screen takes you stop by stop.",oJump:"Demo: jump to {d}, {t}",oDemo:"Demo day: {d}",pCont:"Continue the day",
- oPlanT:"Your day",oFreeT:"Where to next?",oNow:"It is {t}. You're at {at}.",oAsk:"What do you feel like?",oSugN:"Suggestion {i} of {n}",oAnother:"Show another",oFits:"Fits: {a}",
+ oOther:"Your plan is for {d}.",oOtherD:"On the day, this screen takes you stop by stop.",oJump:"Demo: jump to {d}, {t}",oDemo:"Demo day: {d}",pCont:"Continue the day",pNowStart:"Starting now at {t} (planned {p})",
+ oPlanT:"Your day",oFreeT:"Where to next?",oNear:"Near you now",oGo:"Go",oGoX:"Go to {name}, added to today's plan",oAdded:"Added {name} to your plan as the next stop",oAddedDrop:"Added {name} as the next stop. {k} no longer fits today.",oStarted:"Started today's plan with {name}",oSave:"Save this day",oSaved:"Saved",oSavedT:"Saved. You'll find it on the Plan tab.",oNew:"Start a new plan",oNewT:"New plan started",oNotT:"Not feeling {name}? Pick somewhere else below.",oDrop:"Remove it from today",oDropped:"Removed {name} from today's plan",oSwapT:"What about {old}?",oSwap:"Go to {name} instead",oSwapD:"{old} comes off today's plan",oKeep:"Keep {old} for later",oKeepD:"{name} first, then the plan carries on",oSwapped:"Going to {name} instead of {old}",pSavedDays:"Saved plans",oNow:"It is {t}. You're at {at}.",oAsk:"What do you feel like?",oSugN:"Suggestion {i} of {n}",oAnother:"Show another",oFits:"Fits: {a}",
  oHas:"You have a plan for today: {s}.",oStart:"Start my day",oOne:"Just find one place",oToday:"Today's stops",oNone:"Nothing close and open fits that right now. Try other words.",
  npHi:"Next on your plan",npOn:"On track",npBehind:"{n} min behind",npArrive:"Arrive about {t} · planned {p}",npFor:"For {a}",npNotFeel:"Not feeling it",
  npLate:"Running late?",npLateD:"Say how late, and the rest of the day is checked.",npLateN:"+{n} min",
@@ -993,15 +1000,15 @@ addStrings(null,{
  sOpen:"เปิดอยู่",sEvYes:"{a}: รีวิวบอกว่าใช่",sEvNo:"{a}: รีวิวบอกว่าไม่",sEvUnk:"{a}: ยังไม่มีรีวิวพูดถึง",sVibeN:"{a} · {n} รีวิว",sVibe1:"{a} · 1 รีวิว",
  sPicked:"เลือกแล้ว {n} ที่",sToPlan:"วางแผนจากที่เหล่านี้",sAdd:"เพิ่ม{name}",sAdded:"เพิ่ม{name}แล้ว",
  pTitle:"วางแผนวันของคุณ",pSub:"ที่ที่เลือกไว้กับช่วงเวลา แล้วเราจัดลำดับและเวลาให้",pPlaces:"ที่ที่เลือกไว้",pNone:"ยังไม่มีที่ที่เลือก หาตามบรรยากาศ หรือให้เราเลือกให้สักสองสามที่",pFind:"หาที่",pSurprise:"เลือกให้หน่อย",pMore:"เพิ่มที่อื่น",pRmX:"เอา{name}ออก",
- pWhen:"เมื่อไหร่",pMake:"จัดวันให้เลย",pNeed:"เพิ่มอย่างน้อยหนึ่งที่ก่อน",pStayN:"{a}–{t} · อยู่ {n} นาที",pWait:"เปิด {t} ต้องรอประมาณ {n} นาที",pDropped:"ไปไม่ทัน",pNext:"ต่อไป",pShare:"แชร์ให้เพื่อน",pStart:"เริ่มเที่ยวเลย",pAgain:"จัดวันใหม่แล้ว",
+ pWhen:"เมื่อไหร่",pMake:"จัดวันให้เลย",pNeed:"เพิ่มอย่างน้อยหนึ่งที่ก่อน",pStayN:"{a}–{t} · อยู่ {n} นาที",pWait:"เปิด {t} · ไปถึง {a} ก่อนเปิด {d}",durH:"{h} ชม. {m} นาที",durHo:"{h} ชม.",durM:"{n} นาที",pGap:"ว่าง {a}–{b} ({d})",pGapFill:"หาที่ไปช่วงนี้",pGapLater:"เริ่ม {t} แทน",pGapT:"ว่าง {a}–{b}: ที่ที่ไปทัน",pGapNone:"ไม่มีที่ใกล้ ๆ ที่ลงช่วงนี้พอดี",pGapFits:"{a}–{b} · แล้วเดิน {n} นาทีไป {next}",pGapAdd:"เพิ่ม {name}",pGapAdded:"เพิ่ม {name} ตอน {t} แล้ว",pLater:"วันของคุณเริ่ม {t} แล้ว",pDropped:"ไปไม่ทัน",pNext:"ต่อไป",pShare:"แชร์ให้เพื่อน",pStart:"เริ่มเที่ยวเลย",pAgain:"จัดวันใหม่แล้ว",
  pTapHint:"ลาก ⠿ เพื่อสลับลำดับ แตะจุดแวะเพื่อเปลี่ยนเวลาอยู่หรือเอาออก",pGrip:"เรียงลำดับ{name}: ลาก หรือใช้ปุ่มลูกศร",pFirst:"ไปที่นี่ก่อน",pUp:"ย้ายขึ้น",pDown:"ย้ายลง",pMine:"ลำดับของคุณ",pAuto:"ให้เราจัดลำดับให้",pAutoOn:"เราจัดลำดับให้",pMoved:"ย้าย{name}แล้ว",pAbout:"เกี่ยวกับ",
  shTitle:"แชร์ให้เพื่อน",shSub:"ให้เพื่อนโหวตจุดแวะและเลือกวันที่ว่าง คุณเป็นคนตัดสินใจ",shNeed:"จัดวันให้เสร็จก่อน แล้วค่อยแชร์",shToPlan:"ไปที่วางแผน",
  shDates:"วันที่ให้เลือก",shDatesHint:"เลือกได้ไม่เกินสามวัน",shInvite:"ชวนเพื่อน",shCopy:"คัดลอกลิงก์",shCopied:"คัดลอกลิงก์แล้ว",shOpen:"เปิดแบบเพื่อน",shSync:"เดโม: โหวตจะส่งกลับมาจากแท็บอื่นในเครื่องนี้",shSample:"เดโม: เพิ่มโหวตของเพื่อนสองคน",
  shVotes:"ผลโหวต",shNoVotes:"ยังไม่มีโหวต ส่งลิงก์ให้เพื่อน หรือเพิ่มโหวตเดโม",shN:"เพื่อนโหวตแล้ว {n} คน",shN1:"เพื่อนโหวตแล้ว 1 คน",shCan:"ว่าง {n} คน",shKeep:"เอา",shSkip:"ข้าม",shSuggested:"เพื่อนแนะนำ",shBy:"โดย {who}",shAdd:"เพิ่ม",shAdded:"เพิ่มแล้ว",shBest:"โหวตมากสุด",
  shApply:"ใช้ผลโหวตของกลุ่ม",shApplied:"ใช้ผลโหวตแล้ว: {what}",shNothing:"ไม่มีอะไรต้องเปลี่ยน ทุกคนโอเค",shDateTo:"วันที่ {d}",shDropped:"เอาออก {n}",shAddedN:"เพิ่ม {n}",
  fvTitle:"คุณได้รับคำชวนไปเที่ยวหนึ่งวัน",fvSub:"{n} จุดแวะในย่าน{area} บอกคนวางแผนว่าอะไรเหมาะกับคุณ",fvName:"ชื่อของคุณ",fvNamePh:"เช่น มิ้นท์",fvDays:"ว่างวันไหนบ้าง",fvStops:"จุดแวะ",fvSuggest:"แนะนำที่อื่น",fvSuggestHint:"แตะที่ที่อยากให้เพิ่ม",fvSend:"ส่งโหวต",fvSent:"ขอบคุณ {name} ได้รับโหวตแล้ว",fvEdit:"แก้โหวต",fvGone:"คำชวนนี้ไม่ได้อยู่ในเครื่องนี้ ในเดโมให้เปิดลิงก์ในเบราว์เซอร์เดียวกับที่สร้าง",fvFriend:"เพื่อน",fvSuggestBtn:"แนะนำ",fvSuggestedBtn:"แนะนำแล้ว",
- oOther:"แผนของคุณเป็นของวัน{d}",oOtherD:"ถึงวันจริง หน้านี้จะพาไปทีละจุด",oJump:"เดโม: ข้ามไปวัน{d} เวลา {t}",oDemo:"วันเดโม: {d}",pCont:"ไปต่อกับวันนี้",
- oPlanT:"วันของคุณ",oFreeT:"ไปไหนต่อดี",oNow:"ตอนนี้ {t} คุณอยู่ที่{at}",oAsk:"อยากได้อะไร",oSugN:"ที่แนะนำ {i} จาก {n}",oAnother:"ขอที่อื่น",oFits:"ตรงกับ: {a}",
+ oOther:"แผนของคุณเป็นของวัน{d}",oOtherD:"ถึงวันจริง หน้านี้จะพาไปทีละจุด",oJump:"เดโม: ข้ามไปวัน{d} เวลา {t}",oDemo:"วันเดโม: {d}",pNowStart:"เริ่มตอนนี้ {t} (แผนเดิม {p})",pCont:"ไปต่อกับวันนี้",
+ oPlanT:"วันของคุณ",oFreeT:"ไปไหนต่อดี",oNear:"ใกล้ ๆ คุณตอนนี้",oGo:"ไป",oGoX:"ไปที่ {name} และเพิ่มในแผนวันนี้",oAdded:"เพิ่ม {name} เป็นที่ถัดไปในแผนแล้ว",oAddedDrop:"เพิ่ม {name} เป็นที่ถัดไปแล้ว แต่ {k} ไปไม่ทันแล้ววันนี้",oStarted:"เริ่มแผนวันนี้ด้วย {name}",oSave:"บันทึกวันนี้",oSaved:"บันทึกแล้ว",oSavedT:"บันทึกแล้ว ดูได้ที่แท็บแผน",oNew:"เริ่มแผนใหม่",oNewT:"เริ่มแผนใหม่แล้ว",oNotT:"ไม่อยากไป {name}? เลือกที่อื่นด้านล่างได้เลย",oDrop:"เอาออกจากแผนวันนี้",oDropped:"เอา {name} ออกจากแผนวันนี้แล้ว",oSwapT:"แล้ว {old} ล่ะ?",oSwap:"ไป {name} แทน",oSwapD:"เอา {old} ออกจากแผนวันนี้",oKeep:"เก็บ {old} ไว้ไปทีหลัง",oKeepD:"ไป {name} ก่อน แล้วค่อยไปตามแผนต่อ",oSwapped:"ไป {name} แทน {old} แล้ว",pSavedDays:"แผนที่บันทึกไว้",oNow:"ตอนนี้ {t} คุณอยู่ที่{at}",oAsk:"อยากได้อะไร",oSugN:"ที่แนะนำ {i} จาก {n}",oAnother:"ขอที่อื่น",oFits:"ตรงกับ: {a}",
  oHas:"คุณมีแผนวันนี้: {s}",oStart:"เริ่มวันของฉัน",oOne:"หาแค่ที่เดียว",oToday:"จุดแวะวันนี้",oNone:"ตอนนี้ยังไม่มีที่ใกล้และเปิดอยู่ที่ตรงกับคำนี้ ลองคำอื่นดู",
  npHi:"จุดถัดไปตามแผน",npOn:"ตามแผน",npBehind:"ช้ากว่าแผน {n} นาที",npArrive:"ถึงประมาณ {t} · ตามแผน {p}",npFor:"สำหรับ{a}",npNotFeel:"ไม่อยากไปที่นี่",
  npLate:"ช้ากว่าแผนไหม",npLateD:"บอกว่าช้าไปเท่าไร แล้วเราจะเช็กส่วนที่เหลือของวันให้",npLateN:"+{n} นาที",
@@ -1200,7 +1207,7 @@ function fillSay(){
   if(o.acts.length){ F.acts=o.acts; got.push(t("fActs")); }
   if(o.tags.length){ F.tags=[...new Set([...F.tags,...o.tags])]; }
   if(o.date){ setDate(o.date); got.push(t("fDate")); }
-  if(o.start!=null){ F.startMin=o.start; F.defs.start=false; if(F.defs.end) defaults(); got.push(t("fStart")); }
+  if(o.start!=null){ F.startMin=o.start; F.defs.start=false; state.delay=0; if(F.defs.end) defaults(); got.push(t("fStart")); }
   if(o.end!=null&&o.end>F.startMin+30){ F.endMin=o.end; F.defs.end=false; got.push(t("fEnd")); }
   render(); toast(got.length?t("sayDone",{what:got.join(", ")}):t("sayNone"));
 }
@@ -1212,7 +1219,7 @@ function setDate(k,val){
 }
 function listen(target){
   if(!SR) return; const r=new SR(); r.lang=state.lang==="th"?"th-TH":"en-US";
-  r.onresult=e=>{ const s=e.results[0][0].transcript; if(target==="sq"){ S.q=s; render(); runSearch(s); } else if(target==="nq") nextSay(s); else if(target==="q"){ F.q=s; render(); vibeSearch(); } else { F.say=s; fillSay(); } };
+  r.onresult=e=>{ const s=e.results[0][0].transcript; if(target==="sq"){ S.q=s; render(); runSearch(s); } else if(target==="oq"){ O.q=s; render(); runSearch(s,"o"); } else if(target==="nq") nextSay(s); else if(target==="q"){ F.q=s; render(); vibeSearch(); } else { F.say=s; fillSay(); } };
   r.onerror=()=>toast(t("micFail")); try{ r.start(); toast(t("listening")); }catch(e){}
 }
 const micBtn=target=>SR?`<button type="button" class="ibtn sm" data-act="mic" data-for="${target}" data-fk="mic-${target}" aria-label="${esc(t("mic"))}">${icon("mic")}</button>`:"";
@@ -1553,7 +1560,7 @@ function syncTrip(){
   const rec={id:F.tripId||("u"+Date.now()),date:dateISO(),stops:state.tray.slice(),done:state.tray.every(id=>visited(id))};
   const i=UT.findIndex(x=>x.id===rec.id);
   if(i<0){ UT.unshift(rec); F.tripId=rec.id; saveUT(); }
-  else if(JSON.stringify(UT[i])!==JSON.stringify(rec)){ UT[i]=rec; saveUT(); }
+  else { const m={...UT[i],...rec,done:UT[i].saved||rec.done}; if(JSON.stringify(UT[i])!==JSON.stringify(m)){ UT[i]=m; saveUT(); } }
 }
 const tripTitle=tr=>tr.title?tr.title[state.lang]:tr.stops.length>1?t("dbTripT",{a:nm(P[tr.stops[0]]),n:tr.stops.length-1}):nm(P[tr.stops[0]]);
 const tripDate=tr=>fromISO(tr.date).toLocaleDateString(loc(),{weekday:"short",day:"numeric",month:"short"});
@@ -1643,6 +1650,8 @@ function animateSlider(){
 
 /* ---------- Search: free text -> what the parser understood -> places, best match first, each with its evidence (FR-301..312) ---------- */
 const S={q:"",busy:false,res:null,ask:0,open:false,price:0};
+const O={q:"",busy:false,res:null,ask:0,open:false,price:0};
+const SX={s:{st:S,box:"#sres",from:()=>startPt()},o:{st:O,box:"#ores",from:()=>nextFrom()}};
 const AM_LBL={
   en:{noise:{quiet:"Quiet",lively:"Lively",moderate:"Some noise"},laptop_friendly:"Laptop-friendly",wifi:"Wi-Fi",outlets:"Power outlets",aircon:"Air-con",parking:"Parking",seating:"Seating",price_per_head:"Under ฿{v}",pet_friendly:"Pet-friendly",kid_friendly:"Kid-friendly",outdoor_seating:"Outdoor seats"},
   th:{noise:{quiet:"เงียบ",lively:"คึกคัก",moderate:"เสียงปานกลาง"},laptop_friendly:"นั่งทำงานได้",wifi:"มี Wi-Fi",outlets:"มีปลั๊ก",aircon:"มีแอร์",parking:"มีที่จอดรถ",seating:"มีที่นั่ง",price_per_head:"ไม่เกิน ฿{v}",pet_friendly:"พาสัตว์เลี้ยงได้",kid_friendly:"เหมาะกับเด็ก",outdoor_seating:"มีที่นั่งด้านนอก"}};
@@ -1653,31 +1662,32 @@ function amLabel(k,tg){
   return k.replace(/_/g," ")+(v!=null&&v!=="yes"?" "+v:"");
 }
 const catLabel=c=>TYPENAME[state.lang][c]||TYPENAME[state.lang][{restaurant:"food",bakery:"cafe",dessert:"cafe"}[c]]||c;
-const nearList=()=>[...PLACES].sort((a,b)=>meters(startPt(),a)-meters(startPt(),b)).map(p=>({id:p.id}));
-function localSearch(q){                       /* no search service: the bundled vibe tags rank the places */
+const nearList=(from=startPt())=>[...PLACES].sort((a,b)=>meters(from,a)-meters(from,b)).map(p=>({id:p.id}));
+function localSearch(q,from){                       /* no search service: the bundled vibe tags rank the places */
   const pq=parseQuery(q), r=rank(q,{tags:pq.tags,cafe:pq.cafe}).list;
-  return pq.tags.length||pq.cafe?{got:[...(pq.cafe?[catLabel("cafe")]:[]),...pq.tags.map(x=>TAGNAME[state.lang][x])],list:r.map(x=>({id:x.id,m:x.m,tags:pq.tags}))}:{none:true,list:nearList()};
+  return pq.tags.length||pq.cafe?{got:[...(pq.cafe?[catLabel("cafe")]:[]),...pq.tags.map(x=>TAGNAME[state.lang][x])],list:r.map(x=>({id:x.id,m:x.m,tags:pq.tags}))}:{none:true,list:nearList(from)};
 }
-async function runSearch(q){
-  S.q=(q||"").trim(); const ask=++S.ask;
-  if(!S.q){ S.res=null; S.busy=false; return showS(); }
-  if(!SEARCH_ON){ S.res=localSearch(S.q); return showS(); }
-  S.busy=true; showS();
-  const pt=startPt(); let j=null;
-  try{ const r=await fetch("api/search",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({query:S.q,lat:pt.lat,lng:pt.lng,top_k:30}),signal:AbortSignal.timeout(20000)}); if(r.ok) j=await r.json(); }catch(e){}
-  if(ask!==S.ask) return;                      /* a newer search took over */
-  S.busy=false;
-  if(!j||!Array.isArray(j.results)){ S.res={down:true,list:nearList()}; return showS(); }
+async function runSearch(q,k="s"){
+  const X=SX[k], s=X.st; s.q=(q||"").trim(); const ask=++s.ask;
+  if(!s.q){ s.res=null; s.busy=false; return showS(k); }
+  if(!SEARCH_ON){ s.res=localSearch(s.q,X.from()); return showS(k); }
+  s.busy=true; showS(k);
+  const pt=X.from(); let j=null;
+  try{ const r=await fetch("api/search",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({query:s.q,lat:pt.lat,lng:pt.lng,top_k:30}),signal:AbortSignal.timeout(20000)}); if(r.ok) j=await r.json(); }catch(e){}
+  if(ask!==s.ask) return;                      /* a newer search took over */
+  s.busy=false;
+  if(!j||!Array.isArray(j.results)){ s.res={down:true,list:nearList(pt)}; return showS(k); }
   const pz=j.parsed||{}, hc=pz.hard_constraints||{}, tg=pz.amenity_targets||{};
   const got=[...(hc.categories||[]).map(catLabel),...Object.entries(tg).map(([k,v])=>amLabel(k,v)),...Object.keys(pz.atmosphere_weights||{}).map(k=>DAYOFF_SEARCH.label(k,state.lang))];
   const list=j.results.filter(x=>P[String(x.venue_id)]).map(x=>({id:String(x.venue_id),m:x.score||0,am:x.amenity_evidence||{},tg,vm:x.vibe_match,ev:x.atmosphere_evidence||{}}));
-  S.res=got.length?{got,list}:{none:true,list};
-  showS();
+  s.res=got.length?{got,list}:{none:true,list};
+  showS(k);
 }
-function sList(){
-  let L=(S.q&&S.res?S.res.list:nearList()).filter(r=>P[r.id]&&inArea(P[r.id]));
-  if(S.open) L=L.filter(r=>isOpen(P[r.id]));
-  if(S.price) L=L.filter(r=>P[r.id].price<=S.price);
+function sList(k="s"){
+  const X=SX[k], s=X.st, out=k==="o";        /* out: from where you are; places already visited today are left out */
+  let L=(s.q&&s.res?s.res.list:nearList(X.from())).filter(r=>P[r.id]&&(out?!visited(r.id):inArea(P[r.id])));
+  if(s.open) L=L.filter(r=>isOpen(P[r.id]));
+  if(s.price) L=L.filter(r=>P[r.id].price<=s.price);
   return L.slice(0,15);
 }
 function thinkPos(){
@@ -1688,7 +1698,7 @@ function thinkPos(){
   const top=Math.max(wr.top,vr.top), y=(top+bot)/2-wr.top;
   w.querySelector(".s-think").style.setProperty("--ty",Math.max(90,Math.min(wr.height-90,y))+"px");
 }
-function showS(){ const k=document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.fk, r=$("#sres"); if(r){ r.innerHTML=sResultsHTML(); thinkPos(); } if(k&&r&&r.querySelector(`[data-fk="${k}"]`)) r.querySelector(`[data-fk="${k}"]`).focus({preventScroll:true}); mapSig=""; renderMap(); }
+function showS(sk="s"){ const k=document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.fk, r=$(SX[sk].box); if(r){ r.innerHTML=sResultsHTML(sk); thinkPos(); } if(k&&r&&r.querySelector(`[data-fk="${k}"]`)) r.querySelector(`[data-fk="${k}"]`).focus({preventScroll:true}); mapSig=""; renderMap(); }
 /* why it matched: what reviews say about each thing you asked for, never a bare score */
 function sEvidence(r,p){
   const out=[], chip=(s,txt,sr)=>`<span class="ev ev-${s}">${icon(s==="yes"?"check":s==="no"?"x":"info")}<span aria-hidden="true">${esc(txt)}</span><span class="sr">${esc(sr)}</span></span>`;
@@ -1699,26 +1709,26 @@ function sEvidence(r,p){
   (r.tags||[]).forEach(x=>{ const l=TAGNAME[state.lang][x], n=p.tags[x]; if(n!=null) out.push(chip(n>=3?"yes":"unk",`${l} ${n}/5`,`${l} ${n}/5`)); });
   return out.length?`<span class="evs">${out.join("")}</span>`:"";
 }
-function sCard(r,i){
-  const p=P[r.id], inT=state.tray.includes(p.id), nmx=nm(p);
+function sCard(r,i,k="s"){
+  const p=P[r.id], inT=state.tray.includes(p.id), nmx=nm(p), out=k==="o";
   const st=p.status==="ok"?statusText(p):p.status==="closed"?t("closedToday"):t("hoursUnknown");
-  return `<li class="s-card" data-id="${p.id}" data-in="${inT}">
+  return `<li class="s-card${out?" o":""}" data-id="${p.id}" data-in="${inT}">
     <button type="button" class="s-open" data-act="info" data-id="${p.id}" data-fk="so-${p.id}" data-testid="s-open-${p.id}">${artOf(p,i,"s-art")}
-      <span class="s-body"><b>${esc(nmx)}</b><small>${TYPENAME[state.lang][p.type]||""} · ${priceBand(p.price)} · ${t("nWalk",{n:walkMin(startPt(),p)})} · ${esc(st)}</small>${sEvidence(r,p)}</span></button>
-    <button type="button" class="s-add" data-act="add" data-id="${p.id}" data-fk="sa-${p.id}" data-testid="s-add-${p.id}" aria-pressed="${inT}" aria-label="${esc(t(inT?"sAdded":"sAdd",{name:nmx}))}">${icon(inT?"check":"plus")}</button></li>`;
+      <span class="s-body"><b>${esc(nmx)}</b><small>${TYPENAME[state.lang][p.type]||""} · ${priceBand(p.price)} · ${t("nWalk",{n:walkMin(SX[k].from(),p)})} · ${esc(st)}</small>${sEvidence(r,p)}</span></button>
+    ${out?`<button type="button" class="btn primary small s-go" data-act="o-go" data-id="${p.id}" data-fk="og-${p.id}" data-testid="o-go-${p.id}" aria-label="${esc(t("oGoX",{name:nmx}))}">${icon("walk")}${t("oGo")}</button></li>`:`<button type="button" class="s-add" data-act="add" data-id="${p.id}" data-fk="sa-${p.id}" data-testid="s-add-${p.id}" aria-pressed="${inT}" aria-label="${esc(t(inT?"sAdded":"sAdd",{name:nmx}))}">${icon(inT?"check":"plus")}</button></li>`}`;
 }
-function sResultsHTML(){
-  const R=S.q?S.res:null, note=k=>`<p class="note" role="status">${icon("info")}<span>${t(k)}</span></p>`;
+function sResultsHTML(k="s"){
+  const S=SX[k].st, R=S.q?S.res:null, note=k=>`<p class="note" role="status">${icon("info")}<span>${t(k)}</span></p>`;
   let head="";
   if(S.busy){}                                 /* the thinking card covers the list; no stale "We understood" */
-  else if(!R) head+=`<h2 class="s-h">${t("sNear",{name:esc(startPt().name||areaName())})}</h2>`;
+  else if(!R) head+=`<h2 class="s-h">${k==="o"?t("oNear"):t("sNear",{name:esc(startPt().name||areaName())})}</h2>`;
   else if(R.down) head+=note("sDown");
   else if(R.none) head+=note("sGotNone");
   else head+=`<div class="s-got" data-testid="s-got"><span class="lbl">${t("sGot")}</span>${R.got.map(g=>`<span class="tag">${esc(g)}</span>`).join("")}</div>`;
-  const f=`<div class="chips s-f"><button type="button" class="chip" data-act="s-open" data-fk="s-open" aria-pressed="${S.open}">${icon("clock")}${t("sOpen")}</button>${[1,2,3].map(n=>`<button type="button" class="chip" data-act="s-price" data-n="${n}" data-fk="s-price-${n}" aria-pressed="${S.price===n}">${"฿".repeat(n)}</button>`).join("")}</div>`;
-  const L=sList();
+  const f=`<div class="chips s-f"><button type="button" class="chip" data-act="s-open" data-sk="${k}" data-fk="${k}-open" aria-pressed="${S.open}">${icon("clock")}${t("sOpen")}</button>${[1,2,3].map(n=>`<button type="button" class="chip" data-act="s-price" data-sk="${k}" data-n="${n}" data-fk="${k}-price-${n}" aria-pressed="${S.price===n}">${"฿".repeat(n)}</button>`).join("")}</div>`;
+  const L=sList(k);
   const body=!L.length?`<p class="sub" data-testid="s-none">${t("sNone")}</p>`
-    :(R&&!R.down&&!R.none&&!S.busy?`<p class="sub s-count">${t("sResults",{n:L.length})}</p>`:"")+`<ul class="s-list" data-testid="s-list">${L.map(sCard).join("")}</ul>`;
+    :(R&&!R.down&&!R.none&&!S.busy?`<p class="sub s-count">${t("sResults",{n:L.length})}</p>`:"")+`<ul class="s-list" data-testid="${k==="o"?"o-list":"s-list"}">${L.map((r,i)=>sCard(r,i,k)).join("")}</ul>`;
   const think=S.busy?`<div class="s-think" role="status" data-testid="s-think"><div class="s-think-box"><span class="s-orb" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span></span><span class="s-cap"><b>${t("sThink",{q:esc(S.q)})}</b><small>${t("sBusy")}</small></span></div></div>`:"";
   return head+f+`<div class="s-wrap" aria-busy="${S.busy}">${body}${think}</div>`;
 }
@@ -1755,7 +1765,51 @@ function viewPlan2(){
   return `<header class="s-head"><h1>${t("pTitle")}</h1><p class="sub">${t("pSub")}</p></header>
   <section class="sect"><h2>${t("pPlaces")}${n?` <span class="cnt">${n}</span>`:""}</h2>${places}</section>
   <section class="sect"><h2>${t("pWhen")}</h2>${whenHTML()}</section>
-  <button type="button" class="btn primary wide" data-act="p-make" data-fk="p-make" data-testid="p-make"${n?"":" disabled"}>${icon("route")}${t("pMake")}</button>`;
+  <button type="button" class="btn primary wide" data-act="p-make" data-fk="p-make" data-testid="p-make"${n?"":" disabled"}>${icon("route")}${t("pMake")}</button>${savedDaysHTML()}`;
+}
+function savedDaysHTML(){
+  const sd=UT.filter(x=>x.saved).map(x=>({...x,stops:x.stops.filter(id=>P[id])})).filter(x=>x.stops.length);
+  return sd.length?`<section class="sect" data-testid="p-saved"><h2>${t("pSavedDays")}</h2><div class="trlist">${sd.map(trCard).join("")}</div></section>`:"";
+}
+const durT=n=>{ n=Math.round(n); const h=Math.floor(n/60), m=n%60; return h?(m?t("durH",{h,m}):t("durHo",{h})):t("durM",{n}); };
+const GAP_MIN=30;
+/* a long wait before a stop opens: offer to start later (when everything before still fits) or to fill the gap */
+function laterStart(pl,i){
+  if(tripOn()||pl.items.slice(0,i).some(x=>x.done)) return null;
+  const it=pl.items[i], s0=F.startMin, top=Math.min(1380,Math.floor((s0+it.wait)/5)*5);
+  for(let cand=top;cand>=s0+15;cand-=cand-s0>60?15:5){   /* the latest start that keeps every stop (wait may shrink, not vanish) */
+    F.startMin=cand; const p2=planF(); F.startMin=s0; const j=p2.items.find(x=>x.id===it.id);
+    if(p2.dropped.length<=pl.dropped.length&&j&&j.wait<=it.wait-15) return cand;
+  }
+  F.startMin=s0; return null;
+}
+function gapHTML(pl,i){
+  const it=pl.items[i], later=laterStart(pl,i);
+  return `<div class="r-gap" data-testid="r-gap"><span>${icon("clock")}${t("pGap",{a:fmt(it.arr),b:fmt(it.start),d:durT(it.wait)})}</span><span class="r-gap-acts">
+    ${later!=null?`<button type="button" class="chip" data-act="gap-later" data-t="${later}" data-fk="gl-${it.id}" data-testid="gap-later">${icon("clock")}${t("pGapLater",{t:fmt(later)})}</button>`:""}
+    <button type="button" class="chip" data-act="gap-fill" data-id="${it.id}" data-fk="gf-${it.id}" data-testid="gap-fill">${icon("search")}${t("pGapFill")}</button></span></div>`;
+}
+function gapFits(id){                           /* places that fit between the stop before and this one, without making it late */
+  const pl=planF(), i=pl.items.findIndex(x=>x.id===id); if(i<0) return {list:[]};
+  const it=pl.items[i], prev=i?P[pl.items[i-1].id]:startPt(), leave=it.arr-it.walk, tgt=P[id];
+  const list=PLACES.filter(p=>!state.tray.includes(p.id)&&!visited(p.id)&&p.status!=="closed").map(p=>{
+    const unk=p.status!=="ok", w1=walkMin(prev,p), arr=leave+w1, st=Math.max(arr,unk?0:p.open), end=st+durOf(p), w2=walkMin(p,tgt);
+    return {p,st,end,w2,extra:w1+w2,ok:end<=(unk?1440:p.close)&&end+w2<=it.start&&st-arr<=20};
+  }).filter(c=>c.ok).sort((a,b)=>a.extra-b.extra).slice(0,6);
+  return {it,list};
+}
+function gapSheet(id){
+  const g=gapFits(id); if(!g.it) return;
+  const rows=g.list.map((c,k)=>`<li class="mrow mrow-x">${artOf(c.p,k)}<span><b>${esc(nm(c.p))}</b><small>${TYPENAME[state.lang][c.p.type]||""} · ${esc(t("pGapFits",{a:fmt(c.st),b:fmt(c.end),n:c.w2,next:nm(P[id])}))}</small></span><button type="button" class="rplus" data-act="gap-add" data-id="${c.p.id}" data-before="${id}" data-testid="gap-add" aria-label="${esc(t("pGapAdd",{name:nm(c.p)}))}">${icon("plus")}</button></li>`).join("");
+  openSheet(t("pGapT",{a:fmt(g.it.arr),b:fmt(g.it.start)}),g.list.length?`<ul class="mine" data-testid="gap-list">${rows}</ul>`:`<p class="sub">${t("pGapNone")}</p>`,"[data-testid=gap-add]");
+}
+function gapAdd(id,before){
+  const pl=planF(), base=pl.items.filter(i=>i.done).length, order=pl.items.filter(i=>!i.done).map(i=>i.id), k=order.indexOf(before);
+  if(k<0) return; if(state.tray.length>=MAX_STOPS){ toast(t("full")); return; }
+  const sn=snap(); closeSheet();
+  state.tray.push(id); if(!F.durSrc[id]) F.durSrc[id]="sug"; order.splice(k,0,id); state.pins={}; order.forEach((x,j)=>{ state.pins[x]=base+j; });
+  render(); const it=planF().items.find(x=>x.id===id);
+  toast(t("pGapAdded",{name:nm(P[id]),t:it?fmt(it.start):""}),()=>restore(sn));
 }
 function planDay2(){
   const pl=planF(), from=esc(startPt().name||t("yourLoc"));
@@ -1763,9 +1817,9 @@ function planDay2(){
   const rest=pl.items.filter(i=>!i.done).length, mine=Object.keys(state.pins).length>0;
   const rows=pl.items.map((it,i)=>{ const p=P[it.id], open=F.exp===it.id;
     return `<li class="r-stop${it.done?" done":""}${open?" open":""}" data-id="${it.id}" style="--i:${i}">
-      <p class="r-leg">${icon("walk")}${i===0?t("fromStart",{n:it.walk,name:from}):t("walkN",{n:it.walk})}</p>
+      <p class="r-leg">${icon("walk")}${i===0?t("fromStart",{n:it.walk,name:from}):t("walkN",{n:it.walk})}</p>${!it.done&&it.wait>=GAP_MIN?gapHTML(pl,i):""}
       <div class="r-card"><span class="r-num" aria-hidden="true">${i+1}</span>
-        <button type="button" class="r-open" data-act="exp" data-id="${it.id}" data-fk="ro-${it.id}" data-testid="r-open" aria-expanded="${open}" aria-controls="ra-${it.id}"><b>${esc(nm(p))}</b><small>${t("pStayN",{a:fmt(it.start),n:durOf(p),t:fmt(it.end)})}</small>${it.wait>0?`<small class="r-wait">${icon("clock")}${t("pWait",{t:fmt(it.start),n:it.wait})}</small>`:""}</button>
+        <button type="button" class="r-open" data-act="exp" data-id="${it.id}" data-fk="ro-${it.id}" data-testid="r-open" aria-expanded="${open}" aria-controls="ra-${it.id}"><b>${esc(nm(p))}</b><small>${t("pStayN",{a:fmt(it.start),n:durOf(p),t:fmt(it.end)})}</small>${it.wait>0?`<small class="r-wait">${icon("clock")}${t("pWait",{t:fmt(it.start),a:fmt(it.arr),d:durT(it.wait)})}</small>`:""}</button>
         ${artOf(p,i,"r-art")}${it.done||rest<2?"":`<button type="button" class="r-grip" data-grip="${it.id}" data-fk="rg-${it.id}" data-testid="r-grip" aria-label="${esc(t("pGrip",{name:nm(p)}))}">${icon("grip")}</button>`}
         ${it.done?"":`<div class="r-acts" id="ra-${it.id}"${open?"":" hidden"}>
           <div class="r-row"><span class="lbl">${t("stay")}</span><button type="button" class="chip" data-act="stay" data-d="-15" data-id="${it.id}" data-fk="sm-${it.id}">${t("stayMin")}</button><button type="button" class="chip" data-act="stay" data-d="15" data-id="${it.id}" data-fk="sp-${it.id}">${t("stayPlus")}</button></div>
@@ -1936,7 +1990,9 @@ function planStatus(){
 }
 function replanRest(){
   const sn=snap(), now=F.next.t, vs=planVisits(), base=vs.length?vs[vs.length-1].end:state.startMin;
-  state.delay=Math.max(0,now-base); const log=fixCore(); F.next.pid=null; F.next.pphase="suggest"; render();
+  if(vs.length) state.delay=Math.max(0,now-base);
+  else if(now>F.startMin){ F.startMin=now; F.defs.start=false; state.delay=0; }   /* nothing visited yet: the day starts now */
+  const log=fixCore(); F.next.pid=null; F.next.pphase="suggest"; render();
   toast(log.length?t("npReplanned",{t:fmt(now),what:[...new Set(log)].join(", ")}):t("npReplannedOk",{t:fmt(now)}),()=>restore(sn));
 }
 function planNextArrive(id){
@@ -1960,7 +2016,7 @@ function outPlan(){
   }
   if(!st.nx){
     const n=st.pl.items.filter(i=>i.done).length;
-    return outHead("oPlanT")+`<div class="card p-empty" data-testid="np-all-done"><p>${icon("check")} ${t("npDoneAll",{n:stopsT(n)})}</p><div class="tacts"><button type="button" class="btn primary" data-act="np-free" data-fk="np-more" data-testid="np-more">${icon("search")}${t("npOneMore")}</button><button type="button" class="btn ghost" data-act="go" data-s="plan" data-fk="np-day">${icon("route")}${t("npSeeDay")}</button></div></div>`+prog;
+    return outHead("oPlanT")+`<div class="card p-empty" data-testid="np-all-done"><p>${icon("check")} ${t("npDoneAll",{n:stopsT(n)})}</p><div class="tacts">${daySaved()?`<button type="button" class="btn ghost" disabled data-testid="o-saved">${icon("check")}${t("oSaved")}</button>`:`<button type="button" class="btn primary" data-act="o-save" data-fk="o-save" data-testid="o-save">${icon("check")}${t("oSave")}</button>`}<button type="button" class="btn ${daySaved()?"primary":"ghost"}" data-act="o-new" data-fk="o-new" data-testid="o-new">${icon("plus")}${t("oNew")}</button><button type="button" class="btn ghost" data-act="np-free" data-fk="np-more" data-testid="np-more">${icon("search")}${t("npOneMore")}</button></div></div>`+prog;
   }
   const p=st.p, going=N.pphase==="going"&&N.pid===p.id, act=F.actOf[p.id];
   const pill=st.late>15?`<span class="hl hl-no" data-testid="np-status">${icon("alert")}${t("npBehind",{n:st.late})}</span>`:st.off?`<span class="hl hl-no" data-testid="np-status">${icon("alert")}${t("hNo")}</span>`:`<span class="hl hl-fits" data-testid="np-status">${icon("check")}${t("npOn")}</span>`;
@@ -1986,29 +2042,66 @@ function outWhy(c){
   return out.length?`<p class="evs">${out.join("")}</p>`:"";
 }
 function outFree(){
-  const N=F.next, back=tripOn()?`<div class="chips"><button type="button" class="chip" data-act="np-back" data-fk="np-back" data-testid="np-back">${icon("back")}${t("npBack")}</button></div>`:"";
+  const back=tripOn()?`<div class="chips"><button type="button" class="chip" data-act="np-back" data-fk="np-back" data-testid="np-back">${icon("back")}${t("npBack")}</button></div>`:"";
   const has=tripOn()||!(F.built&&state.tray.length)?""
     :isTodayPlan()?`<div class="card o-has" data-testid="o-has"><p>${t("oHas",{s:stopsT(state.tray.length)})}</p><div class="tacts"><button type="button" class="btn primary" data-act="o-start" data-fk="o-start" data-testid="o-start">${icon("walk")}${t("oStart")}</button></div></div>`
     :`<div class="card o-has" data-testid="o-other"><p><b>${t("oOther",{d:esc(dayLbl(dateISO()))})}</b> ${t("oOtherD")}</p><div class="tacts"><button type="button" class="btn primary" data-act="o-jump" data-fk="o-jump" data-testid="o-jump">${icon("walk")}${t("oJump",{d:esc(dayLbl(dateISO())),t:fmt(F.startMin)})}</button></div></div>`;
-  const ask=`<section class="sect"><h2>${t("oAsk")}</h2><div class="chips" data-testid="quick">${NXCHIPS.map(([k,l])=>`<button type="button" class="chip" data-act="nx-chip" data-k="${k}" data-fk="nx-${k}" data-testid="nx-${k}" aria-pressed="${N.q===t(l)}">${t(l)}</button>`).join("")}</div>
-    <form class="sbox" data-form="nsay" autocomplete="off">${icon("chat")}<input type="text" id="nq" value="${esc(N.stage!=="ask"&&!NXCHIPS.some(([,l])=>t(l)===N.q)?N.q:"")}" placeholder="${esc(t("nxPh"))}" aria-label="${esc(t("nxPh"))}" data-testid="next-say">${micBtn("nq")}<button type="submit" class="sendbtn" aria-label="${esc(t("cvSend"))}" data-testid="next-send">${icon("send")}</button></form></section>`;
-  let card="";
-  if(N.stage!=="ask"||N.id){
-    const cs=nextOptions();
-    if(N.phase==="suggest"&&!N.id&&cs.length) N.id=cs[0].p.id;     /* one suggestion at a time: the best one left */
-    const c=N.id?(cs.find(x=>x.p.id===N.id)||{p:P[N.id],w:walkMin(nextFrom(),P[N.id]),known:P[N.id].status==="ok"}):null;
-    if(!c) card=`<p class="sub" data-testid="next-empty">${t("oNone")}</p>`;
-    else {
-      const p=c.p, at=N.phase==="there", i=cs.findIndex(x=>x.p.id===p.id);
-      const facts=at?`<p>${icon("clock")}<span>${t("nStayUntil",{t:fmt(N.t+durOf(p))})}</span></p>`
-        :`${outWhy(c)}<p>${icon("walk")}<span>${t("nWalk",{n:c.w})}</span></p><p>${icon("clock")}<span>${c.known?t("nOpen",{t:fmt(p.close)}):t("nUnknown")}</span></p>`;
-      const acts=N.phase==="suggest"?`<button type="button" class="btn primary" data-act="n-go" data-fk="n-go" data-testid="next-go">${icon("walk")}${t("nGo")}</button><button type="button" class="btn ghost" data-act="n-another" data-fk="n-another" data-testid="next-another">${t("oAnother")}</button>`
-        :N.phase==="going"?`<button type="button" class="btn primary" data-act="n-arrive" data-fk="n-arrive" data-testid="next-arrive">${icon("check")}${t("nArrived")}</button><button type="button" class="btn ghost" data-act="n-go" data-fk="n-go" data-testid="next-go">${icon("walk")}${t("nvNavigate")}</button>`
-        :`<button type="button" class="btn primary" data-act="n-done" data-fk="n-done" data-testid="next-done">${icon("check")}${t("nDone")}</button><button type="button" class="btn ghost" data-act="n-skip" data-fk="n-skip" data-testid="next-skip">${icon("skip")}${t("nSkip")}</button>`;
-      card=(N.phase==="suggest"&&i>=0?`<p class="o-kicker" data-testid="o-count">${t("oSugN",{i:N.rej.size+i+1,n:N.rej.size+cs.length})}</p>`:"")+oHero(p,0,at?t("nAtTitle",{name:esc(nm(p))}):esc(nm(p)),facts,acts,"","next-hero");
-    }
+  const ex=[1,2,3,4,5].map(i=>t("sEx"+i));
+  const old=notStop(), not=old?`<div class="card o-not" data-testid="o-not"><p>${t("oNotT",{name:`<b>${esc(nm(P[old]))}</b>`})}</p><div class="tacts"><button type="button" class="btn ghost" data-act="o-drop" data-id="${old}" data-fk="o-drop" data-testid="o-drop">${icon("x")}${t("oDrop")}</button></div></div>`:"";
+  return outHead("oFreeT")+back+not+has+`<form class="sbox" role="search" data-form="o2">${icon("search")}<label class="sr" for="oq">${t("oFreeT")}</label>
+    <input id="oq" type="search" value="${esc(O.q)}" placeholder="${esc(t("sPh"))}" data-fk="oq" autocomplete="off" enterkeyhint="search" data-testid="o-q">${micBtn("oq")}</form>
+  <div class="chips s-ex" role="group" aria-label="${esc(t("sTry"))}">${ex.map((x,i)=>`<button type="button" class="chip" data-act="s-ex" data-sk="o" data-q="${esc(x)}" data-fk="o-ex-${i}" aria-pressed="${O.q===x}">${esc(x)}</button>`).join("")}</div>
+  <div id="ores">${sResultsHTML("o")}</div>`;
+}
+/* a place picked while out joins today's plan as the next stop (a new plan for today if none is running) */
+const tripFlags=()=>JSON.stringify({started:F.started,built:F.built,demoDay:F.demoDay||null,date:F.date,tripId:F.tripId,nt:F.next.t,free:F.next.free,pid:F.next.pid,pphase:F.next.pphase,not:F.next.not||null,skipped:state.skipped});
+function undoTrip(sn,fl){ const o=JSON.parse(fl); Object.assign(F,{started:o.started,built:o.built,demoDay:o.demoDay,date:o.date,tripId:o.tripId}); Object.assign(F.next,{t:o.nt,free:o.free,pid:o.pid,pphase:o.pphase,not:o.not}); state.skipped=o.skipped; closeSheet(); mapSig=""; restore(sn); }
+function outGo(id,opt){
+  const p=P[id]; if(!p) return; opt=opt||{};
+  const old=notStop(); if(old&&old!==id&&opt.drop===undefined) return swapSheet(id,old);
+  const fresh=!tripOn(), keep=fresh&&isTodayPlan()&&F.built&&state.tray.length>0;
+  if(!fresh&&!state.tray.includes(id)&&state.tray.length>=MAX_STOPS){ toast(t("full")); return; }
+  const sn=snap(), fl=tripFlags();
+  if(fresh){
+    if(!keep){ if(!isTodayPlan()) setDate("today"); state.tray=[]; state.pins={}; F.fixed={}; F.musts=new Set(); F.actOf={}; F.acts=[]; F.tripId=null; }
+    F.next.t=Math.max(F.next.t,REAL.min); if(!keep) F.startMin=F.next.t;
+    F.built=true; F.started=true; state.visits=[]; state.skipped=[]; state.delay=0;
   }
-  return outHead("oFreeT")+back+has+card+ask;
+  if(opt.drop) dropStop(opt.drop);
+  const before=new Set(planF().dropped.map(d=>d.id));
+  if(!state.tray.includes(id)){ state.tray.push(id); if(!F.durSrc[id]) F.durSrc[id]="sug"; }
+  const pl=planF(), base=pl.items.filter(i=>i.done).length, order=[id,...pl.items.filter(i=>!i.done&&i.id!==id).map(i=>i.id)];
+  state.pins={}; order.forEach((x,k)=>{ state.pins[x]=base+k; });
+  Object.assign(F.next,{free:false,pid:null,pphase:"suggest",not:null}); mapSig=""; render();
+  const lost=planF().dropped.filter(d=>!before.has(d.id)&&d.id!==id).map(d=>nm(P[d.id]));
+  openNavSheet(id,"plannext");
+  toast(lost.length?t("oAddedDrop",{name:nm(p),k:lost.join(", ")}):opt.drop?t("oSwapped",{name:nm(p),old:nm(P[opt.drop])}):t(fresh&&!keep?"oStarted":"oAdded",{name:nm(p)}),()=>undoTrip(sn,fl));
+}
+const notStop=()=>{ const id=F.next.not; return id&&tripOn()&&state.tray.includes(id)&&!visited(id)?id:null; };
+function reorderRest(order,base){ state.pins={}; order.forEach((x,k)=>{ state.pins[x]=base+k; }); }
+function dropStop(id){                          /* take a planned stop off today, keep the rest in their order */
+  const pl=planF(), base=pl.items.filter(i=>i.done).length, order=pl.items.filter(i=>!i.done&&i.id!==id).map(i=>i.id);
+  addPlace(id); reorderRest(order,base);
+}
+function outDrop(id){
+  const sn=snap(), fl=tripFlags(), p=P[id]; dropStop(id); Object.assign(F.next,{not:null,free:false,pid:null,pphase:"suggest"}); mapSig=""; render();
+  toast(t("oDropped",{name:nm(p)}),()=>undoTrip(sn,fl));
+}
+function swapSheet(id,old){
+  const b=(act,ic,title,sub)=>`<button type="button" class="opt" data-act="${act}" data-id="${id}" data-old="${old}" data-testid="${act}">${icon(ic)}<span>${title}<small>${sub}</small></span><span></span></button>`;
+  openSheet(t("oSwapT",{old:nm(P[old])}),`<div class="opts">${b("o-swap","swap",esc(t("oSwap",{name:nm(P[id])})),esc(t("oSwapD",{old:nm(P[old])})))}${b("o-keep","route",esc(t("oKeep",{old:nm(P[old])})),esc(t("oKeepD",{name:nm(P[id])})))}</div>`,"[data-testid=o-swap]");
+}
+const daySaved=()=>{ const r=UT.find(x=>x.id===F.tripId); return !!(r&&r.saved); };
+function saveDay(){
+  syncTrip(); const i=UT.findIndex(x=>x.id===F.tripId); if(i<0) return;
+  UT[i]={...UT[i],saved:true,done:true,visits:planVisits().map(v=>({id:v.id,start:v.start,end:v.end}))}; saveUT(); render(); toast(t("oSavedT"));
+}
+function newPlan(){
+  const sn=snap(), fl=tripFlags();
+  state.tray=[]; state.pins={}; state.visits=[]; state.skipped=[]; state.delay=0; F.fixed={}; F.musts=new Set(); F.actOf={}; F.acts=[]; F.picks={}; F.pk=false;
+  F.built=false; F.started=false; F.demoDay=null; F.tripId=null; setDate("today");
+  Object.assign(F.next,{pid:null,pphase:"suggest",free:false,pos:null,t:REAL.min});
+  go("plan"); toast(t("oNewT"),()=>{ go("next"); undoTrip(sn,fl); });
 }
 const viewOut=()=>tripOn()&&!F.next.free?outPlan():outFree();
 function soonHTML(k,title,what){
@@ -2028,10 +2121,9 @@ function renderMap(){
   else if(sc==="plan"&&F.pk){ const picked=Object.values(F.picks); list=[...new Set(F.acts.flatMap(a=>pickCands(a).map(p=>p.id)))].map(id=>({id,kind:picked.includes(id)?"tray":"res"})); }
   else if(sc==="plan"&&F.built&&state.tray.length){ const pl=planF(); list=pl.items.map((it,i)=>({id:it.id,kind:it.done?"done":"num",n:i+1})); route=pl.items; }
   else if(sc==="next"&&tripOn()&&!F.next.free){ const pl=planF(), nx=pl.items.find(i=>!i.done); list=pl.items.map((it,i)=>({id:it.id,kind:it.done?"done":"num",n:i+1,best:!!(nx&&it.id===nx.id)})); route=pl.items; }
-  else if(sc==="next"&&F.screen==="next"&&VIEWS.next===viewOut){ const cs=nextOptions(); list=cs.slice(0,10).map(c=>({id:c.p.id,kind:c.p.id===F.next.id?"num":"res",n:c.p.id===F.next.id?1:undefined,best:c.p.id===F.next.id})); if(F.next.id&&!list.some(x=>x.id===F.next.id)) list.push({id:F.next.id,kind:"num",n:1,best:true}); }
-  else if(sc==="next"){ const cs=nextOptions(), opt=F.next.stage==="options"&&!F.next.id?cs.slice(0,NX_MAX).map(c=>c.p.id):[]; list=cs.slice(0,12).map(c=>{ const oi=opt.indexOf(c.p.id), pk=c.p.id===F.next.id; return {id:c.p.id,kind:pk||oi>=0?"num":"res",n:pk?1:oi>=0?oi+1:undefined,best:pk}; }); if(F.next.id&&!list.some(x=>x.id===F.next.id)) list.push({id:F.next.id,kind:"num",n:1,best:true}); }
+  else if(sc==="next") list=sList("o").map(r=>({id:r.id,kind:state.tray.includes(r.id)?"tray":"res"}));
   else list=state.tray.map(id=>({id,kind:"tray"}));
-  const sig=sc+(sc==="search"?S.q+S.open+S.price+S.busy:"")+(F.trip||F.exTab)+(F.pk?"pk":"")+(sc==="next"?F.next.stage+F.next.id+F.next.free+F.next.pphase+F.next.t+state.visits.length:"")+JSON.stringify(list)+(sc==="next"?JSON.stringify(nextFrom()):"");
+  const sig=sc+(sc==="search"?S.q+S.open+S.price+S.busy:"")+(F.trip||F.exTab)+(F.pk?"pk":"")+(sc==="next"?O.q+O.open+O.price+O.busy+F.next.stage+F.next.id+F.next.free+F.next.pphase+F.next.t+state.visits.length:"")+JSON.stringify(list)+(sc==="next"?JSON.stringify(nextFrom()):"");
   if(sig!==mapSig){ mapSig=sig; DayMap.pins(list,{fit:true,extra:sc==="next"?nextFrom():null}); if(route) DayMap.route(route); }
   DayMap.shade(F.area.k==="pin"&&sc!=="next"?F.area:(F.area.k==="me"&&F.geo&&sc!=="next"?F.geo:null),F.area.k==="me"?1500:800);
   DayMap.me(true,sc==="next"?nextFrom():null);
@@ -2387,21 +2479,33 @@ document.addEventListener("click",e=>{
   else if(a==="fv-edit"){ FV.sent=false; render(); }
   else if(a==="p-go"||a==="o-start"||a==="o-jump"){
     if(a==="o-jump"){ F.demoDay=dateISO(); F.next.t=F.startMin; } else F.next.t=Math.max(F.next.t,REAL.min);
-    F.started=true; state.visits=[]; state.skipped=[]; state.delay=0; F.next.rej.clear(); F.next.pid=null; F.next.pphase="suggest"; F.next.pos=null; go("next"); }
+    const late=a!=="o-jump"&&F.next.t>F.startMin+5, was=F.startMin;
+    if(late){ F.startMin=F.next.t; F.defs.start=false; }        /* the plan runs from when you actually set off */
+    F.started=true; state.visits=[]; state.skipped=[]; state.delay=0; F.next.not=null; F.next.rej.clear(); F.next.pid=null; F.next.pphase="suggest"; F.next.pos=null; go("next");
+    if(late) toast(t("pNowStart",{t:fmt(F.startMin),p:fmt(was)})); }
   else if(a==="p-cont") go("next");
+  else if(a==="gap-later"){ const v=+b.dataset.t; withUndo(t("pLater",{t:fmt(v)}),()=>{ F.startMin=v; F.defs.start=false; state.delay=0; }); }
+  else if(a==="gap-fill") gapSheet(id);
+  else if(a==="gap-add") gapAdd(id,b.dataset.before);
   else if(a==="np-go") openNavSheet(id,"plannext");
   else if(a==="np-arrive") planNextArrive(id);
   else if(a==="np-done"){ const N=F.next, v=state.visits.find(x=>x.id===N.pid); if(v) N.t=Math.max(N.t,v.end); N.pid=null; N.pphase="suggest"; mapSig=""; render(); }
   else if(a==="np-replan") replanRest();
   else if(a==="np-late"){ F.next.t=Math.min(1439,F.next.t+ +b.dataset.n); mapSig=""; render(); }
-  else if(a==="np-free"){ F.next.free=true; F.next.stage="ask"; F.next.id=null; mapSig=""; render(); }
-  else if(a==="np-back"){ F.next.free=false; F.nlog=[]; Object.assign(F.next,{id:null,phase:"suggest",stage:"ask",q:"",acts:[]}); mapSig=""; render(); }
+  else if(a==="np-free"){ const nx=tripOn()&&planF().items.find(i=>!i.done); F.next.not=b.dataset.fk==="np-more"||!nx?null:nx.id; F.next.free=true; F.next.stage="ask"; F.next.id=null; mapSig=""; render(); }
+  else if(a==="np-back"){ F.next.not=null; F.next.free=false; F.nlog=[]; Object.assign(F.next,{id:null,phase:"suggest",stage:"ask",q:"",acts:[]}); mapSig=""; render(); }
   else if(a==="n-another"){ if(F.next.id) F.next.rej.add(F.next.id); F.next.id=null; F.next.phase="suggest"; mapSig=""; render(); }
   else if(a==="p-auto"){ const sn=snap(); state.pins={}; render(); toast(t("pAutoOn"),()=>restore(sn)); }
   else if(a==="p-edit"){ F.built=false; F.enter=true; render(); $("#scroll").scrollTop=0; }
-  else if(a==="s-ex"){ S.q=b.dataset.q; render(); runSearch(S.q); }
-  else if(a==="s-open"){ S.open=!S.open; showS(); b.setAttribute("aria-pressed",String(S.open)); }
-  else if(a==="s-price"){ const n=+b.dataset.n; S.price=S.price===n?0:n; showS(); }
+  else if(a==="s-ex"){ const k=b.dataset.sk||"s"; SX[k].st.q=b.dataset.q; render(); runSearch(b.dataset.q,k); }
+  else if(a==="s-open"){ const k=b.dataset.sk||"s", s=SX[k].st; s.open=!s.open; showS(k); }
+  else if(a==="s-price"){ const k=b.dataset.sk||"s", s=SX[k].st, n=+b.dataset.n; s.price=s.price===n?0:n; showS(k); }
+  else if(a==="o-go") outGo(id);
+  else if(a==="o-swap"){ closeSheet(); outGo(id,{drop:b.dataset.old}); }
+  else if(a==="o-keep"){ closeSheet(); outGo(id,{drop:null}); }
+  else if(a==="o-drop") outDrop(id);
+  else if(a==="o-save") saveDay();
+  else if(a==="o-new") newPlan();
   else if(a==="tab") navTo(b.dataset.s);
   else if(a==="cal-day"){ F.calSel=b.dataset.iso; render(); }
   else if(a==="cal-prev"||a==="cal-next"){ const d=1*(a==="cal-next"?1:-1), an=fromISO(F.calAnchor); F.calAnchor=isoOf(F.calMonth?new Date(an.getFullYear(),an.getMonth()+d,1,12):addDays(an,7*d)); render(); }
@@ -2486,12 +2590,13 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{
   const c=e.target.dataset&&e.target.dataset.chg; if(!c) return; const v=e.target.value;
   if(c==="date"){ setDate("custom",v); render(); }
-  else if(c==="start"){ const m=toMin(v); if(m==null) return; F.startMin=m; F.defs.start=false; if(F.defs.end) defaults(); if(F.endMin<=F.startMin+30){ F.endMin=Math.min(1380,F.startMin+240); F.defs.end=false; } render(); }
+  else if(c==="start"){ const m=toMin(v); if(m==null) return; F.startMin=m; F.defs.start=false; state.delay=0; if(F.defs.end) defaults(); if(F.endMin<=F.startMin+30){ F.endMin=Math.min(1380,F.startMin+240); F.defs.end=false; } render(); }
   else if(c==="end"){ const m=toMin(v); if(m==null) return; if(m<=F.startMin+30){ toast(t("endBad")); render(); return; } F.endMin=m; F.defs.end=false; render(); }
   else if(c==="fixtime"){ const m=toMin(v); if(m==null) return; F.fixed[e.target.dataset.id]=m; render(); }
   else if(c==="until"){ const m=toMin(v); if(m==null) return; F.next.until=m; F.next.id=null; render(); }
 });
 document.addEventListener("submit",e=>{ if(e.target.dataset.form==="s2"){ e.preventDefault(); const v=$("#sq").value; S.q=v.trim(); render(); runSearch(v); return; }
+   if(e.target.dataset.form==="o2"){ e.preventDefault(); const v=$("#oq").value; O.q=v.trim(); render(); runSearch(v,"o"); return; }
    if(e.target.dataset.form==="nsay"){ e.preventDefault(); const v=$("#nq").value.trim(); if(v) nextSay(v); return; }
    if(e.target.dataset.form==="search"){ e.preventDefault(); F.q=$("#q").value; render(); vibeSearch(); } });
 let qT=null;

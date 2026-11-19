@@ -586,6 +586,7 @@ body.navmode .pinfo{display:none}
 <div id="sheetHost"></div>
 <script src="places.js"></script>
 <script src="env.js"></script>
+<script src="shared/search.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="shared/core.js"></script>
 <script src="shared/sprite.js"></script>
@@ -732,7 +733,7 @@ routeTransit:"Walk {w1} min to {a}, ride {n} stops to {b}, walk {w2} min. Total 
 routeEstimate:"Longdo did not answer, so this is an estimate.",
 noRide:"No station is closer than the place itself, so walking is better.",
 navBoard:"Walk to {a} station",
-nvTitle:"Getting to {name}",nvStart:"Start navigation",nowOpenMaps:"Open in Maps",nvReached:"You reached {name}",nvPlanBtn:"Navigate to {name}",nvNavigate:"Navigate"
+nvTitle:"Getting to {name}",nvStart:"Start navigation",nowOpenMaps:"Open in Maps",nvReached:"You reached {name}",nvPlanBtn:"Navigate to {name}",nvNavigate:"Navigate",srBusy:"Searching reviews…",srMatch:"Reviews call it {a}",srNoMatch:"No review calls it {a}",srReviews:"{n} reviews",srReview1:"1 review",srNoReviews:"Too few reviews to judge its vibe",srDown:"The search service isn't answering, so places are listed nearest first.",srNone:"No vibe found in “{q}”. Showing the closest matches.",srDegraded:"Few places here are described that way, so the nearest ones come first.",srSource:"Ranked by the Day-Off search from Google Maps reviews (local test data, not for publishing)"
 },{
 navExit:"ลงที่ {a} แล้วเดินออกจากสถานี",
 navRideLine:"นั่ง {line} จาก {a} ไป {b}",
@@ -787,7 +788,7 @@ routeTransit:"เดิน {w1} นาทีไป {a} นั่ง {n} สถ�
 routeEstimate:"Longdo ไม่ตอบ จึงเป็นค่าประมาณ",
 noRide:"ไม่มีสถานีที่ใกล้กว่าตัวสถานที่ เดินดีกว่า",
 navBoard:"เดินไปสถานี {a}",
-nvTitle:"ไปที่ {name}",nvStart:"เริ่มนำทาง",nowOpenMaps:"เปิดในแอปแผนที่",nvReached:"คุณถึง {name} แล้ว",nvPlanBtn:"นำทางไป {name}",nvNavigate:"นำทาง"
+nvTitle:"ไปที่ {name}",nvStart:"เริ่มนำทาง",nowOpenMaps:"เปิดในแอปแผนที่",nvReached:"คุณถึง {name} แล้ว",nvPlanBtn:"นำทางไป {name}",nvNavigate:"นำทาง",srBusy:"กำลังค้นจากรีวิว…",srMatch:"รีวิวบอกว่า{a}",srNoMatch:"ยังไม่มีรีวิวที่บอกว่า{a}",srReviews:"{n} รีวิว",srReview1:"1 รีวิว",srNoReviews:"รีวิวยังน้อยเกินกว่าจะบอกบรรยากาศ",srDown:"ระบบค้นหาไม่ตอบ จึงเรียงจากที่ใกล้ที่สุดแทน",srNone:"ไม่พบบรรยากาศในคำว่า “{q}” จึงแสดงที่ใกล้เคียงที่สุด",srDegraded:"มีไม่กี่ที่ที่รีวิวพูดถึงแบบนี้ จึงเรียงที่ใกล้ที่สุดก่อน",srSource:"จัดอันดับโดยระบบค้นหา Day-Off จากรีวิว Google Maps (ข้อมูลทดสอบในเครื่อง ห้ามเผยแพร่)"
 });
 
 addStrings({
@@ -842,6 +843,7 @@ function defaults(){
   if(F.defs.start) F.startMin=today?Math.min(1320,Math.ceil(REAL.min/15)*15):600;
   if(F.defs.end) F.endMin=Math.min(1380,F.startMin+480);
 }
+const SEARCH_ON=!!(window.DAYOFF_SEARCH&&DAYOFF_SEARCH.on);
 const defPt=()=>({lat:ME.lat,lng:ME.lng,name:(window.DAYOFF_AREA&&DAYOFF_AREA.startName&&DAYOFF_AREA.startName[state.lang])||t("hualam")});
 const startPt=()=>F.start.k==="default"?defPt():F.start;
 const defAreaName=()=>window.DAYOFF_AREA?AREA[state.lang][DAYOFF_AREA.id]:t("pilot");
@@ -995,7 +997,7 @@ function setDate(k,val){
 }
 function listen(target){
   if(!SR) return; const r=new SR(); r.lang=state.lang==="th"?"th-TH":"en-US";
-  r.onresult=e=>{ const s=e.results[0][0].transcript; if(target==="nq") nextSay(s); else if(target==="q"){ F.q=s; render(); } else { F.say=s; fillSay(); } };
+  r.onresult=e=>{ const s=e.results[0][0].transcript; if(target==="nq") nextSay(s); else if(target==="q"){ F.q=s; render(); vibeSearch(); } else { F.say=s; fillSay(); } };
   r.onerror=()=>toast(t("micFail")); try{ r.start(); toast(t("listening")); }catch(e){}
 }
 const micBtn=target=>SR?`<button type="button" class="ibtn sm" data-act="mic" data-for="${target}" data-fk="mic-${target}" aria-label="${esc(t("mic"))}">${icon("mic")}</button>`:"";
@@ -1012,7 +1014,8 @@ const CM_RAW=[
  {id:"t4",k:"trip",en:"Street food after dark",th:"ของกินยามค่ำ",by:"Boss",likes:149,views:2900,stops:["naam","hoytod","fishball"]},
  {id:"p4",k:"place",en:"The shrine is calm in the morning. Bring small change.",th:"ศาลเจ้าเงียบตอนเช้า เตรียมเศษเหรียญไปด้วย",by:"Aom",likes:41,views:640,place:"chowsue"},
 ];
-const CM=CM_RAW.map((c,i)=>{ const o={...c}; if(c.k==="trip"){ o.stops=c.stops.filter(id=>P[id]); if(o.stops.length<2) o.stops=PLACES.slice(i,i+3).map(p=>p.id); } else if(!P[c.place]) o.place=PLACES[i%PLACES.length].id; return o; });
+const threeFrom=i=>[...new Set([0,1,2].map(k=>PLACES[(i+k)%PLACES.length].id))];   /* wraps, so a short place list still fills a trip */
+const CM=CM_RAW.map((c,i)=>{ const o={...c}; if(c.k==="trip"){ o.stops=c.stops.filter(id=>P[id]); if(o.stops.length<2) o.stops=threeFrom(i); } else if(!P[c.place]) o.place=PLACES[i%PLACES.length].id; return o; });
 const AVC=["#1B2233","#C93520","#4B5568","#9A6A0B"];
 const likeN=c=>c.likes+(F.likes.has(c.id)?1:0);
 const numT=n=>n>=1000?(n/1000).toFixed(n>=10000?0:1)+"k":String(n);
@@ -1055,7 +1058,42 @@ function useTrip(c){
   toast(t("exUsed")); go("plan");
 }
 
+/* vibe search: with the dayoff-search service on, sending the box ranks places from their reviews (shared/search.js).
+   Typing alone never spends a search. If the service does not answer, places stay nearest first and the page says so. */
+const vibeNames=ids=>ids.map(x=>DAYOFF_SEARCH.label(x,state.lang)).join(", ");
+const srHit=id=>F.sr&&F.sr.list&&F.sr.list.find(x=>x.id===id);
+function searchWhy(r,p){
+  if(!r||!r.vibe) return "";
+  if(r.vibe.matched.length) return t("srMatch",{a:vibeNames(r.vibe.matched)});
+  return p.reviews===false?t("srNoReviews"):t("srNoMatch",{a:vibeNames(r.vibe.not_matched)});
+}
+function srEvidence(r,p){
+  const ev=r&&r.mentions?Object.entries(r.mentions).map(([v,n])=>`${DAYOFF_SEARCH.label(v,state.lang)}: ${n===1?t("srReview1"):t("srReviews",{n})}`).join(" · "):"";
+  return `${ev?ev+". ":""}${p.reviews===false?t("srNoReviews")+". ":""}${t("srSource")}.`;
+}
+function srNote(){
+  const s=F.sr; if(!SEARCH_ON||!s||!F.q.trim()) return "";
+  const txt=s.busy?t("srBusy"):s.mode==="down"?t("srDown"):s.mode==="none"?t("srNone",{q:esc(s.q)}):s.degraded?t("srDegraded"):"";
+  return txt?`<p class="note" role="status" data-testid="search-note">${icon("info")}<span>${txt}</span></p>`:"";
+}
+function showResults(){ const r=$("#results"); if(r){ r.innerHTML=resultsHTML(); mapSig=""; renderMap(); } }
+async function vibeSearch(){
+  if(!SEARCH_ON) return;
+  const q=F.q.trim(), ask=F.srAsk=(F.srAsk||0)+1;
+  if(!q){ F.sr=null; showResults(); return; }
+  F.sr={...F.sr,q,busy:true}; showResults();
+  const pt=startPt(), r=await DAYOFF_SEARCH.search(q,{lat:pt.lat,lng:pt.lng});
+  if(ask!==F.srAsk) return;                                   /* a newer search took over */
+  F.sr=r?{q,mode:r.mode,list:r.list.filter(x=>P[x.id]),degraded:r.degraded}:{q,mode:"down"};
+  showResults();
+}
 function exploreList(){
+  if(SEARCH_ON){                                              /* service places carry no vibe scores of their own */
+    const s=F.q.trim()?F.sr:null, sr=!!(s&&s.list);
+    let list=(sr?s.list:[...PLACES].sort((a,b)=>meters(startPt(),a)-meters(startPt(),b)).map(p=>({id:p.id,m:null}))).filter(r=>inArea(P[r.id]));
+    if(F.openNow) list=list.filter(r=>isOpen(P[r.id]));
+    return {list:list.slice(0,12),tags:[],sr};
+  }
   const pq=parseQuery(F.q), tags=[...new Set([...pq.tags,...F.tags])], q=F.q||(F.tags.length?" ":"");
   let list=rank(q,{tags,cafe:pq.cafe}).list.filter(r=>inArea(P[r.id]));
   if(!q) list.sort((a,b)=>meters(startPt(),P[a.id])-meters(startPt(),P[b.id]));
@@ -1063,34 +1101,34 @@ function exploreList(){
   return {list:list.slice(0,12),tags};
 }
 function resultsHTML(){
-  const {list,tags}=exploreList();
-  if(!list.length) return `<div class="card empty" data-testid="no-results"><h2>${t("none")}</h2></div>`;
-  return `<ul class="pcs" data-testid="results">${list.map((r,idx)=>{
+  const {list,tags,sr}=exploreList();
+  if(!list.length) return `${srNote()}<div class="card empty" data-testid="no-results"><h2>${t("none")}</h2></div>`;
+  return `${srNote()}<ul class="pcs" data-testid="results">${list.map((r,idx)=>{
     const p=P[r.id], inT=state.tray.includes(p.id), must=F.musts.has(p.id), open=F.more.has(p.id), nmx=nm(p);
     const mine=(tags.length?tags:Object.keys(p.tags)).filter(x=>p.tags[x]!=null).sort((x,y)=>p.tags[y]-p.tags[x]);
-    const best=tags.length&&idx===0?`<span class="best">${t("best")}</span>`:"";
+    const best=(tags.length||sr&&r.vibe&&r.vibe.matched.length)&&idx===0?`<span class="best">${t("best")}</span>`:"";
     const stat=p.status==="unknown"?`<span class="st warn">${icon("alert")}${t("hoursUnknown")}</span>`:p.status==="closed"?`<span class="st warn">${icon("alert")}${t("closedToday")}</span>`:"";
-    const why=tags.length?t("matchLine",{a:TAGNAME[state.lang][mine[0]],x:p.tags[mine[0]]}):t("matchTags",{a:mine.slice(0,2).map(x=>TAGNAME[state.lang][x]).join(", ")});
+    const why=SEARCH_ON?searchWhy(r,p):tags.length?t("matchLine",{a:TAGNAME[state.lang][mine[0]],x:p.tags[mine[0]]}):t("matchTags",{a:mine.slice(0,2).map(x=>TAGNAME[state.lang][x]).join(", ")});
     const from=esc(startPt().name||t("hualam"));
     return `<li class="card pc" data-id="${p.id}" data-in="${inT}">
       <button type="button" class="pc-add" data-act="info" data-id="${p.id}" data-fk="open-${p.id}" data-testid="open-${p.id}" aria-label="${esc(nmx)}"></button>
       <div class="pc-media">${artOf(p,0,"pc-thumb")}${best}<button type="button" class="pc-plus" data-act="add" data-id="${p.id}" data-fk="add-${p.id}" data-testid="add-${p.id}" aria-pressed="${inT}" aria-label="${esc(inT?t("added",{name:nmx}):t("add",{name:nmx}))}">${icon(inT?"check":"plus")}</button></div>
       <div class="pc-body"><div class="name-line"><h3>${esc(nmx)}</h3>${stat}</div>
-        <p class="why1">${esc(why)}</p>
+        ${why?`<p class="why1">${esc(why)}</p>`:""}
         <p class="meta">${AREA[state.lang][p.area]||""} · ${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)}${p.status==="ok"?` · ${esc(statusText(p))}`:""}${tags.length?` · ${t("matchPct",{n:Math.round(r.m*100)})}`:""}</p></div>
       <div class="pc-acts"><button type="button" class="pc-link" data-act="why" data-id="${p.id}" data-fk="why-${p.id}" aria-expanded="${open}" aria-controls="more-${p.id}">${t("why")}${icon("chev")}</button>
         <button type="button" class="pc-star" data-act="star" data-id="${p.id}" data-fk="star-${p.id}" data-testid="star-${p.id}" aria-pressed="${must}" aria-label="${esc(must?t("mustOn",{name:nmx}):t("mustOff",{name:nmx}))}">${icon("star")}${t("mustTag")}</button></div>
       <div class="pc-more${open?" open":""}" id="more-${p.id}"><div><div class="body">
         <p>${icon("info")}<span>${TYPENAME[state.lang][p.type]} · ${p.status==="ok"?t("hours",{t:hoursText(p)}):t("hoursUnknown")}</span></p>
         <p>${icon("walk")}<span>${t("walkFrom",{n:walkMin(startPt(),p),name:from})} · ${t("visitN",{n:durOf(p)})}</span></p>
-        <p>${icon("alert")}<span>${t("estNote")}</span></p></div></div></div>
+        <p>${icon("alert")}<span>${SEARCH_ON?esc(srEvidence(r,p)):t("estNote")}</span></p></div></div></div>
     </li>`; }).join("")}</ul>`;
 }
 function placesView(){
   return `${areaBar()}
   <form class="sbox" role="search" data-form="search">${icon("search")}<label class="sr" for="q">${t("searchLbl")}</label>
     <input id="q" type="search" value="${esc(F.q)}" placeholder="${esc(t("searchPh"))}" data-fk="q" autocomplete="off" data-testid="search">${micBtn("q")}</form>
-  <div class="chips">${CHIPS.map(c=>`<button type="button" class="chip" data-act="chip" data-tag="${c.tag}" data-fk="chip-${c.tag}" aria-pressed="${F.tags.includes(c.tag)}">${esc(c[state.lang])}</button>`).join("")}
+  <div class="chips">${SEARCH_ON?DAYOFF_SEARCH.area.vibes.slice(0,6).map(v=>{ const l=v[state.lang]||v.en; return `<button type="button" class="chip" data-act="vchip" data-q="${esc(l)}" data-fk="vchip-${v.id}" data-testid="vchip-${v.id}" aria-pressed="${F.q.trim()===l}">${esc(l)}</button>`; }).join(""):CHIPS.map(c=>`<button type="button" class="chip" data-act="chip" data-tag="${c.tag}" data-fk="chip-${c.tag}" aria-pressed="${F.tags.includes(c.tag)}">${esc(c[state.lang])}</button>`).join("")}
     <button type="button" class="chip" data-act="opennow" data-fk="opennow" aria-pressed="${F.openNow}">${icon("clock")}${t("openNow")}</button></div>
   <div id="results">${resultsHTML()}</div>`;
 }
@@ -1288,7 +1326,7 @@ const SEEDT=[
   {id:"s4",off:2,stops:["naam","hoytod","fishball"],title:{en:"Street food night",th:"คืนกินของริมทาง"},done:false},
 ];
 function allTrips(){
-  const seeds=SEEDT.map((s,k)=>{ let st=s.stops.filter(id=>P[id]); if(st.length<2) st=PLACES.slice(k,k+3).map(p=>p.id); return {id:s.id,date:isoOf(addDays(TODAY,s.off)),stops:st,title:s.title,done:s.done,seed:true}; });
+  const seeds=SEEDT.map((s,k)=>{ let st=s.stops.filter(id=>P[id]); if(st.length<2) st=threeFrom(k); return {id:s.id,date:isoOf(addDays(TODAY,s.off)),stops:st,title:s.title,done:s.done,seed:true}; });
   return [...UT,...seeds];
 }
 function syncTrip(){
@@ -1674,6 +1712,7 @@ function infoHTML(id){
   const mine=Object.keys(p.tags).filter(x=>p.tags[x]!=null).sort((x,y)=>p.tags[y]-p.tags[x]);
   let body;
   if(tab==="photos") body=`<div class="pi-photos">${[0,1,2,3].map(i=>artOf(p,i)).join("")}</div><p class="sub">${t("piNote")}</p>`;
+  else if(tab==="vibe"&&SEARCH_ON) body=`<p class="sub" data-testid="pi-evidence">${esc(srEvidence(srHit(id),p))}</p>`;
   else if(tab==="vibe") body=`<div>${mine.map(k=>`<div class="vrow"><span>${esc(TAGNAME[state.lang][k])}</span><i><b style="transform:scaleX(${p.tags[k]/5})"></b></i><span>${p.tags[k]}/5</span></div>`).join("")}</div><p class="sub">${t("piEst")}</p>`;
   else body=`<div class="pi-head"><div><h2>${esc(nmx)}</h2><p class="meta">${TYPENAME[state.lang][p.type]} · ${priceBand(p.price)} · ${AREA[state.lang][p.area]||""}</p></div>${artOf(p,0)}</div>
     <div class="pi-acts"><button type="button" class="btn ${inT?"dark":"primary"}" data-act="add" data-id="${id}" data-fk="pi-add" data-testid="pi-add" aria-pressed="${inT}">${icon(inT?"check":"plus")}${t(inT?"piIn":"piAdd")}</button>
@@ -1771,6 +1810,7 @@ document.addEventListener("click",e=>{
   else if(a==="info-x") closeInfo();
   else if(a==="info-nav") openNavSheet(id,"info");
   else if(a==="opennow"){ F.openNow=!F.openNow; render(); }
+  else if(a==="vchip"){ F.q=F.q.trim()===b.dataset.q?"":b.dataset.q; render(); vibeSearch(); }
   else if(a==="chip"){ const g=b.dataset.tag; F.tags=F.tags.includes(g)?F.tags.filter(x=>x!==g):[...F.tags,g]; render(); }
   else if(a==="mic") listen(b.dataset.for);
   else if(a==="add"){ addPlace(id); render(); }
@@ -1825,7 +1865,7 @@ document.addEventListener("change",e=>{
   else if(c==="until"){ const m=toMin(v); if(m==null) return; F.next.until=m; F.next.id=null; render(); }
 });
 document.addEventListener("submit",e=>{ if(e.target.dataset.form==="nsay"){ e.preventDefault(); const v=$("#nq").value.trim(); if(v) nextSay(v); return; }
-   if(e.target.dataset.form==="search"){ e.preventDefault(); F.q=$("#q").value; render(); } });
+   if(e.target.dataset.form==="search"){ e.preventDefault(); F.q=$("#q").value; render(); vibeSearch(); } });
 let qT=null;
 document.addEventListener("input",e=>{
   if(e.target.id==="q"){ F.q=e.target.value; clearTimeout(qT); qT=setTimeout(()=>{ const r=$("#results"); if(r){ r.innerHTML=resultsHTML(); mapSig=""; renderMap(); } },180); }

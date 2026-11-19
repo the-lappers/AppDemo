@@ -134,3 +134,57 @@ test.describe('Search service endpoints', () => {
     expect(await (await request.get('/places.js')).text()).not.toContain('DAYOFF_AREA');
   });
 });
+
+test.describe('Vibe search service on the redesign page', () => {
+  const REDESIGN = '/day-off-redesign.html?lang=en&at=Sat-11:00&s=explore&x=places';
+  const find = async (page: Page, text: string) => { await page.getByTestId('search').fill(text); await page.getByTestId('search').press('Enter'); };
+
+  test('Explore shows the service ranking with what reviews say; typing alone does not search', async ({ page }) => {
+    const errors: string[] = []; page.on('pageerror', (e) => errors.push(e.message));
+    const asked = await searchWorld(page);
+    await page.goto(REDESIGN);
+    await expect(page.locator('.areabar')).toContainText('Ratchayothin');
+    await page.getByTestId('search').fill('bright cafe with plants');
+    await page.waitForTimeout(400);
+    expect(asked.length).toBe(0);
+    await page.getByTestId('search').press('Enter');
+    const first = page.getByTestId('results').locator('.pc').first();
+    await expect(first).toContainText('Bright Room Cafe');
+    await expect(first).toContainText('Reviews call it bright, leafy');
+    await expect(first.locator('.best')).toHaveText('Best match');
+    await expect(page.getByTestId('results')).not.toContainText('/5');     // no invented vibe scores
+    expect(asked.length).toBe(1);
+    expect(asked[0].query).toBe('bright cafe with plants');
+    expect(asked[0].lat).toBeCloseTo(13.82975, 3);
+    await first.getByRole('button', { name: /Why this match/ }).click();
+    await expect(first).toContainText('bright: 7 reviews');
+    expect(errors).toEqual([]);
+  });
+
+  test('the chips are the service vibes and run a search', async ({ page }) => {
+    const asked = await searchWorld(page);
+    await page.goto(REDESIGN);
+    await page.getByTestId('vchip-green').click();
+    await expect(page.getByTestId('search')).toHaveValue('leafy');
+    await expect(page.getByTestId('results').locator('.pc').first()).toContainText('Bright Room Cafe');
+    expect(asked[0].query).toBe('leafy');
+  });
+
+  test('when the service fails, places stay nearest first and the page says so', async ({ page }) => {
+    await searchWorld(page, () => ({ status: 500, body: {} }));
+    await page.goto(REDESIGN);
+    await find(page, 'bright cafe');
+    await expect(page.getByTestId('search-note')).toContainText("isn't answering");
+    await expect(page.getByTestId('results').locator('.pc').first()).toBeVisible();
+  });
+
+  test('the place sheet shows review evidence, not vibe scores', async ({ page }) => {
+    await searchWorld(page);
+    await page.goto(REDESIGN);
+    await find(page, 'bright cafe with plants');
+    await page.getByTestId('open-v-bright').click();
+    await page.getByRole('tab', { name: 'Vibe' }).or(page.getByRole('button', { name: 'Vibe', exact: true })).first().click();
+    await expect(page.getByTestId('pi-evidence')).toContainText('bright: 7 reviews');
+    await expect(page.getByTestId('pinfo')).not.toContainText('/5');
+  });
+});
